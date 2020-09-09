@@ -1,6 +1,55 @@
-library(readxl)
 library(tidyverse)
 library(lubridate)
+library(RODBC)
+
+conn <- odbcConnect("FIM_db")
+SpeciesList   <- sqlFetch(conn, "hsdb_tbl_corp_ref_species_list")
+SpeciesList$NODCCODE <- as.character(SpeciesList$NODCCODE)
+BioNumFull    <- sqlFetch(conn, "hsdb_tbl_corp_biology_number")
+MonthlyMaster <- sqlFetch(conn, "hsdb_tbl_corp_physical_master") %>%
+  filter_at(#remove non-FIM project data
+    vars(starts_with("Project")), 
+    any_vars(str_detect(., regex("AM",ignore_case = TRUE))))
+odbcClose(conn)
+
+# select gear and bay
+RefsList <- MonthlyMaster %>%
+  filter(Gear == 20) %>%
+  filter(str_detect(Reference,"^TBM"))
+
+# clean up biology and merge with selected references --------
+
+CleanBio20 <- BioNumFull %>%
+  select(Reference, Species_record_id, Splittype, Splitlevel, Cells, 
+         NODCCODE, Number, FHC) %>%
+  filter(FHC != "D" &
+           #remove unidentified species
+           !NODCCODE %in% c("9999000000") &
+           #remove freshwater prawns
+           !NODCCODE %in% c("6179110200", "6179110201")) %>%
+  collect() %>%
+  filter(#remove all turtles, by NODCCODEs that start with 9002
+    !str_detect(NODCCODE, "^9002"),
+    #remove all grass shrimp, by NODCCODEs that start with 617911
+    !str_detect(NODCCODE, "^617911")) %>%
+  #subset to references of interest
+  inner_join(RefsList, by = "Reference") %>%
+  #account for splitter
+  mutate(Count = case_when(!is.na(as.numeric(Splittype)) ~ Number*(as.numeric(Splittype)^as.numeric(Splitlevel)),
+                           TRUE ~ as.numeric(Number))) %>%
+  select(-Splittype, -Splitlevel, -Species_record_id, -Cells, -FHC) %>%
+  group_by(Reference, NODCCODE) %>%
+  mutate(N = sum(Count)) %>%
+  select(-Count, -Number) %>%
+  distinct() %>%
+  ungroup() %>%
+  #select only a few variables and expand sampling date
+  select(Reference, NODCCODE, Sampling_Date, Stratum, Zone,
+         Grid, BottomVegCover,BycatchQuantity, Bank, ShoreDistance, N) %>%
+  mutate(month = month(Sampling_Date), year = year(Sampling_Date)) %>%
+  select(-Sampling_Date)
+
+# -----------
 
 #Red Tide Switch
 #Coded as months of interest: e.g., Jul-Oct
@@ -14,61 +63,58 @@ RTS <- c(7:10)
 AncSpp <- c(8747020209, 8747020203, 8747020201, 8747020204, 8747020205, 8747020202, 8747020200)
 EucSpp <- c(8835390101, 8835390102, 8835390111, 8835390108, 8835390109, 8835390104, 8835390105, 8835390100)
 
-# import Excel files
-NODCFull  <- read_excel("C:/Users/Gymnothorax/Google Drive/FIM_Data/gearCode20/TBM20AEZonesGridsRT.xlsx", sheet = "TBM20AEZones")
-NODCCodes <- read_excel("C:/Users/Gymnothorax/Google Drive/FIM_Data/SpeciesCodes.xlsx", sheet = "SpeciesCodes")
-
 # replace all DTI txa with string then replace that string with the appropriate NODC Code
-# then group by reference and NODC Code to combine duplicates (other columns needed to show up after summarise)
+# then group by reference and NODC Code to combine duplicates
 # i.e., combines multiple reports of same NODC Code per reference (haul)
 # covers modified codes above and multiple counts of taxa (as with LaRh)
-NODC_NoDTI <- NODCFull %>%
+NODC_NoDTI <- CleanBio20 %>%
   mutate(NODCCODE=replace(NODCCODE, NODCCODE %in% AncSpp, "AncSpp")) %>%
   mutate(NODCCODE=replace(NODCCODE, NODCCODE %in% EucSpp, "EucSpp")) %>%
   mutate(NODCCODE=replace(NODCCODE, NODCCODE == "AncSpp", 8747020200)) %>%
   mutate(NODCCODE=replace(NODCCODE, NODCCODE == "EucSpp", 8835390100)) %>%
-  group_by(Reference, NODCCODE, Zone, Stratum, Grid, Sampling_Date) %>%
-  summarise(Abundance = sum(Number))
+  group_by(Reference, NODCCODE) %>%
+  mutate(N2 = sum(N)) %>%
+  select(-N) %>%
+  distinct() %>%
+  ungroup()
 
 # lookup NODC Codes against human readable names
-NODC_to_HR <- merge(NODC_NoDTI, NODCCodes[,c(1:2)])
+CleanHRBio <- inner_join(NODC_NoDTI, SpeciesList, by = "NODCCODE") %>%
+  select(Reference, Scientificname, month, year, Stratum, Zone,
+         Grid, BottomVegCover,BycatchQuantity, #Bank, 
+         ShoreDistance, N2) %>%
+  mutate(#normalize Zone strings
+    Zone = str_trim(str_to_upper(Zone)))
 
 # select only RT months
-
-# RT_Abund <- NODC_to_HR %>%
-#   mutate(month = month(Sampling_Date), year = year(Sampling_Date)) %>%
-#   mutate(RTLogic=(year == 2005)) %>%
-#   filter(month %in% RTS)
-RT_Abund <- NODC_to_HR %>%
-  mutate(month = month(Sampling_Date), year = year(Sampling_Date)) %>%
+RT_Abund <- CleanHRBio %>%
   mutate(RTLogic = "Before") %>%
   mutate(RTLogic = replace(RTLogic, year == 2005, "During")) %>%
-  mutate(RTLogic = replace(RTLogic, year > 2005, "After"))%>%
-  filter(month %in% RTS)
+  mutate(RTLogic = replace(RTLogic, year > 2005, "After")) %>%
+  filter(month %in% RTS) %>%
+  filter(#remove early years
+    year >= 1998)
 
-# drop NODC Code here and then spread via scientific name
-TrawlFull <- RT_Abund[,c(2:11)] %>%
-  spread(Scientificname, Abundance) %>%
+# spread via scientific name
+HaulFull <- RT_Abund %>%
+  spread(Scientificname, N2) %>%
   replace(is.na(.),0)
 
-# pull all environmental data out (basically not abundance data)
-TrawlEnv <- TrawlFull %>%
+# pull all environmental data out
+HaulEnv <- HaulFull %>%
   select(Reference:RTLogic) %>%
   as.data.frame()
 
 # set zone as factor for rank abundance stuff
-TrawlEnv$Zone <- as.factor(TrawlEnv$Zone)
+HaulEnv$Zone <- as.factor(HaulEnv$Zone)
 
 # pull all abundance data out
-TrawlAbun <- TrawlFull %>%
+HaulAbun <- HaulFull %>%
   subset(select = -c(Reference:RTLogic)) %>%
   as.data.frame()
 
-#library(nlme)
-#library(MASS)
 library(vegan)
 library(vegan3d)
-#library(BiodiversityR)
 library(goeveg)
 library(scales)
 library(ggrepel)
@@ -76,7 +122,7 @@ library(ggrepel)
 source('C:/Users/Gymnothorax/Box/Graduate/RGD/R Scripts/HaulWise.R')
 
 ##### SCHRAM - Rank Abundance Rebooted ####
-Haul_PW <- HaulWise(TrawlFull, 1, "Zone", "RTLogic")
+Haul_PW <- HaulWise(HaulFull, 1, "Zone", "RTLogic")
 
 for (i in 1:length(Haul_PW)){
   temp_df <- as.data.frame(racurve(select(Haul_PW[[i]], -(Reference:RTLogic))))
@@ -101,6 +147,8 @@ rm(A_After,A_Before,A_During,
    C_After,C_Before,C_During, 
    D_After,D_Before,D_During,
    E_After,E_Before,E_During)
+
+rm(Haul_PW)
 
 #Ranked Abundance Plot
 ggplot(Haul_RA, aes(rank, abund))+
