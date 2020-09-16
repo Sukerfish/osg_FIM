@@ -118,8 +118,9 @@ library(vegan3d)
 library(goeveg)
 library(scales)
 library(ggrepel)
+library(devtools)
 
-source('C:/Users/Gymnothorax/Box/Graduate/RGD/R Scripts/HaulWise.R')
+source_url("https://github.com/Sukerfish/osg_FIM/blob/master/HaulWise.R?raw=TRUE")
 
 ##### SCHRAM - Rank Abundance Rebooted ####
 Haul_PW <- HaulWise(HaulFull, 1, "Zone", "RTLogic")
