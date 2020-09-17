@@ -54,6 +54,8 @@ CleanBio20 <- BioNumFull %>%
 #Red Tide Switch
 #Coded as months of interest: e.g., Jul-Oct
 RTS <- c(7:10)
+StartYear <- 1998
+EndYear <- 2017
 
 #NODC Codes to combine based on
 #Difficult-to-ID taxa (DTI)
@@ -84,7 +86,9 @@ CleanHRBio <- inner_join(NODC_NoDTI, SpeciesList, by = "NODCCODE") %>%
          Grid, BottomVegCover,BycatchQuantity, #Bank, 
          ShoreDistance, N2) %>%
   mutate(#normalize Zone strings
-    Zone = str_trim(str_to_upper(Zone)))
+    Zone = str_trim(str_to_upper(Zone))) %>%
+  mutate(#normalize Stratum strings
+    Stratum = str_trim(str_to_upper(Stratum)))
 
 # select only RT months
 RT_Abund <- CleanHRBio %>%
@@ -93,7 +97,7 @@ RT_Abund <- CleanHRBio %>%
   mutate(RTLogic = replace(RTLogic, year > 2005, "After")) %>%
   filter(month %in% RTS) %>%
   filter(#remove early years
-    year >= 1998)
+    year >= StartYear)
 
 # spread via scientific name
 HaulFull <- RT_Abund %>%
@@ -113,43 +117,127 @@ HaulAbun <- HaulFull %>%
   subset(select = -c(Reference:RTLogic)) %>%
   as.data.frame()
 
+# summary information about the samples
+HaulCount <- HaulFull %>%
+  count(year, Zone)
+HaulMin <- min(HaulCount$n)
+
 library(vegan)
 library(vegan3d)
 library(goeveg)
 library(scales)
 library(ggrepel)
-library(devtools)
+#library(devtools)
 
-source_url("https://github.com/Sukerfish/osg_FIM/blob/master/HaulWise.R?raw=TRUE")
+#source_url("https://github.com/Sukerfish/osg_FIM/blob/master/HaulWise.R?raw=TRUE")
 
-##### SCHRAM - Rank Abundance Rebooted ####
-Haul_PW <- HaulWise(HaulFull, 1, "Zone", "RTLogic")
+##### Yearly Resampled Species Richness ####
 
-for (i in 1:length(Haul_PW)){
-  temp_df <- as.data.frame(racurve(select(Haul_PW[[i]], -(Reference:RTLogic))))
-  temp_df <- mutate(temp_df, Species = rownames(temp_df), .before = "abund")
-  temp_df <- mutate(temp_df, Name = (rep(names(Haul_PW[i]), length(temp_df[[1]]))))
-  temp_df <- separate(temp_df, Name, c("Zone","RTLogic"), sep="_")
-  temp_df <- mutate(temp_df, FoO = (freq/nrow(Haul_PW[[i]])*100))
-  temp_df <- mutate(temp_df, rank = seq.int(nrow(temp_df)))
-  assign(paste(names(Haul_PW[i])), temp_df) 
+# Resample using the minimum samples in the paired values
+HaulSub <- HaulFull %>%
+  group_by(year, Zone) %>%
+  sample_n(HaulMin, replace = FALSE) %>%
+  ungroup()
+
+Haul_Rich <- data.frame("year" = double(),
+                        "A" = double(),
+                        "B" = double(),
+                        "C" = double(),
+                        "D" = double(),
+                        "E" = double())
+
+for (i in 1:20){
+  temp_df <- HaulSub %>%
+    filter(year == i+(StartYear-1))
+  Haul_Rich[i,1]  <- i+(StartYear-1)
+  Haul_Rich[i,-1] <- specnumber(temp_df, temp_df$Zone)
 }
 
-Haul_RA <- rbind(A_After,A_Before,A_During, 
-                 B_After,B_Before,B_During, 
-                 C_After,C_Before,C_During, 
-                 D_After,D_Before,D_During,
-                 E_After,E_Before,E_During)
+Haul_Rich <- Haul_Rich %>%
+  gather('A','B','C','D','E', key = "Zone", value = "Richness")
 
-Haul_RA$RTLogic = factor(Haul_RA$RTLogic, levels = c("Before","During","After"))
+####### OLD METHODS #######
+# Haul_PW <- HaulWise(HaulFull, 1, "year", "Zone")
+# Haul_PW_list <- names(Haul_PW)
+# 
+# for (i in 1:length(Haul_PW)){
+#   temp_rs <- select(# grab only the abundances for each
+#     Haul_PW[[i]], -(Reference:RTLogic))
+#   # resample using the minimum sample size from the above pairs
+#   temp_rs <- temp_rs[sample(nrow(temp_rs), HaulMin), ]
+#   # calculate rankabundance data
+#   temp_df <- as.data.frame(racurve(temp_rs))
+#   temp_df <- mutate(# get species names from rows
+#     temp_df, Species = rownames(temp_df), .before = "abund")
+#   
+#   temp_df <- mutate(temp_df, Name = (rep(names(Haul_PW[i]), length(temp_df[[1]]))))
+#   temp_df <- separate(temp_df, Name, c("year","Zone"), sep="_")
+#   temp_df <- mutate(temp_df, FoO = (freq/nrow(temp_rs)*100))
+#   temp_df <- mutate(temp_df, rank = seq.int(nrow(temp_df)))
+#   assign(paste(names(Haul_PW[i])), temp_df) 
+# }
+# 
+# Haul_RA <- rbind(A_After,A_Before,A_During, 
+#                  B_After,B_Before,B_During, 
+#                  C_After,C_Before,C_During, 
+#                  D_After,D_Before,D_During,
+#                  E_After,E_Before,E_During)
+# 
+# Haul_RA$RTLogic = factor(Haul_RA$RTLogic, levels = c("Before","During","After"))
+# 
+# rm(A_After,A_Before,A_During, 
+#    B_After,B_Before,B_During, 
+#    C_After,C_Before,C_During, 
+#    D_After,D_Before,D_During,
+#    E_After,E_Before,E_During)
+# 
+# rm(Haul_PW)
+# 
+# 
+# Haul_PW <- HaulWise(HaulFull, 1, "Zone", "RTLogic")
+# 
+# for (i in 1:length(Haul_PW)){
+#   temp_df <- as.data.frame(racurve(select(Haul_PW[[i]], -(Reference:RTLogic))))
+#   temp_df <- mutate(temp_df, Species = rownames(temp_df), .before = "abund")
+#   temp_df <- mutate(temp_df, Name = (rep(names(Haul_PW[i]), length(temp_df[[1]]))))
+#   temp_df <- separate(temp_df, Name, c("Zone","RTLogic"), sep="_")
+#   temp_df <- mutate(temp_df, FoO = (freq/nrow(Haul_PW[[i]])*100))
+#   temp_df <- mutate(temp_df, rank = seq.int(nrow(temp_df)))
+#   assign(paste(names(Haul_PW[i])), temp_df) 
+# }
+# 
+# Haul_RA <- rbind(A_After,A_Before,A_During, 
+#                  B_After,B_Before,B_During, 
+#                  C_After,C_Before,C_During, 
+#                  D_After,D_Before,D_During,
+#                  E_After,E_Before,E_During)
+# 
+# Haul_RA$RTLogic = factor(Haul_RA$RTLogic, levels = c("Before","During","After"))
+# 
+# rm(A_After,A_Before,A_During, 
+#    B_After,B_Before,B_During, 
+#    C_After,C_Before,C_During, 
+#    D_After,D_Before,D_During,
+#    E_After,E_Before,E_During)
+# 
+# rm(Haul_PW)
+####### Plots ######
 
-rm(A_After,A_Before,A_During, 
-   B_After,B_Before,B_During, 
-   C_After,C_Before,C_During, 
-   D_After,D_Before,D_During,
-   E_After,E_Before,E_During)
-
-rm(Haul_PW)
+#Beta diversity over time plot
+ggplot(Haul_Rich, aes(x=year))+
+  geom_line(aes(y=Richness, group = 1))+
+  theme_bw()+
+  labs(title = "Richness Over Time")+
+  theme(axis.title = element_text(face = "bold", size = "12"), 
+        axis.text = element_text(size = "12"),
+        strip.text = element_text(face = "bold", size = "14"))+
+  scale_x_continuous(name = "Year", 
+                     limits = c(StartYear,EndYear),
+                     breaks = seq(StartYear,EndYear, 2))+
+  scale_y_continuous(name = "Number of Taxa",
+                     limits = c(0,70))+
+  theme(legend.position="bottom")+
+  facet_grid(Zone ~ .)
 
 #Ranked Abundance Plot
 ggplot(Haul_RA, aes(rank, abund))+
@@ -193,5 +281,3 @@ ggplot(Haul_RA, aes(rank, FoO))+
                   direction = "y",
                   segment.color = "grey")+
   facet_grid(Zone~RTLogic)
-
-##### END SCHRAM AMENDMENTS #####
