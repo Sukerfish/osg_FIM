@@ -121,6 +121,8 @@ HaulAbun <- HaulFull %>%
 HaulCount <- HaulFull %>%
   count(year, Zone)
 HaulMin <- min(HaulCount$n)
+ZoneList <- str_sort(unique(HaulFull$Zone))
+ZoneCount <- length(ZoneList)
 
 library(vegan)
 library(vegan3d)
@@ -133,28 +135,62 @@ library(ggrepel)
 
 ##### Yearly Resampled Species Richness ####
 
-# Resample using the minimum samples in the paired values
+# initialize
+Haul_AvgRich <- setNames(data.frame(matrix(ncol = ZoneCount+1, nrow = 0)), c("year", ZoneList))
+
+for (i in 1:((EndYear-StartYear)+1)){
+  temp_df <- HaulFull %>%
+    # filter by year and then remove everything but spp and Zone
+    filter(year == i+(StartYear-1)) %>%
+    subset(select = -c(month:RTLogic))
+    #subset(select = -c(Grid:RTLogic)) %>%
+    #subset(select = -c(Reference:Stratum))
+  # assign year to row
+  Haul_AvgRich[i,1]  <- i+(StartYear-1)
+  # calculate richness
+  Haul_AvgRich[i,-1] <- specnumber(temp_df, temp_df$Reference)
+}
+
+# more processing
+Haul_AvgRich <- Haul_AvgRich %>%
+  # rearrange and group
+  gather(all_of(ZoneList), key = "Zone", value = "Richness") %>%
+  group_by(year, Zone) %>%
+  # calculate mean/CIs
+  summarise(mean.Rich = mean(Richness, na.rm = TRUE),
+            sd.Rich = sd(Richness, na.rm = TRUE),
+            n.Rich = n()) %>%
+  mutate(se.Rich = sd.Rich / sqrt(n.Rich),
+         lower.ci.Rich = mean.Rich - qt(1 - (0.05 / 2), n.Rich - 1) * se.Rich,
+         upper.ci.Rich = mean.Rich + qt(1 - (0.05 / 2), n.Rich - 1) * se.Rich)
+  
+  
+  summarise(ci = list(mean_cl_normal(Richness) %>% 
+                        rename(mean=y, lwr=ymin, upr=ymax))) %>% 
+  # expand out
+  unnest(cols = c(ci))
+
+# Resample and recalculate using the minimum samples in the paired values
 HaulSub <- HaulFull %>%
   group_by(year, Zone) %>%
+  # resample point
   sample_n(HaulMin, replace = FALSE) %>%
   ungroup()
 
-Haul_Rich <- data.frame("year" = double(),
-                        "A" = double(),
-                        "B" = double(),
-                        "C" = double(),
-                        "D" = double(),
-                        "E" = double())
+# initialize
+Haul_RsRich <- setNames(data.frame(matrix(ncol = ZoneCount+1, nrow = 0)), c("year", ZoneList))
 
-for (i in 1:20){
+for (i in 1:((EndYear-StartYear)+1)){
   temp_df <- HaulSub %>%
-    filter(year == i+(StartYear-1))
-  Haul_Rich[i,1]  <- i+(StartYear-1)
-  Haul_Rich[i,-1] <- specnumber(temp_df, temp_df$Zone)
+    filter(year == i+(StartYear-1)) %>%
+    subset(select = -c(Grid:RTLogic)) %>%
+    subset(select = -c(Reference:Stratum))
+  Haul_RsRich[i,1]  <- i+(StartYear-1)
+  Haul_RsRich[i,-1] <- specnumber(temp_df, temp_df$Zone)
 }
 
-Haul_Rich <- Haul_Rich %>%
-  gather('A','B','C','D','E', key = "Zone", value = "Richness")
+Haul_RsRich <- Haul_RsRich %>%
+  gather(all_of(ZoneList), key = "Zone", value = "Richness")
 
 ####### OLD METHODS #######
 # Haul_PW <- HaulWise(HaulFull, 1, "year", "Zone")
@@ -224,8 +260,11 @@ Haul_Rich <- Haul_Rich %>%
 ####### Plots ######
 
 #Beta diversity over time plot
-ggplot(Haul_Rich, aes(x=year))+
+ggplot(Haul_RsRich, aes(x=year))+
   geom_line(aes(y=Richness, group = 1))+
+  geom_ribbon(aes(ymin=Haul_AvgRich$lwr, ymax=Haul_AvgRich$upr), linetype=2, alpha=0.1)+
+  #geom_errorbar(aes(x = year, ymin = Haul_AvgRich$lwr, ymax = Haul_AvgRich$upr),
+                #color="purple",width=0.1,size=1)+
   theme_bw()+
   labs(title = "Richness Over Time")+
   theme(axis.title = element_text(face = "bold", size = "12"), 
