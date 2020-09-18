@@ -49,7 +49,7 @@ CleanBio20 <- BioNumFull %>%
   mutate(month = month(Sampling_Date), year = year(Sampling_Date)) %>%
   select(-Sampling_Date)
 
-# -----------
+##### Subsetting for Analyses #####
 
 #Red Tide Switch
 #Coded as months of interest: e.g., Jul-Oct
@@ -142,33 +142,27 @@ for (i in 1:((EndYear-StartYear)+1)){
   temp_df <- HaulFull %>%
     # filter by year and then remove everything but spp and Zone
     filter(year == i+(StartYear-1)) %>%
-    subset(select = -c(month:RTLogic))
-    #subset(select = -c(Grid:RTLogic)) %>%
-    #subset(select = -c(Reference:Stratum))
+    subset(select = -c(Grid:RTLogic)) %>%
+    subset(select = -c(Reference:Stratum))
   # assign year to row
   Haul_AvgRich[i,1]  <- i+(StartYear-1)
   # calculate richness
-  Haul_AvgRich[i,-1] <- specnumber(temp_df, temp_df$Reference)
+  Haul_AvgRich[i,-1] <- specnumber(temp_df, temp_df$Zone)
 }
 
 # more processing
-Haul_AvgRich <- Haul_AvgRich %>%
+RichnessMetrics <- Haul_AvgRich %>%
   # rearrange and group
   gather(all_of(ZoneList), key = "Zone", value = "Richness") %>%
-  group_by(year, Zone) %>%
+  select(-year) %>%
+  group_by(Zone) %>%
   # calculate mean/CIs
-  summarise(mean.Rich = mean(Richness, na.rm = TRUE),
-            sd.Rich = sd(Richness, na.rm = TRUE),
+  summarise(mean.Rich = mean(Richness),
+            sd.Rich = sd(Richness),
             n.Rich = n()) %>%
   mutate(se.Rich = sd.Rich / sqrt(n.Rich),
-         lower.ci.Rich = mean.Rich - qt(1 - (0.05 / 2), n.Rich - 1) * se.Rich,
-         upper.ci.Rich = mean.Rich + qt(1 - (0.05 / 2), n.Rich - 1) * se.Rich)
-  
-  
-  summarise(ci = list(mean_cl_normal(Richness) %>% 
-                        rename(mean=y, lwr=ymin, upr=ymax))) %>% 
-  # expand out
-  unnest(cols = c(ci))
+         lower.ci.Rich = mean.Rich - (1.96 * se.Rich),
+         upper.ci.Rich = mean.Rich + (1.96 * se.Rich))
 
 # Resample and recalculate using the minimum samples in the paired values
 HaulSub <- HaulFull %>%
@@ -192,77 +186,15 @@ for (i in 1:((EndYear-StartYear)+1)){
 Haul_RsRich <- Haul_RsRich %>%
   gather(all_of(ZoneList), key = "Zone", value = "Richness")
 
-####### OLD METHODS #######
-# Haul_PW <- HaulWise(HaulFull, 1, "year", "Zone")
-# Haul_PW_list <- names(Haul_PW)
-# 
-# for (i in 1:length(Haul_PW)){
-#   temp_rs <- select(# grab only the abundances for each
-#     Haul_PW[[i]], -(Reference:RTLogic))
-#   # resample using the minimum sample size from the above pairs
-#   temp_rs <- temp_rs[sample(nrow(temp_rs), HaulMin), ]
-#   # calculate rankabundance data
-#   temp_df <- as.data.frame(racurve(temp_rs))
-#   temp_df <- mutate(# get species names from rows
-#     temp_df, Species = rownames(temp_df), .before = "abund")
-#   
-#   temp_df <- mutate(temp_df, Name = (rep(names(Haul_PW[i]), length(temp_df[[1]]))))
-#   temp_df <- separate(temp_df, Name, c("year","Zone"), sep="_")
-#   temp_df <- mutate(temp_df, FoO = (freq/nrow(temp_rs)*100))
-#   temp_df <- mutate(temp_df, rank = seq.int(nrow(temp_df)))
-#   assign(paste(names(Haul_PW[i])), temp_df) 
-# }
-# 
-# Haul_RA <- rbind(A_After,A_Before,A_During, 
-#                  B_After,B_Before,B_During, 
-#                  C_After,C_Before,C_During, 
-#                  D_After,D_Before,D_During,
-#                  E_After,E_Before,E_During)
-# 
-# Haul_RA$RTLogic = factor(Haul_RA$RTLogic, levels = c("Before","During","After"))
-# 
-# rm(A_After,A_Before,A_During, 
-#    B_After,B_Before,B_During, 
-#    C_After,C_Before,C_During, 
-#    D_After,D_Before,D_During,
-#    E_After,E_Before,E_During)
-# 
-# rm(Haul_PW)
-# 
-# 
-# Haul_PW <- HaulWise(HaulFull, 1, "Zone", "RTLogic")
-# 
-# for (i in 1:length(Haul_PW)){
-#   temp_df <- as.data.frame(racurve(select(Haul_PW[[i]], -(Reference:RTLogic))))
-#   temp_df <- mutate(temp_df, Species = rownames(temp_df), .before = "abund")
-#   temp_df <- mutate(temp_df, Name = (rep(names(Haul_PW[i]), length(temp_df[[1]]))))
-#   temp_df <- separate(temp_df, Name, c("Zone","RTLogic"), sep="_")
-#   temp_df <- mutate(temp_df, FoO = (freq/nrow(Haul_PW[[i]])*100))
-#   temp_df <- mutate(temp_df, rank = seq.int(nrow(temp_df)))
-#   assign(paste(names(Haul_PW[i])), temp_df) 
-# }
-# 
-# Haul_RA <- rbind(A_After,A_Before,A_During, 
-#                  B_After,B_Before,B_During, 
-#                  C_After,C_Before,C_During, 
-#                  D_After,D_Before,D_During,
-#                  E_After,E_Before,E_During)
-# 
-# Haul_RA$RTLogic = factor(Haul_RA$RTLogic, levels = c("Before","During","After"))
-# 
-# rm(A_After,A_Before,A_During, 
-#    B_After,B_Before,B_During, 
-#    C_After,C_Before,C_During, 
-#    D_After,D_Before,D_During,
-#    E_After,E_Before,E_During)
-# 
-# rm(Haul_PW)
 ####### Plots ######
-
 #Beta diversity over time plot
 ggplot(Haul_RsRich, aes(x=year))+
   geom_line(aes(y=Richness, group = 1))+
-  geom_ribbon(aes(ymin=Haul_AvgRich$lwr, ymax=Haul_AvgRich$upr), linetype=2, alpha=0.1)+
+  geom_hline(data=RichnessMetrics, aes(yintercept = mean.Rich))+
+  geom_ribbon(data=merge(RichnessMetrics, Haul_RsRich),
+              aes(ymin=lower.ci.Rich, 
+                  ymax=upper.ci.Rich), 
+              linetype=2, alpha=0.1)+
   #geom_errorbar(aes(x = year, ymin = Haul_AvgRich$lwr, ymax = Haul_AvgRich$upr),
                 #color="purple",width=0.1,size=1)+
   theme_bw()+
