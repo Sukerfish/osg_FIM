@@ -17,6 +17,14 @@ RefsList <- MonthlyMaster %>%
   filter(Gear == 20) %>%
   filter(str_detect(Reference,"^TBM"))
 
+# Establish Zone filter
+ZoneFilter = c("A"
+               ,"B"
+               ,"C"
+               ,"D"
+               ,"E"
+               )
+
 # clean up biology and merge with selected references --------
 
 CleanBio20 <- BioNumFull %>%
@@ -90,9 +98,6 @@ CleanHRBio <- inner_join(NODC_NoDTI, SpeciesList, by = "NODCCODE") %>%
   mutate(#normalize Stratum strings
     Stratum = str_trim(str_to_upper(Stratum)))
 
-# Establish Zone filter
-ZoneFilter = c("A", "B", "C", "D", "E")
-
 # select only RT months and other filters
 RT_Abund <- CleanHRBio %>%
   mutate(RTLogic = "Before") %>%
@@ -125,8 +130,8 @@ HaulAbun <- HaulFull %>%
 HaulCount <- HaulFull %>%
   count(year, Zone)
 HaulMin <- min(HaulCount$n)
-ZoneList <- str_sort(unique(HaulFull$Zone))
-ZoneCount <- length(ZoneList)
+#ZoneList <- str_sort(unique(HaulFull$Zone))
+ZoneCount <- length(ZoneFilter)
 
 library(vegan)
 library(vegan3d)
@@ -145,7 +150,7 @@ HaulSub <- HaulFull %>%
 
 # calculate average richness per haul using the subsampled data
 # initialize
-Haul_AvgRich <- setNames(data.frame(matrix(ncol = ZoneCount+1, nrow = 0)), c("year", ZoneList))
+Haul_AvgRich <- setNames(data.frame(matrix(ncol = ZoneCount+1, nrow = 0)), c("year", ZoneFilter))
 for (i in 1:((EndYear-StartYear)+1)){
   temp_df <- HaulSub %>%
     # filter by year
@@ -153,10 +158,10 @@ for (i in 1:((EndYear-StartYear)+1)){
   # assign year to row
   Haul_AvgRich[i,1]  <- i+(StartYear-1)
   # pass temp_df to zone loop
-  for (j in 1:(length(ZoneList))){
+  for (j in 1:(length(ZoneFilter))){
     temptemp_df <- temp_df %>%
       filter(# grab first zone from the list
-        Zone %in% ZoneList[[j]]) %>%
+        Zone %in% ZoneFilter[[j]]) %>%
       subset(select = -c(month:RTLogic))
     # skip zone if not in db
     if (nrow(temptemp_df) == 0 ) next
@@ -169,7 +174,7 @@ for (i in 1:((EndYear-StartYear)+1)){
 # summary stats and plotting processing
 Haul_tsRich <- Haul_AvgRich %>%
   # rearrange and group
-  gather(all_of(ZoneList), key = "Zone", value = "Richness") %>%
+  gather(all_of(ZoneFilter), key = "Zone", value = "Richness") %>%
   group_by(Zone) %>%
   # calculate as anomalies
   mutate(anom.Rich = Richness - mean(Richness, na.rm = TRUE))
@@ -187,7 +192,7 @@ RichnessAnom_Metrics <- Haul_tsRich %>%
          upper.ci.anom.Rich = 0 + (1.96 * se.anom.Rich))
 
 ####### Plots ######
-#Beta diversity over time plot
+# Richness over time plot
 ggplot(Haul_tsRich, aes(x=year))+
   geom_line(aes(y=anom.Rich))+
   geom_hline(aes(yintercept = 0, color = "darkred"))+
