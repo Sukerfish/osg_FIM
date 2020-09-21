@@ -49,7 +49,7 @@ CleanBio20 <- BioNumFull %>%
   mutate(month = month(Sampling_Date), year = year(Sampling_Date)) %>%
   select(-Sampling_Date)
 
-##### Subsetting for Analyses #####
+##### Tidy up for Analyses #####
 
 #Red Tide Switch
 #Coded as months of interest: e.g., Jul-Oct
@@ -135,11 +135,19 @@ library(ggrepel)
 
 ##### Yearly Resampled Species Richness ####
 
+# Resample using the minimum samples in the paired values
+HaulSub <- HaulFull %>%
+  group_by(year, Zone) %>%
+  # resample point
+  sample_n(HaulMin, replace = FALSE) %>%
+  ungroup()
+
+# calculate average richness using the subsampled data
 # initialize
 Haul_AvgRich <- setNames(data.frame(matrix(ncol = ZoneCount+1, nrow = 0)), c("year", ZoneList))
 
 for (i in 1:((EndYear-StartYear)+1)){
-  temp_df <- HaulFull %>%
+  temp_df <- HaulSub %>%
     # filter by year and then remove everything but spp and Zone
     filter(year == i+(StartYear-1)) %>%
     subset(select = -c(Grid:RTLogic)) %>%
@@ -164,13 +172,7 @@ RichnessMetrics <- Haul_AvgRich %>%
          lower.ci.Rich = mean.Rich - (1.96 * se.Rich),
          upper.ci.Rich = mean.Rich + (1.96 * se.Rich))
 
-# Resample and recalculate using the minimum samples in the paired values
-HaulSub <- HaulFull %>%
-  group_by(year, Zone) %>%
-  # resample point
-  sample_n(HaulMin, replace = FALSE) %>%
-  ungroup()
-
+# Calculate annual richness for the subsampled data
 # initialize
 Haul_RsRich <- setNames(data.frame(matrix(ncol = ZoneCount+1, nrow = 0)), c("year", ZoneList))
 
