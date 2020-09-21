@@ -90,14 +90,18 @@ CleanHRBio <- inner_join(NODC_NoDTI, SpeciesList, by = "NODCCODE") %>%
   mutate(#normalize Stratum strings
     Stratum = str_trim(str_to_upper(Stratum)))
 
-# select only RT months
+# Establish Zone filter
+ZoneFilter = c("A", "B", "C", "D", "E")
+
+# select only RT months and other filters
 RT_Abund <- CleanHRBio %>%
   mutate(RTLogic = "Before") %>%
   mutate(RTLogic = replace(RTLogic, year == 2005, "During")) %>%
   mutate(RTLogic = replace(RTLogic, year > 2005, "After")) %>%
   filter(month %in% RTS) %>%
   filter(#remove early years
-    year >= StartYear)
+    year >= StartYear) %>%
+  filter(Zone %in% ZoneFilter)
 
 # spread via scientific name
 HaulFull <- RT_Abund %>%
@@ -154,6 +158,9 @@ for (i in 1:((EndYear-StartYear)+1)){
       filter(# grab first zone from the list
         Zone %in% ZoneList[[j]]) %>%
       subset(select = -c(month:RTLogic))
+    # skip zone if not in db
+    if (nrow(temptemp_df) == 0 ) next
+    else
     # calculate richness per haul and average it before placement in matrix
     Haul_AvgRich[i,j+1] <- mean(specnumber(temptemp_df, temptemp_df$Reference))
   }
@@ -165,13 +172,15 @@ Haul_tsRich <- Haul_AvgRich %>%
   gather(all_of(ZoneList), key = "Zone", value = "Richness") %>%
   group_by(Zone) %>%
   # calculate as anomalies
-  mutate(anom.Rich = Richness - mean(Richness))
+  mutate(anom.Rich = Richness - mean(Richness, na.rm = TRUE))
 
 RichnessAnom_Metrics <- Haul_tsRich %>%
   select(-year) %>%
+  group_by(Zone) %>%
+  drop_na() %>%
   # calculate mean/CIs
-  summarise(mean.Rich = mean(Richness),
-            sd.anom.Rich = sd(anom.Rich),
+  summarise(mean.Rich = mean(Richness, na.rm = TRUE),
+            sd.anom.Rich = sd(anom.Rich, na.rm = TRUE),
             n.Rich = n()) %>%
   mutate(se.anom.Rich = sd.anom.Rich / sqrt(n.Rich),
          lower.ci.anom.Rich = 0 - (1.96 * se.anom.Rich),
