@@ -129,9 +129,6 @@ library(vegan3d)
 library(goeveg)
 library(scales)
 library(ggrepel)
-#library(devtools)
-
-#source_url("https://github.com/Sukerfish/osg_FIM/blob/master/HaulWise.R?raw=TRUE")
 
 ##### Yearly Resampled Species Richness ####
 
@@ -142,63 +139,53 @@ HaulSub <- HaulFull %>%
   sample_n(HaulMin, replace = FALSE) %>%
   ungroup()
 
-# calculate average richness using the subsampled data
+# calculate average richness per haul using the subsampled data
 # initialize
 Haul_AvgRich <- setNames(data.frame(matrix(ncol = ZoneCount+1, nrow = 0)), c("year", ZoneList))
-
 for (i in 1:((EndYear-StartYear)+1)){
   temp_df <- HaulSub %>%
-    # filter by year and then remove everything but spp and Zone
-    filter(year == i+(StartYear-1)) %>%
-    subset(select = -c(Grid:RTLogic)) %>%
-    subset(select = -c(Reference:Stratum))
+    # filter by year
+    filter(year == i+(StartYear-1))
   # assign year to row
   Haul_AvgRich[i,1]  <- i+(StartYear-1)
-  # calculate richness
-  Haul_AvgRich[i,-1] <- specnumber(temp_df, temp_df$Zone)
+  # pass temp_df to zone loop
+  for (j in 1:(length(ZoneList))){
+    temptemp_df <- temp_df %>%
+      filter(# grab first zone from the list
+        Zone %in% ZoneList[[j]]) %>%
+      subset(select = -c(month:RTLogic))
+    # calculate richness per haul and average it before placement in matrix
+    Haul_AvgRich[i,j+1] <- mean(specnumber(temptemp_df, temptemp_df$Reference))
+  }
 }
 
-# more processing
-RichnessMetrics <- Haul_AvgRich %>%
+# summary stats and plotting processing
+Haul_tsRich <- Haul_AvgRich %>%
   # rearrange and group
   gather(all_of(ZoneList), key = "Zone", value = "Richness") %>%
-  select(-year) %>%
   group_by(Zone) %>%
+  # calculate as anomalies
+  mutate(anom.Rich = Richness - mean(Richness))
+
+RichnessAnom_Metrics <- Haul_tsRich %>%
+  select(-year) %>%
   # calculate mean/CIs
   summarise(mean.Rich = mean(Richness),
-            sd.Rich = sd(Richness),
+            sd.anom.Rich = sd(anom.Rich),
             n.Rich = n()) %>%
-  mutate(se.Rich = sd.Rich / sqrt(n.Rich),
-         lower.ci.Rich = mean.Rich - (1.96 * se.Rich),
-         upper.ci.Rich = mean.Rich + (1.96 * se.Rich))
-
-# Calculate annual richness for the subsampled data
-# initialize
-Haul_RsRich <- setNames(data.frame(matrix(ncol = ZoneCount+1, nrow = 0)), c("year", ZoneList))
-
-for (i in 1:((EndYear-StartYear)+1)){
-  temp_df <- HaulSub %>%
-    filter(year == i+(StartYear-1)) %>%
-    subset(select = -c(Grid:RTLogic)) %>%
-    subset(select = -c(Reference:Stratum))
-  Haul_RsRich[i,1]  <- i+(StartYear-1)
-  Haul_RsRich[i,-1] <- specnumber(temp_df, temp_df$Zone)
-}
-
-Haul_RsRich <- Haul_RsRich %>%
-  gather(all_of(ZoneList), key = "Zone", value = "Richness")
+  mutate(se.anom.Rich = sd.anom.Rich / sqrt(n.Rich),
+         lower.ci.anom.Rich = 0 - (1.96 * se.anom.Rich),
+         upper.ci.anom.Rich = 0 + (1.96 * se.anom.Rich))
 
 ####### Plots ######
 #Beta diversity over time plot
-ggplot(Haul_RsRich, aes(x=year))+
-  geom_line(aes(y=Richness, group = 1))+
-  geom_hline(data=RichnessMetrics, aes(yintercept = mean.Rich))+
-  geom_ribbon(data=merge(RichnessMetrics, Haul_RsRich),
-              aes(ymin=lower.ci.Rich, 
-                  ymax=upper.ci.Rich), 
-              linetype=2, alpha=0.1)+
-  #geom_errorbar(aes(x = year, ymin = Haul_AvgRich$lwr, ymax = Haul_AvgRich$upr),
-                #color="purple",width=0.1,size=1)+
+ggplot(Haul_tsRich, aes(x=year))+
+  geom_line(aes(y=anom.Rich))+
+  geom_hline(aes(yintercept = 0, color = "darkred"))+
+  geom_ribbon(data=merge(RichnessAnom_Metrics, Haul_tsRich),
+              aes(ymin=lower.ci.anom.Rich, 
+                  ymax=upper.ci.anom.Rich), 
+              linetype=2, alpha=0.1, color="purple")+
   theme_bw()+
   labs(title = "Richness Over Time")+
   theme(axis.title = element_text(face = "bold", size = "12"), 
@@ -207,50 +194,7 @@ ggplot(Haul_RsRich, aes(x=year))+
   scale_x_continuous(name = "Year", 
                      limits = c(StartYear,EndYear),
                      breaks = seq(StartYear,EndYear, 2))+
-  scale_y_continuous(name = "Number of Taxa",
-                     limits = c(0,70))+
+  scale_y_continuous(name = "Average Taxa Anomaly from Long Term Mean",
+                     limits = c(-8,8))+
   theme(legend.position="bottom")+
   facet_grid(Zone ~ .)
-
-#Ranked Abundance Plot
-ggplot(Haul_RA, aes(rank, abund))+
-  geom_point()+
-  geom_line()+
-  theme_bw()+
-  labs(title = "Ranked abundance curves")+
-  theme(axis.title = element_text(face = "bold", size = "12"), 
-        axis.text = element_text(size = "12"),
-        strip.text = element_text(face = "bold", size = "14"))+
-  scale_x_continuous(name = "", limits = c(0,110), breaks = seq(0,108,12))+
-  scale_y_continuous(name = "Log10(Abundance)",
-                     trans = log10_trans(),
-                     #limits = c(10^-3, 10^5),
-                     #breaks = trans_breaks("log10", function(x) 10^x),
-                     labels = trans_format("log10", math_format(10^.x)))+
-  geom_text_repel(aes(label=ifelse(rank <= 5, as.character(Species), "")),
-                  force = 1,
-                  size = 3.5,
-                  nudge_x = 95,
-                  direction = "y",
-                  segment.color = "grey"
-  )+
-  facet_grid(Zone~RTLogic)
-
-#Ranked Frequency of Occurence Plot
-ggplot(Haul_RA, aes(rank, FoO))+
-  geom_point()+
-  geom_line()+
-  theme_bw()+
-  labs(title = "Ranked frequency of occurence curves")+
-  theme(axis.title = element_text(face = "bold", size = "12"), 
-        axis.text = element_text(size = "12"),
-        strip.text = element_text(face = "bold", size = "14"))+
-  scale_x_continuous(name = "", limits = c(0,110), breaks = seq(0,108,12))+
-  scale_y_continuous(name = "Frequency of occurrence")+
-  geom_text_repel(aes(label=ifelse(rank <= 5, as.character(Species), "")),
-                  force = 1,
-                  size = 3.5,
-                  nudge_x = 30,
-                  direction = "y",
-                  segment.color = "grey")+
-  facet_grid(Zone~RTLogic)
