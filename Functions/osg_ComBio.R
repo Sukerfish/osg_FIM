@@ -52,7 +52,7 @@ osg_ComBio <- function(df,
   # final lookup of NODC Codes against human readable names
   out <- inner_join(temp_df, HRSpecies, by = "NODCCODE") %>%
     select(Reference, Scientificname, month, year, Stratum, Zone,
-           Grid, BottomVegCover,BycatchQuantity, Bank, 
+           Grid, BottomVegCover,BycatchQuantity, 
            ShoreDistance, N2)
   
   return(out)

@@ -44,7 +44,7 @@ osg_CleanBio <- function(df,
     ungroup() %>%
     #select only a few variables and expand sampling date
     select(Reference, NODCCODE, Sampling_Date, Stratum, Zone,
-           Grid, BottomVegCover,BycatchQuantity, Bank, ShoreDistance, N) %>%
+           Grid, BottomVegCover,BycatchQuantity, ShoreDistance, N) %>%
     mutate(month = month(Sampling_Date), year = year(Sampling_Date)) %>%
     select(-Sampling_Date) %>%
     mutate(#normalize Zone strings
