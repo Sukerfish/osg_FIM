@@ -16,7 +16,7 @@
 #             REQUIRES column named NODCCODE
 #-----------------------------------------------------
 osg_ComBio <- function(df,
-                       HRSpecies){
+                       HRSpecies = NULL){
   
   HRSpecies$NODCCODE <- as.character(HRSpecies$NODCCODE)
   
