@@ -1,6 +1,9 @@
 library(tidyverse)
 library(lubridate)
 library(RODBC)
+library(devtools)
+source_url("https://github.com/Sukerfish/osg_FIM/blob/master/Functions/osg_CleanBio.R?raw=TRUE")
+source_url("https://github.com/Sukerfish/osg_FIM/blob/master/Functions/osg_ComBio.R?raw=TRUE")
 
 conn <- odbcConnect("FIM_db")
 SpeciesList   <- sqlFetch(conn, "hsdb_tbl_corp_ref_species_list")
@@ -26,36 +29,11 @@ ZoneFilter = c("A"
                )
 
 # clean up biology and merge with selected references --------
+CleanBio   <- osg_CleanBio(BioNumFull, RefsList)
 
-CleanBio20 <- BioNumFull %>%
-  select(Reference, Species_record_id, Splittype, Splitlevel, Cells, 
-         NODCCODE, Number, FHC) %>%
-  filter(FHC != "D" &
-           #remove unidentified species
-           !NODCCODE %in% c("9999000000") &
-           #remove freshwater prawns
-           !NODCCODE %in% c("6179110200", "6179110201")) %>%
-  collect() %>%
-  filter(#remove all turtles, by NODCCODEs that start with 9002
-    !str_detect(NODCCODE, "^9002"),
-    #remove all grass shrimp, by NODCCODEs that start with 617911
-    !str_detect(NODCCODE, "^617911")) %>%
-  #subset to references of interest
-  inner_join(RefsList, by = "Reference") %>%
-  #account for splitter
-  mutate(Count = case_when(!is.na(as.numeric(Splittype)) ~ Number*(as.numeric(Splittype)^as.numeric(Splitlevel)),
-                           TRUE ~ as.numeric(Number))) %>%
-  select(-Splittype, -Splitlevel, -Species_record_id, -Cells, -FHC) %>%
-  group_by(Reference, NODCCODE) %>%
-  mutate(N = sum(Count)) %>%
-  select(-Count, -Number) %>%
-  distinct() %>%
-  ungroup() %>%
-  #select only a few variables and expand sampling date
-  select(Reference, NODCCODE, Sampling_Date, Stratum, Zone,
-         Grid, BottomVegCover,BycatchQuantity, Bank, ShoreDistance, N) %>%
-  mutate(month = month(Sampling_Date), year = year(Sampling_Date)) %>%
-  select(-Sampling_Date)
+# merge difficult to ID taxa and convert NODC code to human readable
+CleanHRBio <- osg_ComBio(CleanBio, SpeciesList)
+
 
 ##### Tidy up for Analyses #####
 
@@ -64,39 +42,6 @@ CleanBio20 <- BioNumFull %>%
 RTS <- c(7:10)
 StartYear <- 1998
 EndYear <- 2017
-
-#NODC Codes to combine based on
-#Difficult-to-ID taxa (DTI)
-#AncSpp 8747020200
-#EucSpp 8835390100
-
-AncSpp <- c(8747020209, 8747020203, 8747020201, 8747020204, 8747020205, 8747020202, 8747020200)
-EucSpp <- c(8835390101, 8835390102, 8835390111, 8835390108, 8835390109, 8835390104, 8835390105, 8835390100)
-
-# replace all DTI txa with string then replace that string with the appropriate NODC Code
-# then group by reference and NODC Code to combine duplicates
-# i.e., combines multiple reports of same NODC Code per reference (haul)
-# covers modified codes above and multiple counts of taxa (as with LaRh)
-NODC_NoDTI <- CleanBio20 %>%
-  mutate(NODCCODE=replace(NODCCODE, NODCCODE %in% AncSpp, "AncSpp")) %>%
-  mutate(NODCCODE=replace(NODCCODE, NODCCODE %in% EucSpp, "EucSpp")) %>%
-  mutate(NODCCODE=replace(NODCCODE, NODCCODE == "AncSpp", 8747020200)) %>%
-  mutate(NODCCODE=replace(NODCCODE, NODCCODE == "EucSpp", 8835390100)) %>%
-  group_by(Reference, NODCCODE) %>%
-  mutate(N2 = sum(N)) %>%
-  select(-N) %>%
-  distinct() %>%
-  ungroup()
-
-# lookup NODC Codes against human readable names
-CleanHRBio <- inner_join(NODC_NoDTI, SpeciesList, by = "NODCCODE") %>%
-  select(Reference, Scientificname, month, year, Stratum, Zone,
-         Grid, BottomVegCover,BycatchQuantity, #Bank, 
-         ShoreDistance, N2) %>%
-  mutate(#normalize Zone strings
-    Zone = str_trim(str_to_upper(Zone))) %>%
-  mutate(#normalize Stratum strings
-    Stratum = str_trim(str_to_upper(Stratum)))
 
 # select only RT months and other filters
 RT_Abund <- CleanHRBio %>%
@@ -112,16 +57,16 @@ RT_Abund <- CleanHRBio %>%
 HaulFull <- RT_Abund %>%
   spread(Scientificname, N2) %>%
   replace(is.na(.),0)
+# set zone as factor for rank abundance stuff
+HaulFull$Zone    <- as.factor(HaulFull$Zone)
+HaulFull$RTLogic <- as.factor(HaulFull$RTLogic)
+HaulFull$RTLogic <- ordered(HaulFull$RTLogic, levels = c("Before", "During", "After"))
+HaulFull$Stratum <- as.factor(HaulFull$Stratum)
 
 # pull all environmental data out
 HaulEnv <- HaulFull %>%
   select(Reference:RTLogic) %>%
   as.data.frame()
-
-# set zone as factor for rank abundance stuff
-HaulEnv$Zone    <- as.factor(HaulEnv$Zone)
-HaulEnv$RTLogic <- as.factor(HaulEnv$RTLogic)
-HaulEnv$Stratum <- as.factor(HaulEnv$Stratum)
 
 # pull all abundance data out
 HaulAbun <- HaulFull %>%
@@ -132,8 +77,22 @@ HaulAbun <- HaulFull %>%
 HaulCount <- HaulFull %>%
   count(year, Zone)
 HaulMin <- min(HaulCount$n)
-#ZoneList <- str_sort(unique(HaulFull$Zone))
 ZoneCount <- length(ZoneFilter)
+
+BottomVegMetrics <- HaulFull %>%
+  #select(-year) %>%
+  group_by(Zone) %>%
+  #drop_na() %>%
+  # calculate mean/CIs
+  summarise(mean.Cov = mean(BottomVegCover),
+            sd.Cov = sd(BottomVegCover),
+            n.Cov = n(),
+            #max.Cov = max(BottomVegCover),
+            #min.Cov = min(BottomVegCover),
+            ) %>%
+  mutate(se.Cov = sd.Cov / sqrt(n.Cov),
+         lower.ci.Cov = mean.Cov - (1.96 * se.Cov),
+         upper.ci.Cov = mean.Cov + (1.96 * se.Cov))
 
 library(vegan)
 library(vegan3d)
@@ -141,6 +100,7 @@ library(goeveg)
 library(scales)
 library(ggrepel)
 library(MASS)
+library(nlme)
 
 ##### Mixed Effects model ####
 
@@ -156,11 +116,11 @@ test <- RT_Abund %>%
   summarise(totalAb = sum(N2)) %>%
   merge(HaulEnv)
   
-model <- glmmPQL(totalAb~RTLogic + Zone,
-                 random=~1|Stratum,
+model <- glmmPQL(totalAb~RTLogic * Zone,
+                 random=~1|Grid,
                  family = "poisson",
                  data = test,
-                 corr=corARMA(form=~1|Stratum/year,p=1),
+                 corr=corARMA(form=~1|Grid/year,p=1),
                  )
 summary(model)
 
