@@ -1,3 +1,5 @@
+#### Import and Filter Data #####
+
 library(tidyverse)
 library(lubridate)
 library(RODBC)
@@ -28,7 +30,7 @@ ZoneFilter = c("A"
                ,"E"
 )
 
-# clean up biology and merge with selected references --------
+# clean up biology and merge with selected references
 CleanBio   <- osg_CleanBio(BioNumFull, RefsList)
 
 # merge difficult to ID taxa and convert NODC code to human readable
