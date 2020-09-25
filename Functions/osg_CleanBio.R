@@ -6,6 +6,8 @@
 #
 # This functions works with FWRI FIM data to remove a few problematic taxa
 # and to select samples of interest for further analyses. It also normalizes
+# Zone and Stratum strings to account for minor database variation. Much thanks
+# to Meagan Schrandt for the function basis.
 #
 # osg_CleanBio <- function(df, RefOI)
 #-----------------------------------------------------
