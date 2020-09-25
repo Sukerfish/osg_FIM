@@ -8,15 +8,17 @@
 # to ID but can be merged with others one taxonomic designation up. It can also
 # convert to human readable names.
 #
+# TO-DO make HRSpecies optional
+#
 # osg_CleanBio <- function(df, HRSpecies)
 #-----------------------------------------------------
 # df    = Data frame of entire hsdb_tbl_corp_biology_number table
 #
-# HRSpecies = optional list of species names and NODCCODEs
+# HRSpecies = list of species names and NODCCODEs
 #             REQUIRES column named NODCCODE
 #-----------------------------------------------------
 osg_ComBio <- function(df,
-                       HRSpecies = NULL){
+                       HRSpecies){
   
   HRSpecies$NODCCODE <- as.character(HRSpecies$NODCCODE)
   
@@ -43,15 +45,15 @@ osg_ComBio <- function(df,
     distinct() %>%
     ungroup()
 
-  if(missing(HRSpecies)){
-    return(temp_df)
-    }
-  else {
-    # final lookup of NODC Codes against human readable names
-    out <- inner_join(temp_df, HRSpecies, by = "NODCCODE") %>%
-      select(Reference, Scientificname, month, year, Stratum, Zone,
-             Grid, BottomVegCover,BycatchQuantity, Bank, 
-             ShoreDistance, N2)
+  # if(missing(HRSpecies)){
+  #   return(temp_df)
+  #   }
+  
+  # final lookup of NODC Codes against human readable names
+  out <- inner_join(temp_df, HRSpecies, by = "NODCCODE") %>%
+    select(Reference, Scientificname, month, year, Stratum, Zone,
+           Grid, BottomVegCover,BycatchQuantity, Bank, 
+           ShoreDistance, N2)
+  
   return(out)
-    }
   }
