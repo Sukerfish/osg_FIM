@@ -1,22 +1,22 @@
-# Pair-wise comparisons for reef populations ----
+# Tidy up FWRI FIM Data ----
 #
 # Author: G. Miller
 # Version: 1.0 
 # Date: 2020-09-25
 #
 # This functions works with FWRI FIM data to remove a few problematic taxa
-# and to select samples of interest for further analyses
+# and to select samples of interest for further analyses. It also normalizes
+# Zone and Stratum strings to account for minor database variation.
 #
-# osg_CleanBio <- function(df, opt, par1, par2, comp, SU)
+# osg_CleanBio <- function(df, RefOI)
 #-----------------------------------------------------
 # df    = Data frame of entire hsdb_tbl_corp_biology_number table
 #
 # RefOI = list of sampling units of interest as Reference numbers
 #-----------------------------------------------------
-osg_CleanBio <- function(df, 
-                     RefOI){
+osg_CleanBio <- function(df,
+                         RefOI){
   
-  out = data.frame()
   out <- df %>%
     select(Reference, Species_record_id, Splittype, Splitlevel, Cells,
            NODCCODE, Number, FHC) %>%
@@ -45,7 +45,11 @@ osg_CleanBio <- function(df,
     select(Reference, NODCCODE, Sampling_Date, Stratum, Zone,
            Grid, BottomVegCover,BycatchQuantity, Bank, ShoreDistance, N) %>%
     mutate(month = month(Sampling_Date), year = year(Sampling_Date)) %>%
-    select(-Sampling_Date)
+    select(-Sampling_Date) %>%
+    mutate(#normalize Zone strings
+      Zone = str_trim(str_to_upper(Zone))) %>%
+    mutate(#normalize Stratum strings
+      Stratum = str_trim(str_to_upper(Stratum)))
   
   return(out)
   }
