@@ -47,9 +47,10 @@ EndYear <- 2017
 
 # select only RT months and other filters
 RT_Abund <- CleanHRBio %>%
-  mutate(RTLogic = "Before") %>%
-  mutate(RTLogic = replace(RTLogic, year == 2005, "During")) %>%
-  mutate(RTLogic = replace(RTLogic, year > 2005, "After")) %>%
+  mutate(SAVsq   = BottomVegCover^2) %>%
+  mutate(RTLogic = "A") %>%
+  mutate(RTLogic = replace(RTLogic, year == 2005, "B")) %>%
+  mutate(RTLogic = replace(RTLogic, year > 2005, "C")) %>%
   filter(month %in% RTS) %>%
   filter(#remove early years
     year >= StartYear) %>%
@@ -62,24 +63,24 @@ HaulFull <- RT_Abund %>%
 # set zone as factor for rank abundance stuff
 HaulFull$Zone    <- as.factor(HaulFull$Zone)
 HaulFull$RTLogic <- as.factor(HaulFull$RTLogic)
-HaulFull$RTLogic <- ordered(HaulFull$RTLogic, levels = c("Before", "During", "After"))
+#HaulFull$RTLogic <- ordered(HaulFull$RTLogic, levels = c("Before", "During", "After"))
 HaulFull$Stratum <- as.factor(HaulFull$Stratum)
 
 # pull all environmental data out
 HaulEnv <- HaulFull %>%
   select(Reference:RTLogic) %>%
   as.data.frame()
-
-# pull all abundance data out
-HaulAbun <- HaulFull %>%
-  subset(select = -c(Reference:RTLogic)) %>%
-  as.data.frame()
-
-# summary information about the samples
-HaulCount <- HaulFull %>%
-  count(year, Zone)
-HaulMin <- min(HaulCount$n)
-ZoneCount <- length(ZoneFilter)
+# 
+# # pull all abundance data out
+# HaulAbun <- HaulFull %>%
+#   subset(select = -c(Reference:RTLogic)) %>%
+#   as.data.frame()
+# 
+# # summary information about the samples
+# HaulCount <- HaulFull %>%
+#   count(year, Zone)
+# HaulMin <- min(HaulCount$n)
+# ZoneCount <- length(ZoneFilter)
 
 BottomVegMetrics <- HaulFull %>%
   #select(-year) %>%
@@ -97,49 +98,82 @@ BottomVegMetrics <- HaulFull %>%
          upper.ci.Cov = mean.Cov + (1.96 * se.Cov))
 
 library(vegan)
-library(vegan3d)
-library(goeveg)
-library(scales)
-library(ggrepel)
+#library(vegan3d)
+#library(goeveg)
+#library(scales)
+#library(ggrepel)
 library(MASS)
 library(nlme)
 
 ##### Mixed Effects model ####
 
-# Resample using the minimum samples in the paired values
-HaulSub <- HaulFull %>%
-  group_by(year, Zone) %>%
-  # resample point
-  sample_n(HaulMin, replace = FALSE) %>%
-  ungroup()
+# # Resample using the minimum samples in the paired values
+# HaulSub <- HaulFull %>%
+#   group_by(year, Zone) %>%
+#   # resample point
+#   sample_n(HaulMin, replace = FALSE) %>%
+#   ungroup()
 
-test <- RT_Abund %>%
+HaulRich <- HaulFull %>%
+  subset(select = -c(month:RTLogic))
+
+HaulRich$Richness <- specnumber(HaulRich, HaulRich$Reference)
+
+HaulRich <- HaulRich %>%
+  subset(select = c(Reference, Richness)) %>%
+  merge(HaulEnv)
+
+HaulAbun <- RT_Abund %>%
   group_by(Reference) %>%
   summarise(totalAb = sum(N2)) %>%
   merge(HaulEnv)
   
-model <- glmmPQL(totalAb~RTLogic * Zone,
+modelAbun <- glmmPQL(totalAb~RTLogic * Zone,
                  random=~1|Grid,
                  family = "poisson",
-                 data = test,
+                 data = HaulAbun,
                  corr=corARMA(form=~1|Grid/year,p=1),
                  )
-summary(model)
+summary(modelAbun)
 
-tickdata = read.table("~/Elston2001_tickdata.txt",header=TRUE,
-                      colClasses=c("factor","numeric","factor","numeric","factor","factor"))
-tickdata <- transform(tickdata,cHEIGHT=HEIGHT-mean(HEIGHT))
+modelRich <- glmmPQL(Richness~RTLogic * Zone,
+                 random=~1|Grid,
+                 family = "poisson",
+                 data = HaulRich,
+                 corr=corARMA(form=~1|Grid/year,p=1),
+                 )
+summary(modelRich)
 
-tmod_PQL <- glmmPQL(TICKS~cHEIGHT+YEAR,
-                    random=~1|LOCATION/BROOD,
-                    family="poisson",data=tickdata,
-                    verbose=FALSE)
+modelAbunSAV <- glmmPQL(totalAb~RTLogic * Zone + BottomVegCover + SAVsq,
+                     random=~1|Grid,
+                     family = "poisson",
+                     data = HaulAbun,
+                     corr=corARMA(form=~1|Grid/year,p=1),
+                     )
+summary(modelAbunSAV)
 
-ggplot(tickdata,aes(x=HEIGHT,y=1+TICKS,colour=YEAR))+
-  stat_sum(aes(size=..n..),alpha=0.7)+
-  scale_y_log10()+
-  scale_size_continuous(breaks=c(2,6,10),range=c(2,7))+
-  geom_smooth(method="glm",method.args=list(family=quasipoisson))
+modelRichSAV <- glmmPQL(Richness~RTLogic * Zone + BottomVegCover + SAVsq,
+                     random=~1|Grid,
+                     family = "poisson",
+                     data = HaulRich,
+                     corr=corARMA(form=~1|Grid/year,p=1),
+)
+summary(modelRichSAV)
+
+# tickdata = read.table("~/Elston2001_tickdata.txt",header=TRUE,
+#                       colClasses=c("factor","numeric","factor","numeric","factor","factor"))
+# tickdata <- transform(tickdata,cHEIGHT=HEIGHT-mean(HEIGHT))
+# 
+# tmod_PQL <- glmmPQL(TICKS~cHEIGHT+YEAR,
+#                     random=~1|LOCATION/BROOD,
+#                     family="poisson",data=tickdata,
+#                     verbose=FALSE)
+# 
+# ggplot(tickdata,aes(x=HEIGHT,y=1+TICKS,colour=YEAR))+
+#   stat_sum(aes(size=..n..),alpha=0.7)+
+#   scale_y_log10()+
+#   scale_size_continuous(breaks=c(2,6,10),range=c(2,7))+
+#   geom_smooth(method="glm",method.args=list(family=quasipoisson))
 
 ggplot(test,aes(x=RTLogic,y=1+totalAb,colour=Zone))+
   stat_sum(aes(size=..n..),alpha=0.7)+
