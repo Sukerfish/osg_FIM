@@ -47,7 +47,10 @@ EndYear <- 2017
 
 # select only RT months and other filters
 RT_Abund <- CleanHRBio %>%
+<<<<<<< HEAD
   mutate(SAVsq   = BottomVegCover^2) %>%
+=======
+>>>>>>> 16a691bbab13eb61500d0682515c4b24409082c8
   mutate(RTLogic = "A") %>%
   mutate(RTLogic = replace(RTLogic, year == 2005, "B")) %>%
   mutate(RTLogic = replace(RTLogic, year > 2005, "C")) %>%
@@ -114,8 +117,19 @@ library(nlme)
 #   sample_n(HaulMin, replace = FALSE) %>%
 #   ungroup()
 
+<<<<<<< HEAD
 HaulRich <- HaulFull %>%
   subset(select = -c(month:RTLogic))
+=======
+testa <- HaulFull %>%
+  subset(select = -c(month:RTLogic))
+
+testa$Richness <- specnumber(testa, testa$Reference)
+
+testa <- testa %>%
+  subset(select = c(Reference, Richness)) %>%
+  merge(HaulEnv)
+>>>>>>> 16a691bbab13eb61500d0682515c4b24409082c8
 
 HaulRich$Richness <- specnumber(HaulRich, HaulRich$Reference)
 
@@ -134,6 +148,7 @@ modelAbun <- glmmPQL(totalAb~RTLogic * Zone,
                  data = HaulAbun,
                  corr=corARMA(form=~1|Grid/year,p=1),
                  )
+<<<<<<< HEAD
 summary(modelAbun)
 
 modelRich <- glmmPQL(Richness~RTLogic * Zone,
@@ -159,6 +174,17 @@ modelRichSAV <- glmmPQL(Richness~RTLogic * Zone + BottomVegCover + SAVsq,
                      corr=corARMA(form=~1|Grid/year,p=1),
 )
 summary(modelRichSAV)
+=======
+summary(model)
+
+modela <- glmmPQL(Richness~RTLogic * Zone,
+                 random=~1|Grid,
+                 family = "poisson",
+                 data = testa,
+                 corr=corARMA(form=~1|Grid/year,p=1),
+                 )
+summary(modela)
+>>>>>>> 16a691bbab13eb61500d0682515c4b24409082c8
 
 # tickdata = read.table("~/Elston2001_tickdata.txt",header=TRUE,
 #                       colClasses=c("factor","numeric","factor","numeric","factor","factor"))
