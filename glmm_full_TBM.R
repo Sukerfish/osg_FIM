@@ -47,10 +47,7 @@ EndYear <- 2017
 
 # select only RT months and other filters
 RT_Abund <- CleanHRBio %>%
-<<<<<<< HEAD
   mutate(SAVsq   = BottomVegCover^2) %>%
-=======
->>>>>>> 16a691bbab13eb61500d0682515c4b24409082c8
   mutate(RTLogic = "A") %>%
   mutate(RTLogic = replace(RTLogic, year == 2005, "B")) %>%
   mutate(RTLogic = replace(RTLogic, year > 2005, "C")) %>%
@@ -108,7 +105,7 @@ library(vegan)
 library(MASS)
 library(nlme)
 
-##### Mixed Effects model ####
+##### Mixed Effects models ####
 
 # # Resample using the minimum samples in the paired values
 # HaulSub <- HaulFull %>%
@@ -117,19 +114,10 @@ library(nlme)
 #   sample_n(HaulMin, replace = FALSE) %>%
 #   ungroup()
 
-<<<<<<< HEAD
+
+# reorganize to include richness variable
 HaulRich <- HaulFull %>%
   subset(select = -c(month:RTLogic))
-=======
-testa <- HaulFull %>%
-  subset(select = -c(month:RTLogic))
-
-testa$Richness <- specnumber(testa, testa$Reference)
-
-testa <- testa %>%
-  subset(select = c(Reference, Richness)) %>%
-  merge(HaulEnv)
->>>>>>> 16a691bbab13eb61500d0682515c4b24409082c8
 
 HaulRich$Richness <- specnumber(HaulRich, HaulRich$Reference)
 
@@ -137,18 +125,19 @@ HaulRich <- HaulRich %>%
   subset(select = c(Reference, Richness)) %>%
   merge(HaulEnv)
 
+# reorganize to count all organisms captured per haul
 HaulAbun <- RT_Abund %>%
   group_by(Reference) %>%
   summarise(totalAb = sum(N2)) %>%
   merge(HaulEnv)
-  
+
+# first models without SAV   
 modelAbun <- glmmPQL(totalAb~RTLogic * Zone,
                  random=~1|Grid,
                  family = "poisson",
                  data = HaulAbun,
                  corr=corARMA(form=~1|Grid/year,p=1),
                  )
-<<<<<<< HEAD
 summary(modelAbun)
 
 modelRich <- glmmPQL(Richness~RTLogic * Zone,
@@ -159,6 +148,7 @@ modelRich <- glmmPQL(Richness~RTLogic * Zone,
                  )
 summary(modelRich)
 
+# second models including SAV
 modelAbunSAV <- glmmPQL(totalAb~RTLogic * Zone + BottomVegCover + SAVsq,
                      random=~1|Grid,
                      family = "poisson",
@@ -172,19 +162,8 @@ modelRichSAV <- glmmPQL(Richness~RTLogic * Zone + BottomVegCover + SAVsq,
                      family = "poisson",
                      data = HaulRich,
                      corr=corARMA(form=~1|Grid/year,p=1),
-)
+                     )
 summary(modelRichSAV)
-=======
-summary(model)
-
-modela <- glmmPQL(Richness~RTLogic * Zone,
-                 random=~1|Grid,
-                 family = "poisson",
-                 data = testa,
-                 corr=corARMA(form=~1|Grid/year,p=1),
-                 )
-summary(modela)
->>>>>>> 16a691bbab13eb61500d0682515c4b24409082c8
 
 # tickdata = read.table("~/Elston2001_tickdata.txt",header=TRUE,
 #                       colClasses=c("factor","numeric","factor","numeric","factor","factor"))
@@ -200,9 +179,9 @@ summary(modela)
 #   scale_y_log10()+
 #   scale_size_continuous(breaks=c(2,6,10),range=c(2,7))+
 #   geom_smooth(method="glm",method.args=list(family=quasipoisson))
-
-ggplot(test,aes(x=RTLogic,y=1+totalAb,colour=Zone))+
-  stat_sum(aes(size=..n..),alpha=0.7)+
-  scale_y_log10()+
-  scale_size_continuous(breaks=c(5,10,15),range=c(2,7))+
-  geom_smooth(method="glm",method.args=list(family=quasipoisson))
+# 
+# ggplot(test,aes(x=RTLogic,y=1+totalAb,colour=Zone))+
+#   stat_sum(aes(size=..n..),alpha=0.7)+
+#   scale_y_log10()+
+#   scale_size_continuous(breaks=c(5,10,15),range=c(2,7))+
+#   geom_smooth(method="glm",method.args=list(family=quasipoisson))
