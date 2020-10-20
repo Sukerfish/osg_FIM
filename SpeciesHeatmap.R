@@ -100,14 +100,15 @@ HaulEnv <- HaulFullClean %>%
 
 library(vegan)
 
+testtwo <- HaulAbun %>%
+  subset(select=-c(Reference)) %>%
+  summarise_all(list(sum))
+
+testtwo <- sort(testtwo, decreasing = TRUE)
+  
 test <- RT_Abund %>%
   anti_join(HaulZeroAbun) %>%
-  group_by(Reference) %>%
-  summarise(Scientificname, Zone, N2)
-
-  filter(Reference != c(HaulZeroAbun$Reference))
-  anti_join(HaulZeroAbun)
-  subset(select = -c(Reference))
+  filter(Scientificname %in% colnames(testtwo[1:50]))
 
 ggplot(test, aes(Zone, Scientificname)) +
   geom_tile(aes(fill = N2), colour = "grey50")
