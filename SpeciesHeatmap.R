@@ -57,7 +57,7 @@ CleanHRBioCHM <- osg_ComBio(CleanBioCHM, SpeciesList)
 
 #Red Tide Switch
 #Coded as months of interest: e.g., Jul-Oct
-RTS <- c(7:10)
+RTS <- c(6:9)
 StartYear <- 1998
 EndYear <- 2017
 
