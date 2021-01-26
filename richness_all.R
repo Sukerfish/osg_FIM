@@ -40,9 +40,7 @@ CleanHRBio <- osg_ComBio(CleanBio, SpeciesList)
 
 #Red Tide Switch
 #Coded as months of interest: e.g., Jul-Oct
-#Red Tide Switch
-#Coded as months of interest: e.g., Jul-Oct
-RTS <- c(7:10)
+RTS <- c(6:9)
 StartYear <- 1998
 EndYear <- 2017
 
@@ -78,9 +76,9 @@ HaulAbun <- HaulFull %>%
 
 # summary information about the samples
 HaulCount <- HaulFull %>%
-  count(year, Zone)
+  count(year)
 HaulMin <- min(HaulCount$n)
-ZoneCount <- length(ZoneFilter)
+#ZoneCount <- length(ZoneFilter)
 
 library(vegan)
 library(vegan3d)
@@ -92,48 +90,33 @@ library(ggrepel)
 
 # Resample using the minimum samples in the paired values
 HaulSub <- HaulFull %>%
-  group_by(year, Zone) %>%
+  group_by(year) %>%
   # resample point
   sample_n(HaulMin, replace = FALSE) %>%
   ungroup()
 
 # calculate average richness per haul using the subsampled data
 # initialize
-Haul_AvgRich <- setNames(data.frame(matrix(ncol = ZoneCount+1, nrow = 0)), c("year", ZoneFilter))
+Haul_AvgRich <- setNames(data.frame(matrix(ncol = 2, nrow = 0)), c("year", "avg_richness"))
 for (i in 1:((EndYear-StartYear)+1)){
   temp_df <- HaulSub %>%
-    # filter by year
-    filter(year == i+(StartYear-1))
-  # assign year to row
-  Haul_AvgRich[i,1]  <- i+(StartYear-1)
-  # pass temp_df to zone loop
-  for (j in 1:(length(ZoneFilter))){
-    temptemp_df <- temp_df %>%
-      filter(# grab first zone from the list
-        Zone %in% ZoneFilter[[j]]) %>%
-      subset(select = -c(month:RTLogic))
-    # skip zone if not in db
-    if (nrow(temptemp_df) == 0 ) next
-    else
+    # filter by year and remove extra columns
+    filter(year == i+(StartYear-1)) %>%
+    subset(select = -c(month:RTLogic))
+    # assign year to row
+    Haul_AvgRich[i,1]  <- i+(StartYear-1)
     # calculate richness per haul and average it before placement in matrix
-    Haul_AvgRich[i,j+1] <- mean(specnumber(temptemp_df, temptemp_df$Reference))
+    Haul_AvgRich[i,2] <- mean(specnumber(temp_df, temp_df$Reference))
   }
-}
 
 # summary stats and plotting processing
 Haul_tsRich <- Haul_AvgRich %>%
-  # rearrange and group
-  gather(all_of(ZoneFilter), key = "Zone", value = "Richness") %>%
-  group_by(Zone) %>%
   # calculate as anomalies
-  mutate(anom.Rich = Richness - mean(Richness, na.rm = TRUE))
+  mutate(anom.Rich = avg_richness - mean(avg_richness, na.rm = TRUE))
 
 RichnessAnom_Metrics <- Haul_tsRich %>%
-  select(-year) %>%
-  group_by(Zone) %>%
-  drop_na() %>%
   # calculate mean/CIs
-  summarise(mean.Rich = mean(Richness, na.rm = TRUE),
+  summarise(mean.Rich = mean(avg_richness, na.rm = TRUE),
             sd.anom.Rich = sd(anom.Rich, na.rm = TRUE),
             n.Rich = n()) %>%
   mutate(se.anom.Rich = sd.anom.Rich / sqrt(n.Rich),
@@ -158,6 +141,6 @@ ggplot(Haul_tsRich, aes(x=year))+
                      limits = c(StartYear,EndYear),
                      breaks = seq(StartYear,EndYear, 2))+
   scale_y_continuous(name = "Average Taxa Anomaly from Long Term Mean",
-                     limits = c(-8,8))+
-  theme(legend.position="bottom")+
-  facet_grid(Zone ~ .)
+                     limits = c(-3,3))+
+  theme(legend.position="none")
+  #facet_grid(Zone ~ .)
