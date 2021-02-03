@@ -17,18 +17,46 @@ MonthlyMaster <- sqlFetch(conn, "hsdb_tbl_corp_physical_master") %>%
     any_vars(str_detect(., regex("AM",ignore_case = TRUE))))
 odbcClose(conn)
 
-# select gear and bay
+# select gear and bays
 RefsList <- MonthlyMaster %>%
   filter(Gear == 20) %>%
-  filter(str_detect(Reference,"^APM"))
+  filter(str_detect(Reference, paste(c(
+    "^APM",
+    "^CKM",
+    "^TBM",
+    "^CHM"
+  ), collapse = '|')))
 
-# Establish Zone filter
-ZoneFilter = c("A"
-               ,"B"
-               #,"C"
-               #,"D"
-               #,"E"
-)
+# Establish Zone filters
+APMZoneFilter = data.frame(system = "AP", 
+                           Zone = c("A"
+                                    ,"B"
+))
+
+CKMZoneFilter = data.frame(system = "CK", 
+                           Zone = c("B"
+                                    ,"C"
+))
+
+TBMZoneFilter = data.frame(system = "TB", 
+                           Zone = c("A"
+                                    ,"B"
+                                    ,"C"
+                                    ,"D"
+                                    ,"E"
+))
+
+CHMZoneFilter = data.frame(system = "CH", 
+                           Zone = c("A"
+                                    ,"B"
+                                    ,"C"
+                                    ,"D"
+))
+                         
+ZoneFilter <- bind_rows(APMZoneFilter, 
+                         CKMZoneFilter, 
+                         TBMZoneFilter, 
+                         CHMZoneFilter)
 
 # clean up biology and merge with selected references
 CleanBio   <- osg_CleanBio(BioNumFull, RefsList)
@@ -38,7 +66,7 @@ CleanHRBio <- osg_ComBio(CleanBio, SpeciesList)
 
 ##### Tidy up for Analyses #####
 
-#Red Tide Switch
+#Red Tide Switch aka months of interest
 #Coded as months of interest: e.g., Jul-Oct
 #RTS <- c(6:9)
 RTS <- c(1:3)
@@ -48,6 +76,10 @@ effort <- (140/100)
 
 # select only RT months and other filters
 RT_Abund <- CleanHRBio %>%
+  mutate(system = if_else(str_detect(Reference, "^APM"), "AP",
+                          if_else(str_detect(Reference, "^CKM"), "CK",
+                                  if_else(str_detect(Reference, "^TBM"), "TB",
+                                          "CH")))) %>%
   mutate(season = "Winter") %>%
   mutate(season = replace(season, month %in% c(4:7), "Spring")) %>%
   mutate(RTLogic = "Before") %>%
@@ -56,20 +88,20 @@ RT_Abund <- CleanHRBio %>%
   filter(month %in% RTS) %>%
   filter(#remove early years
     year >= StartYear) %>%
-  filter(Zone %in% ZoneFilter)
+  inner_join(ZoneFilter)
 
 # spread via scientific name
-HaulFullTBM <- RT_Abund %>%
+HaulFull <- RT_Abund %>%
   spread(Scientificname, N2) %>%
   replace(is.na(.),0)
 # set zone as factor for rank abundance stuff
-HaulFullTBM$Zone      <- as.factor(HaulFullTBM$Zone)
-HaulFullTBM$RTLogic   <- as.factor(HaulFullTBM$RTLogic)
+HaulFull$Zone      <- as.factor(HaulFull$Zone)
+HaulFull$RTLogic   <- as.factor(HaulFull$RTLogic)
 #HaulFull$RTLogic <- ordered(HaulFull$RTLogic, levels = c("Before", "During", "After"))
-HaulFullTBM$Stratum   <- as.factor(HaulFullTBM$Stratum)
-HaulFullTBM$Reference <- as.character(HaulFullTBM$Reference)
+HaulFull$Stratum   <- as.factor(HaulFull$Stratum)
+HaulFull$Reference <- as.character(HaulFull$Reference)
 
-HaulAbunTBM <- HaulFullTBM %>%
+HaulAbun <- HaulFull %>%
   subset(select = -c(month:RTLogic)) %>%
   rowwise() %>%
   mutate(total = sum(c_across(where(is.numeric)))) %>%
@@ -77,7 +109,7 @@ HaulAbunTBM <- HaulFullTBM %>%
   #subset(select = -c(total)) %>%
   as.data.frame()
 
-HaulZeroAbunTBM <- HaulFullTBM %>%
+HaulZeroAbun <- HaulFull %>%
   subset(select = -c(month:RTLogic)) %>%
   rowwise() %>%
   mutate(total = sum(c_across(where(is.numeric)))) %>%
@@ -85,14 +117,17 @@ HaulZeroAbunTBM <- HaulFullTBM %>%
   #subset(select = -c(total)) %>%
   as.data.frame()
 
-HaulFullCleanTBM <- HaulFullTBM %>%
-  inner_join(HaulAbunTBM) %>%
+HaulFullClean <- HaulFull %>%
+  inner_join(HaulAbun) %>%
   mutate(CPUE = total/effort)
 
 # summary information about the samples
-HaulCount <- HaulFullCleanTBM %>%
+HaulCount <- HaulFullClean %>%
+  group_by(system) %>%
   count(year)
-HaulMin <- min(HaulCount$n)
+HaulMin <- HaulCount %>%
+  summarise(minHaul = min(n))
+
 #ZoneCount <- length(ZoneFilter)
 
 library(vegan)
@@ -104,11 +139,13 @@ library(ggrepel)
 ##### Yearly Resampled Species density ####
 
 # Resample using the minimum samples in the paired values
-HaulSub <- HaulFullCleanTBM %>%
-  group_by(year) %>%
+HaulSub <- HaulFullClean %>%
+  left_join(HaulMin) %>%
+  group_by(system, year) %>%
   # resample point
-  sample_n(HaulMin, replace = FALSE) %>%
-  ungroup()
+  sample_n(minHaul, replace = FALSE) %>%
+  subset(select = -c(minHaul))
+  #ungroup()
 
 HaulSub_Abun <- HaulSub %>%
   subset(select = -c(Stratum:RTLogic)) %>%
