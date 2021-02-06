@@ -81,8 +81,8 @@ TidyHydro <- FullHydro %>%
 
 #Red Tide Switch
 #Coded as months of interest: e.g., Jul-Oct
-#RTS <- c(6:9)
-RTS <- c(1:3)
+RTS <- c(6:9)
+#RTS <- c(1:3)
 StartYear <- 2001
 EndYear <- 2017
 effort <- (140/100)
@@ -113,6 +113,7 @@ HaulFull$RTLogic   <- as.factor(HaulFull$RTLogic)
 #HaulFull$RTLogic <- ordered(HaulFull$RTLogic, levels = c("Before", "During", "After"))
 HaulFull$Stratum   <- as.factor(HaulFull$Stratum)
 HaulFull$Reference <- as.character(HaulFull$Reference)
+HaulFull$year      <- as.factor(HaulFull$year)
 
 HaulAbun <- HaulFull %>%
   subset(select = -c(month:RTLogic)) %>%
@@ -175,24 +176,42 @@ TempAnom <- HaulSub %>%
          lower.ci.anom.temp = 0 - (1.96 * se_temp),
          upper.ci.anom.temp = 0 + (1.96 * se_temp))
 
-# # calculate average richness per haul using the subsampled data
-# # initialize
-# Haul_AvgRich <- setNames(data.frame(matrix(ncol = 3, nrow = 0)), 
-#                          c("system", "year", "avg_richness"))
-# for (i in 1:length(syslist)){
-#   temp_df <- HaulSub %>%
-#     filter(system == syslist[,i])
-# }
+RichAnom <- HaulSub %>%
+  subset(select = -c(Stratum:ShoreDistance)) %>%
+  subset(select = -c(month)) %>%
+  subset(select = -c(season:RTLogic)) %>%
+  subset(select = -c(total:DO)) %>%
+  group_by(system, year) %>%
+  # mutate all non-zero things to be 1
+  # ignore Reference column, system and year used as grouping
+  mutate(across(-c(Reference), ~1 * (. >0))) %>%
+  ungroup() %>%
+  rowwise() %>%
+  mutate(richness = sum(c_across(where(is.numeric)))) %>%
+  ungroup() %>%
+  subset(select = c(Reference, system, year, richness)) %>%
+  group_by(system, year) %>%
+  summarise(rich.mean = mean(richness))
+
+
+
+  
+# test <- HaulSub %>%
+#   filter(system == "AP") %>%
+#   subset(select = -c(system)) %>%
+#   subset(select = -c(total:DO))
+# 
+# Haul_AvgRich <- setNames(data.frame(matrix(ncol = 2, nrow = 0)), c("year", "avg_richness"))
 # for (i in 1:((EndYear-StartYear)+1)){
-#   temp_df <- HaulSub %>%
+#   temp_df <- test %>%
 #     # filter by year and remove extra columns
 #     filter(year == i+(StartYear-1)) %>%
-#     subset(select = temp)
-#     # assign year to row
-#     Haul_AvgRich[i,1]  <- i+(StartYear-1)
-#     # calculate richness per haul and average it before placement in matrix
-#     Haul_AvgRich[i,2] <- mean(temp_df$temp, na.rm = TRUE)
-#   }
+#     subset(select = -c(month:RTLogic))
+#   # assign year to row
+#   Haul_AvgRich[i,1]  <- i+(StartYear-1)
+#   # calculate richness per haul and average it before placement in matrix
+#   Haul_AvgRich[i,2] <- mean(specnumber(temp_df, temp_df$Reference))
+# }
 # 
 # # summary stats and plotting processing
 # Haul_tsRich <- Haul_AvgRich %>%
@@ -207,6 +226,8 @@ TempAnom <- HaulSub %>%
 #   mutate(se.anom.Rich = sd.anom.Rich / sqrt(n.Rich),
 #          lower.ci.anom.Rich = 0 - (1.96 * se.anom.Rich),
 #          upper.ci.anom.Rich = 0 + (1.96 * se.anom.Rich))
+
+
 
 ####### Plots ######
 # Richness over time plot
