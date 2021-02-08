@@ -17,18 +17,46 @@ MonthlyMaster <- sqlFetch(conn, "hsdb_tbl_corp_physical_master") %>%
     any_vars(str_detect(., regex("AM",ignore_case = TRUE))))
 odbcClose(conn)
 
-# select gear and bay
+# select gear and bays
 RefsList <- MonthlyMaster %>%
   filter(Gear == 20) %>%
-  filter(str_detect(Reference,"^TBM"))
+  filter(str_detect(Reference, paste(c(
+    "^APM",
+    "^CKM",
+    "^TBM",
+    "^CHM"
+  ), collapse = '|')))
 
-# Establish Zone filter
-ZoneFilter = c("A"
-               ,"B"
-               ,"C"
-               ,"D"
-               ,"E"
-)
+# Establish Zone filters
+APMZoneFilter = data.frame(system = "AP", 
+                           Zone = c("A"
+                                    ,"B"
+                           ))
+
+CKMZoneFilter = data.frame(system = "CK", 
+                           Zone = c("B"
+                                    ,"C"
+                           ))
+
+TBMZoneFilter = data.frame(system = "TB", 
+                           Zone = c("A"
+                                    ,"B"
+                                    ,"C"
+                                    ,"D"
+                                    ,"E"
+                           ))
+
+CHMZoneFilter = data.frame(system = "CH", 
+                           Zone = c("A"
+                                    ,"B"
+                                    ,"C"
+                                    ,"D"
+                           ))
+
+ZoneFilter <- bind_rows(APMZoneFilter, 
+                        CKMZoneFilter, 
+                        TBMZoneFilter, 
+                        CHMZoneFilter)
 
 # clean up biology and merge with selected references
 CleanBio   <- osg_CleanBio(BioNumFull, RefsList)
@@ -40,19 +68,27 @@ CleanHRBio <- osg_ComBio(CleanBio, SpeciesList)
 
 #Red Tide Switch
 #Coded as months of interest: e.g., Jul-Oct
-RTS <- c(6:9)
+#RTS <- c(6:9)
+RTS <- c(1:3)
 StartYear <- 1998
 EndYear <- 2017
+effort <- (140/100)
 
 # select only RT months and other filters
 RT_Abund <- CleanHRBio %>%
+  mutate(system = if_else(str_detect(Reference, "^APM"), "AP",
+                          if_else(str_detect(Reference, "^CKM"), "CK",
+                                  if_else(str_detect(Reference, "^TBM"), "TB",
+                                          "CH")))) %>%
+  mutate(season = "Winter") %>%
+  mutate(season = replace(season, month %in% c(4:7), "Spring")) %>%
   mutate(RTLogic = "Before") %>%
   mutate(RTLogic = replace(RTLogic, year == 2005, "During")) %>%
   mutate(RTLogic = replace(RTLogic, year > 2005, "After")) %>%
   filter(month %in% RTS) %>%
   filter(#remove early years
     year >= StartYear) %>%
-  filter(Zone %in% ZoneFilter)
+  inner_join(ZoneFilter)
 
 # spread via scientific name
 HaulFull <- RT_Abund %>%
