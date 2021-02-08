@@ -74,8 +74,10 @@ CleanBio   <- osg_CleanBio(BioNumFull, RefsList)
 # merge difficult to ID taxa and convert NODC code to human readable
 CleanHRBio <- osg_ComBio(CleanBio, SpeciesList)
 
+# pull in Hydro data for all Refs of Interest
 FullHydro <- inner_join(HydroLab, RefsList, "Reference")
 
+#summarize Hydro data for each Reference
 TidyHydro <- FullHydro %>%
   group_by(Reference) %>%
   summarise(depth = mean(Depth),
@@ -92,9 +94,6 @@ TidyHydro <- FullHydro %>%
 
 #MOI <- c(6:9)
 MOI <- c(1:3)
-
-#StartYear <- 2001
-#EndYear <- 2017
 
 effort <- (140/100)
 
@@ -164,7 +163,7 @@ library(goeveg)
 library(scales)
 library(ggrepel)
 
-##### Yearly Resampled Species density ####
+##### Yearly Resampling ####
 
 # Resample using the minimum samples in the paired values
 HaulSub <- HaulFullClean %>%
@@ -174,6 +173,67 @@ HaulSub <- HaulFullClean %>%
   sample_n(minHaul, replace = FALSE) %>%
   subset(select = -c(minHaul)) %>%
   ungroup()
+
+###### Density Calculations ########
+HaulSub_Abun <- HaulSub %>%
+  subset(select = -c(Stratum:ShoreDistance)) %>%
+  subset(select = -c(Reference:month)) %>%
+  subset(select = -c(season:RTLogic)) %>%
+  subset(select = -c(total:DO))
+
+HaulSub_Dens <- HaulSub_Abun %>%
+  mutate(across(!c(year, system), ~{.x/effort}))
+
+DensFull <- HaulSub_Dens %>%
+  group_by(system, year) %>%
+  summarise(across(everything(), mean)) %>%
+  pivot_longer(!c(year, system), names_to = "species", values_to = "CPUE")
+
+DensDelta <- ZoneFilter %>%
+  subset(select = -Zone) %>%
+  distinct() %>%
+  inner_join(DensFull) %>%
+  group_by(system) %>%
+  filter(year == StartYear |
+           year == StartYear +1 |
+           year == StartYear +2 |
+           year == EndYear |
+           year == EndYear -1 |
+           year == EndYear -2 ) %>%
+  mutate(time = ifelse(year == StartYear |
+                         year == StartYear +1 |
+                         year == StartYear +2 , "start", "end")) %>%
+  subset(select = -c(year, StartYear, EndYear)) %>%
+  ungroup() %>%
+  group_by(system, species, time) %>%
+  summarise(across(everything(), mean)) %>%
+  pivot_wider(names_from = c(time), 
+              values_from = c(CPUE)) %>%
+  mutate(delta = start - end) %>%
+  ungroup() %>%
+  filter(start != 0 & end != 0) %>%
+  #group_by(system) %>%
+  arrange(desc(delta))
+  
+# 
+#   pivot_wider(names_from = c(species, time), 
+#               values_from = c(CPUE),
+#               values_fn = mean) %>%
+#   pivot_longer(!system,
+#                names_to = c("species", "time"),
+#                names_sep = "_",
+#                values_to = "count")
+#   
+#   pivot_wider(names_from = species, values_from = c(CPUE)) %>%
+#   summarise(across(!year, mean)) %>%
+#   ungroup() %>%
+#   pivot_longer(!system, names_to = "species", values_to = "count")
+#   summarise(across(everything(), start - end))
+#   
+#   mutate(delta = CPUE)
+  
+
+##### Temperature Anomaly ####
 
 TempAnom <- HaulSub %>%
   subset(select = c(system, year, temp)) %>%
@@ -188,6 +248,8 @@ TempAnom <- HaulSub %>%
          se_temp = sd_temp/sqrt(n_temp),
          lower.ci.anom.temp = 0 - (1.96 * se_temp),
          upper.ci.anom.temp = 0 + (1.96 * se_temp))
+
+##### Richness Anomaly ######
 
 RichAnom <- HaulSub %>%
   subset(select = -c(Stratum:ShoreDistance)) %>%
@@ -215,45 +277,9 @@ RichAnom <- HaulSub %>%
          lower.ci.anom.rich = 0 - (1.96 * se_rich),
          upper.ci.anom.rich = 0 + (1.96 * se_rich))
 
-
-
-  
-# test <- HaulSub %>%
-#   filter(system == "AP") %>%
-#   subset(select = -c(system)) %>%
-#   subset(select = -c(total:DO))
-# 
-# Haul_AvgRich <- setNames(data.frame(matrix(ncol = 2, nrow = 0)), c("year", "avg_richness"))
-# for (i in 1:((EndYear-StartYear)+1)){
-#   temp_df <- test %>%
-#     # filter by year and remove extra columns
-#     filter(year == i+(StartYear-1)) %>%
-#     subset(select = -c(month:RTLogic))
-#   # assign year to row
-#   Haul_AvgRich[i,1]  <- i+(StartYear-1)
-#   # calculate richness per haul and average it before placement in matrix
-#   Haul_AvgRich[i,2] <- mean(specnumber(temp_df, temp_df$Reference))
-# }
-# 
-# # summary stats and plotting processing
-# Haul_tsRich <- Haul_AvgRich %>%
-#   # calculate as anomalies
-#   mutate(anom.Rich = avg_richness - mean(avg_richness, na.rm = TRUE))
-# 
-# RichnessAnom_Metrics <- Haul_tsRich %>%
-#   # calculate mean/CIs
-#   summarise(mean.Rich = mean(avg_richness, na.rm = TRUE),
-#             sd.anom.Rich = sd(anom.Rich, na.rm = TRUE),
-#             n.Rich = n()) %>%
-#   mutate(se.anom.Rich = sd.anom.Rich / sqrt(n.Rich),
-#          lower.ci.anom.Rich = 0 - (1.96 * se.anom.Rich),
-#          upper.ci.anom.Rich = 0 + (1.96 * se.anom.Rich))
-
-
-
 ####### Plots ######
-# Richness over time plot
 
+# Temp anomaly over time
 ggplot(data=TempAnom,
        aes(x=year, y=anom_temp, group=system, color=system)) +
   geom_ribbon(
@@ -264,6 +290,7 @@ ggplot(data=TempAnom,
   facet_wrap(as.factor(TempAnom$system), scales = "free") +
   geom_line()
 
+#Richness anomaly over time
 ggplot(data=RichAnom,
        aes(x=year, y=anom_rich, group=system, color=system)) +
   geom_ribbon(
@@ -273,6 +300,11 @@ ggplot(data=RichAnom,
   theme(legend.position="none") +
   facet_wrap(as.factor(RichAnom$system), scales = "free") +
   geom_line()
+
+# Density Deltas Distribution
+ggplot(DensDelta, 
+       aes(x=delta)) + geom_histogram(binwidth=.5) +
+  facet_wrap(as.factor(DensDelta$system), scales = "free")
 
 # 
 # ggplot(testtt, aes(x=year))+
