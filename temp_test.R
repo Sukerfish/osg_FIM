@@ -28,16 +28,20 @@ RefsList <- MonthlyMaster %>%
     "^CHM"
   ), collapse = '|')))
 
-# Establish Zone filters
+# Establish Zone and Year filters
 APMZoneFilter = data.frame(system = "AP", 
                            Zone = c("A"
                                     ,"B"
-                           ))
+                           ),
+                           StartYear = 2001,
+                           EndYear = 2017)
 
 CKMZoneFilter = data.frame(system = "CK", 
                            Zone = c("B"
                                     ,"C"
-                           ))
+                           ),
+                           StartYear = 2001,
+                           EndYear = 2017)
 
 TBMZoneFilter = data.frame(system = "TB", 
                            Zone = c("A"
@@ -45,14 +49,18 @@ TBMZoneFilter = data.frame(system = "TB",
                                     ,"C"
                                     ,"D"
                                     ,"E"
-                           ))
+                           ),
+                           StartYear = 1998,
+                           EndYear = 2017)
 
 CHMZoneFilter = data.frame(system = "CH", 
                            Zone = c("A"
                                     ,"B"
                                     ,"C"
                                     ,"D"
-                           ))
+                           ),
+                           StartYear = 1998,
+                           EndYear = 2017)
 
 ZoneFilter <- bind_rows(APMZoneFilter, 
                         CKMZoneFilter, 
@@ -79,15 +87,18 @@ TidyHydro <- FullHydro %>%
 
 ##### Tidy up for Analyses #####
 
-#Red Tide Switch
+#Months of Interest
 #Coded as months of interest: e.g., Jul-Oct
-RTS <- c(6:9)
-#RTS <- c(1:3)
-StartYear <- 2001
-EndYear <- 2017
+
+#MOI <- c(6:9)
+MOI <- c(1:3)
+
+#StartYear <- 2001
+#EndYear <- 2017
+
 effort <- (140/100)
 
-# select only RT months and other filters
+# select only MOI and other filters
 RT_Abund <- CleanHRBio %>%
   mutate(system = if_else(str_detect(Reference, "^APM"), "AP",
                           if_else(str_detect(Reference, "^CKM"), "CK",
@@ -98,10 +109,12 @@ RT_Abund <- CleanHRBio %>%
   mutate(RTLogic = "Before") %>%
   mutate(RTLogic = replace(RTLogic, year == 2005, "During")) %>%
   mutate(RTLogic = replace(RTLogic, year > 2005, "After")) %>%
-  filter(month %in% RTS) %>%
-  filter(#remove early years
-    year >= StartYear) %>%
-  inner_join(ZoneFilter)
+  filter(month %in% MOI) %>%
+  #filter(#remove early years
+    #year >= StartYear) %>%
+  inner_join(ZoneFilter) %>%
+  filter(year >= StartYear) %>%
+  subset(select = -c(StartYear, EndYear))
 
 # spread via scientific name
 HaulFull <- RT_Abund %>%
@@ -191,7 +204,16 @@ RichAnom <- HaulSub %>%
   ungroup() %>%
   subset(select = c(Reference, system, year, richness)) %>%
   group_by(system, year) %>%
-  summarise(rich.mean = mean(richness))
+  summarise(avg_rich = mean(richness),
+            n_rich = n()) %>%
+  ungroup() %>%
+  group_by(system) %>%
+  mutate(LTM_rich = mean(avg_rich),
+         sd_rich = sd(avg_rich)) %>%
+  mutate(anom_rich = avg_rich - LTM_rich,
+         se_rich = sd_rich/sqrt(n_rich),
+         lower.ci.anom.rich = 0 - (1.96 * se_rich),
+         upper.ci.anom.rich = 0 + (1.96 * se_rich))
 
 
 
@@ -233,14 +255,25 @@ RichAnom <- HaulSub %>%
 # Richness over time plot
 
 ggplot(data=TempAnom,
-       aes(x=year, y=anom_temp, color=system)) +
+       aes(x=year, y=anom_temp, group=system, color=system)) +
   geom_ribbon(
-    aes(ymin=lower.ci.anom.temp, 
-        ymax=upper.ci.anom.temp), 
+    aes(ymin=lower.ci.anom.temp,
+        ymax=upper.ci.anom.temp),
     linetype=2, alpha=0.1, color="purple")+
   theme(legend.position="none") +
   facet_wrap(as.factor(TempAnom$system), scales = "free") +
   geom_line()
+
+ggplot(data=RichAnom,
+       aes(x=year, y=anom_rich, group=system, color=system)) +
+  geom_ribbon(
+    aes(ymin=lower.ci.anom.rich,
+        ymax=upper.ci.anom.rich),
+    linetype=2, alpha=0.1, color="purple")+
+  theme(legend.position="none") +
+  facet_wrap(as.factor(RichAnom$system), scales = "free") +
+  geom_line()
+
 # 
 # ggplot(testtt, aes(x=year))+
 #   geom_line(aes(y=anom_temp))+
