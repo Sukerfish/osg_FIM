@@ -92,8 +92,8 @@ TidyHydro <- FullHydro %>%
 #Months of Interest
 #Coded as months of interest: e.g., Jul-Oct
 
-#MOI <- c(6:9)
-MOI <- c(1:3)
+MOI <- c(6:9)
+#MOI <- c(1:3)
 
 effort <- (140/100)
 
@@ -174,13 +174,17 @@ HaulSub <- HaulFullClean %>%
   subset(select = -c(minHaul)) %>%
   ungroup()
 
-###### Density Calculations ########
 HaulSub_Abun <- HaulSub %>%
-  subset(select = -c(Stratum:ShoreDistance)) %>%
-  subset(select = -c(Reference:month)) %>%
-  subset(select = -c(season:RTLogic)) %>%
-  subset(select = -c(total:DO))
+  subset(select = -c(Stratum:ShoreDistance,
+                     Reference:month,
+                     season:RTLogic,
+                     total:DO))
 
+HaulSub_Env <- HaulSub %>%
+  subset(select = c(Reference:RTLogic, 
+                    total:DO))
+
+###### Density Calculations ########
 HaulSub_Dens <- HaulSub_Abun %>%
   mutate(across(!c(year, system), ~{.x/effort}))
 
@@ -209,34 +213,28 @@ DensDelta <- ZoneFilter %>%
   summarise(across(everything(), mean)) %>%
   pivot_wider(names_from = c(time), 
               values_from = c(CPUE)) %>%
-  mutate(delta = start - end) %>%
+  mutate(delta = end - start) %>%
   ungroup() %>%
-  filter(start != 0 & end != 0) %>%
-  #group_by(system) %>%
+  mutate(chk = abs(end) + abs(start)) %>%
+  filter(chk != 0) %>%
+  subset(select = -c(chk)) %>%
   arrange(desc(delta))
-  
-# 
-#   pivot_wider(names_from = c(species, time), 
-#               values_from = c(CPUE),
-#               values_fn = mean) %>%
-#   pivot_longer(!system,
-#                names_to = c("species", "time"),
-#                names_sep = "_",
-#                values_to = "count")
-#   
-#   pivot_wider(names_from = species, values_from = c(CPUE)) %>%
-#   summarise(across(!year, mean)) %>%
-#   ungroup() %>%
-#   pivot_longer(!system, names_to = "species", values_to = "count")
-#   summarise(across(everything(), start - end))
-#   
-#   mutate(delta = CPUE)
-  
 
+DensDeltaInf <- DensDelta %>%
+  filter(start == 0 | end == 0) %>%
+  group_by(system) %>%
+  arrange(desc(delta))
+
+DensDeltaClean <- DensDelta %>%
+  filter(start > 0 & end > 0) %>%
+  mutate(deltaP = (end - start)/start) %>%
+  arrange(desc(deltaP))
+  
 ##### Temperature Anomaly ####
+TempFull <- HaulSub %>%
+  subset(select = c(system, year, temp))
 
-TempAnom <- HaulSub %>%
-  subset(select = c(system, year, temp)) %>%
+TempAnom <- TempFull %>%
   group_by(system, year) %>%
   summarise(avg_temp = mean(temp, na.rm = TRUE),
             n_temp = n()) %>%
@@ -251,7 +249,7 @@ TempAnom <- HaulSub %>%
 
 ##### Richness Anomaly ######
 
-RichAnom <- HaulSub %>%
+RichFull <- HaulSub %>%
   subset(select = -c(Stratum:ShoreDistance)) %>%
   subset(select = -c(month)) %>%
   subset(select = -c(season:RTLogic)) %>%
@@ -264,7 +262,29 @@ RichAnom <- HaulSub %>%
   rowwise() %>%
   mutate(richness = sum(c_across(where(is.numeric)))) %>%
   ungroup() %>%
-  subset(select = c(Reference, system, year, richness)) %>%
+  subset(select = c(Reference, system, year, richness))
+
+RichDelta <- ZoneFilter %>%
+  subset(select = -Zone) %>%
+  distinct() %>%
+  inner_join(RichFull) %>%
+  subset(select = -c(Reference)) %>%
+  group_by(system) %>%
+  filter(year == StartYear |
+           year == StartYear +1 |
+           year == StartYear +2 |
+           year == EndYear |
+           year == EndYear -1 |
+           year == EndYear -2 ) %>%
+  mutate(time = ifelse(year == StartYear |
+                         year == StartYear +1 |
+                         year == StartYear +2 , "start", "end")) %>%
+  subset(select = -c(year, StartYear, EndYear)) %>%
+  ungroup() %>%
+  group_by(system, time) %>%
+  summarise(avg_rich = mean(richness))
+
+RichAnom <- RichFull %>%
   group_by(system, year) %>%
   summarise(avg_rich = mean(richness),
             n_rich = n()) %>%
@@ -302,9 +322,15 @@ ggplot(data=RichAnom,
   geom_line()
 
 # Density Deltas Distribution
-ggplot(DensDelta, 
-       aes(x=delta)) + geom_histogram(binwidth=.5) +
-  facet_wrap(as.factor(DensDelta$system), scales = "free")
+ggplot(DensDeltaClean, 
+       aes(x=deltaP)) + 
+  geom_histogram(binwidth=.5) +
+  facet_wrap(as.factor(DensDeltaClean$system), scales = "free")
+
+ggplot(DensDeltaInf, 
+       aes(x=delta)) + 
+  geom_histogram(binwidth=.01) +
+  facet_wrap(as.factor(DensDeltaInf$system), scales = "free")
 
 # 
 # ggplot(testtt, aes(x=year))+
