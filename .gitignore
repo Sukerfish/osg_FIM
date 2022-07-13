@@ -3,4 +3,4 @@
 .Rhistory
 .RData
 .Ruserdata
-GearCode20.Rdata
+*.Rdata
