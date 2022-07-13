@@ -92,8 +92,8 @@ TidyHydro <- FullHydro %>%
 #Months of Interest
 #Coded as months of interest: e.g., Jul-Oct
 
-MOI <- c(6:9)
-#MOI <- c(1:3)
+#MOI <- c(6:9)
+MOI <- c(1:12)
 
 effort <- (140/100)
 
@@ -264,6 +264,27 @@ RichFull <- HaulSub %>%
   ungroup() %>%
   subset(select = c(Reference, system, year, richness))
 
+test <- HaulSub %>%
+  subset(select = -c(Stratum:ShoreDistance)) %>%
+  subset(select = -c(month)) %>%
+  subset(select = -c(season:RTLogic)) %>%
+  subset(select = -c(total:DO)) %>%
+  group_by(system, year) %>%
+  # mutate all non-zero things to be 1
+  # ignore Reference column, system and year used as grouping
+  mutate(across(-c(Reference), ~1 * (. >0)))
+
+test.env <- test %>%
+  subset(select = c(year:system))
+
+test.bio <- test %>%
+  subset(select = -c(Reference:system))
+
+test.bio.bc <- vegdist(test.bio)
+
+test.system <- permutest(betadisper(test.bio.bc, test.env$system),
+                         )
+
 RichDelta <- ZoneFilter %>%
   subset(select = -Zone) %>%
   distinct() %>%
@@ -318,7 +339,7 @@ ggplot(data=RichAnom,
         ymax=upper.ci.anom.rich),
     linetype=2, alpha=0.1, color="purple")+
   theme(legend.position="none") +
-  facet_wrap(as.factor(RichAnom$system), scales = "free") +
+  facet_wrap(as.factor(RichAnom$system)) +
   geom_line()
 
 # Density Deltas Distribution
