@@ -38,8 +38,19 @@ HydroList <- TidyHydro %>%
   #filter by seasons of interest
   filter(season %in% SOI) 
 
-TidyRefsList <- HydroList %>%
-  subset(select = c(Reference, system, season, seasonYear))
+#create logic code for zone filtering
+# ZoneLogic <- ZoneFilter %>%
+#   subset(select = c(system, Zone)) %>%
+#   group_by(system) %>%
+#   summarise(code=paste(Zone,collapse=", "))
+
+TidyRefsList <- RefsList %>%
+  subset(select = c(Reference, Zone)) %>%
+  inner_join(HydroList) %>%
+  #inner_join(ZoneLogic) %>%
+  mutate(Zone = str_trim(Zone, side  = "both")) %>%
+  filter(Zone %in% ZoneFilter$Zone) %>%
+  subset(select = c(Reference, system, season, seasonYear, Zone))
 
 TidyBio <- TidyRefsList %>%
   left_join(CleanHRBio, by = "Reference")
