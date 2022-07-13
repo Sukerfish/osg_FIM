@@ -29,7 +29,7 @@ HydroList <- TidyHydro %>%
   #as the preceding year's data
   mutate(seasonYear = if_else(month %in% c(12), year + 1, year)) %>%
   #remove the incomplete final seasonYear of winter data
-  filter(season != "winter" & seasonYear != EndYear + 1) %>%
+  filter(season != "winter" | seasonYear != EndYear + 1) %>%
   #filter by years of interest (all begin before, so first year of interest is
   #not truncated)
   filter(seasonYear >= StartYear) %>%
