@@ -3,77 +3,114 @@
 library(tidyverse)
 library(lubridate)
 
-load("C:/Users/Gymnothorax/Box/Graduate/RGD/osg_FIM/GearCode20Refresh.Rdata")
+load('GearCode20Refresh.Rdata')
 
-#MOI <- c(6:9)
-
+#establish years of interest
 YearFilter <- ZoneFilter %>%
   select(system, StartYear, EndYear) %>%
   unique()
 
+#establish seasons of interest
 SOI <- c(
-"summer",
-"winter"
+  "summer",
+  "winter"
 )
 
+#expand sampling date and attach years of interest
 HydroList <- TidyHydro %>%
   mutate(month = month(Sampling_Date), year = year(Sampling_Date)) %>%
   left_join(YearFilter) %>%
+  #label specific months as seasons
   mutate(season = if_else(month %in% c(4:5), "spring",
                           if_else(month %in% c(6:9), "summer",
                                   if_else(month %in% c(10:11), "fall",
                                           "winter")))) %>%
-  #mutate(seasonYear = if_else(month %in% c(1:3), year - 1, year)) %>%
-  # filter(seasonYear >= StartYear - 1) %>%
-  # filter(seasonYear != EndYear) %>%
-  
+  #tag everything with year associated with sampling season, with December
+  #as the preceding year's data
   mutate(seasonYear = if_else(month %in% c(12), year + 1, year)) %>%
+  #remove the incomplete final seasonYear of winter data
   filter(season != "winter" | seasonYear != EndYear + 1) %>%
-  filter(season != "winter" | seasonYear != StartYear) %>%
+  #filter by years of interest (all begin before, so first year of interest is
+  #not truncated)
   filter(seasonYear >= StartYear) %>%
-  filter(seasonYear != EndYear | season != "winter") %>%
+  #remove year of interest logic
   subset(select = -c(StartYear, EndYear)) %>%
+  #filter by seasons of interest
   filter(season %in% SOI)
 
+#physical parameters of interest
+PaOI <- c(
+  "Temperature",
+  "Salinity"
+  #"pH",
+  #"DissolvedO2"
+)
+
+#summary statistics of physical parameters of interest
 HydroSummary <- HydroList %>%
-  #filter(system == "CK") %>%
   group_by(system, seasonYear, season) %>%
-  summarise(medTemp    = median(Temperature, na.rm=TRUE),
-            meanTemp   = mean(Temperature, na.rm=TRUE),
-            lowTemp    = quantile(Temperature, probs = .1, na.rm=TRUE),
-            highTemp   = quantile(Temperature, probs = .9, na.rm=TRUE),
-            n          = n_distinct(Reference),
-  )
+  summarise(across(any_of(PaOI),
+                   list(
+                     mean = ~mean(., na.rm=TRUE),
+                     median = ~median(., na.rm=TRUE),
+                     q10 = ~quantile(., probs = 0.1, na.rm=TRUE),
+                     q90 = ~quantile(., probs = 0.9, na.rm=TRUE)
+                   ), .names = "{col}_{fn}"))
 
+#assign factor levels for plot order (North -> South)
 HydroSummary$system = factor(HydroSummary$system, levels=c("AP","CK","TB","CH"))
-
-# HydroSummary <- HydroList %>%
-#   filter(system == "TB") %>%
-#   group_by(system, year) %>%
-#   summarise(medTemp = median(Salinity, na.rm=TRUE),
-#             meanTemp   = mean(Salinity, na.rm=TRUE),
-#             lowTemp    = quantile(Salinity, probs = .1, na.rm=TRUE),
-#             highTemp   = quantile(Salinity, probs = .9, na.rm=TRUE),
-#             n          = n_distinct(Reference),
-#   )
-
-#### Biology ####
-
-# HaulFull <- CleanHRBio %>%
-#   inner_join(HydroList) %>%
-#   subset(select = -c(Sampling_Date:DissolvedO2)) %>%
-#   spread(Scientificname, N2) %>%
-#   replace(is.na(.),0)
-
-#### Betadiversity ####
-
-# library(codyn)
-
-
 
 #### Plots ####
 
 library(ggplot2)
+
+#Temperatures Plot
+ggplot(data=HydroSummary,
+       aes(x=seasonYear, y=Temperature_mean)) +
+  geom_ribbon(
+    aes(ymin=Temperature_q10,
+        ymax=Temperature_q90,
+        fill="10th-90th Percentile"),
+    linetype=2, alpha=0.1, color="purple") +
+  geom_point(
+    aes(y = Temperature_median, 
+        color="median")
+  ) +
+  #theme(legend.position="bottom") +
+  theme_bw() + 
+  ggtitle("Water Temperature Over Time") +
+  xlab("Year") +
+  scale_x_continuous(breaks = seq(1998, 2020, 2)) +
+  ylab("Temperature (°C)") +
+  geom_line(aes(color = "mean")) +
+  facet_grid(season ~ system) +
+  theme(strip.text.x = element_text(size = 20)) +
+  theme(strip.text.y = element_text(size = 20))
+
+#Salinity Plot
+ggplot(data=HydroSummary,
+       aes(x=seasonYear, y=Salinity_mean)) +
+  geom_ribbon(
+    aes(ymin=Salinity_q10,
+        ymax=Salinity_q90,
+        fill="10th-90th Percentile"),
+    linetype=2, alpha=0.1, color="purple") +
+  geom_point(
+    aes(y = Salinity_median, 
+        color="median")
+  ) +
+  #theme(legend.position="bottom") +
+  theme_bw() + 
+  ggtitle("Salinity Over Time") +
+  xlab("Year") +
+  scale_x_continuous(breaks = seq(1998, 2020, 2)) +
+  ylab("Salinity (psu)") +
+  geom_line(aes(color = "mean")) +
+  facet_grid(season ~ system) +
+  theme(strip.text.x = element_text(size = 20)) +
+  theme(strip.text.y = element_text(size = 20))
+
+#### old plots ####
 
 # plotHydro <- HydroSummary %>%
 #   subset(select = -c(system, n)) %>%
@@ -104,26 +141,3 @@ library(ggplot2)
 
 
 
-
-
-ggplot(data=HydroSummary,
-       aes(x=seasonYear, y=meanTemp)) +
-  geom_ribbon(
-    aes(ymin=lowTemp,
-        ymax=highTemp,
-        fill="10th-90th Percentile"),
-    linetype=2, alpha=0.1, color="purple") +
-  geom_point(
-    aes(y = medTemp, 
-        color="median")
-  ) +
-  #theme(legend.position="bottom") +
-  theme_bw() + 
-  ggtitle("Water Temperature Over Time") +
-  xlab("Year") +
-  scale_x_continuous(breaks = seq(1998, 2020, 2)) +
-  ylab("Temperature (°C)") +
-  geom_line(aes(color = "mean")) +
-  facet_grid(season ~ system) +
-  theme(strip.text.x = element_text(size = 20)) +
-  theme(strip.text.y = element_text(size = 20))
