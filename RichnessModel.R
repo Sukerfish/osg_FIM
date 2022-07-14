@@ -30,37 +30,65 @@ modelDF <- FullRichness %>%
   group_by(seasonYear, system, season) %>%
   add_count(name = "n_hauls") %>%
   ungroup() %>%
-  filter(season == "summer")
-  #filter(season == "winter")
+  #filter(season == "summer")
+  filter(season == "winter")
 
-#unique(modelDF$systemZone)
 
+##### lme4 ####
+#converges if seasonYear is random
+library(lme4)
+gmod_lme4_L <- glmer(n~system+
+                       offset(log(n_hauls))+
+                       (1|systemZone/seasonYear),
+                     family="poisson",
+                     data=modelDF,
+                     control=glmerControl(optimizer="bobyqa",
+                                          check.conv.grad=.makeCC("warning",0.05)))
+summary(gmod_lme4_L)
+plot(gmod_lme4_L)
+plot(gmod_lme4_L,systemZone~resid(.))
+
+
+library(broom.mixed)
+fit_augmented <- augment(gmod_lme4_L)
+
+p1 <-ggplot(fit_augmented, aes(.fitted, .resid))+
+  geom_point()
+
+p1 + stat_smooth(method="loess") + 
+  geom_hline(yintercept=0, col="red", linetype="dashed") +
+  xlab("Fitted values") + 
+  ylab("Residuals") + 
+  ggtitle("Residual vs Fitted Plot") + 
+  theme_bw()
+
+qqnorm(fit_augmented[[".resid"]])
+
+library(aods3)
+gof(gmod_lme4_L)
+
+sims <- simulate(gmod_lme4_L,nsim=1000)
+nzeros <- colSums(sims==0)
+par(las=1,bty="l")
+plot(pt <- prop.table(table(nzeros)),
+     ylab="Probability",xlab="Number of zeros")
+(obszero <- sum(modelDF$n==0))
+
+#gmod_lme4_agq <- update(gmod_lme4_L,nAGQ=10)
+
+###### pql ####
 library(nlme)
 library(MASS)
 
-glmmPQL1 <- glmmPQL(fixed = n ~ system + seasonYear + offset(log(n_hauls)),
-                    random = ~ 1|systemZone,
+glmmPQL1 <- glmmPQL(fixed = n ~ system + offset(log(n_hauls)),
+                    random = ~ 1|systemZone/seasonYear,
                     family = "poisson",
-                    #offset = log(n_hauls),
                     correlation=corARMA(form=~1|systemZone/seasonYear,p=1),
                     data = modelDF)
 summary(glmmPQL1)
 plot(glmmPQL1)
 
-#kind of works, cant converge
-library(lme4)
-gmod_lme4_L <- glmer(n~system+
-                       offset(log(n_hauls))+
-                       seasonYear+
-                       (1|systemZone),
-                     family=poisson,
-                     data=modelDF,
-                     control=glmerControl(optimizer="bobyqa",
-                                          check.conv.grad=.makeCC("warning",0.05)))
-summary(gmod_lme4_L)
-gmod_lme4_agq <- update(gmod_lme4_L,nAGQ=10)
-
-#####
+##### brms ####
 library(brms)
 
 options(mc.cores = parallel::detectCores())
@@ -76,10 +104,6 @@ brm1 <- brm(formula = n ~ system +
 plot(brm1)
 
 #####
-library(lme4)
-
-m2 <- glm(modelDF$n ~ modelDF$seasonYear + offset(log(offsetDF)), family = poisson, data = df)
-
 
 vars = c("n")
 
