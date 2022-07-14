@@ -10,7 +10,7 @@ OnlyFish <- TidyBio %>%
 NoFish <- TidyBio %>%
   filter(Scientificname == "No fish") %>%
   mutate(n = 0) %>%
-  subset(select = c(Reference, n, system, season, seasonYear))
+  subset(select = c(Reference, n, system, season, seasonYear, systemZone))
 
 FullRichness <- OnlyFish %>%
   group_by(Reference) %>%
@@ -26,18 +26,14 @@ FullRichness <- OnlyFish %>%
 # Offset term for variation in number of seine hauls
 # Autoregressive term to account for serial correlation
 
-modelDF <- RefsList %>%
-  subset(select = c(Reference, Zone)) %>%
-  inner_join(FullRichness) %>%
-  group_by(seasonYear, system, season, Zone) %>%
+modelDF <- FullRichness %>%
+  group_by(seasonYear, system, season) %>%
   add_count(name = "n_hauls") %>%
   ungroup() %>%
-  mutate(systemZone = str_c(system, "_", Zone)) %>%
   filter(season == "summer")
+  #filter(season == "winter")
 
-unique(modelDF$systemZone)
-unique(modelDF$Zone)
-str_to_upper(modelDF$systemZone, locale = "en")
+#unique(modelDF$systemZone)
 
 library(nlme)
 library(MASS)
@@ -45,13 +41,15 @@ library(MASS)
 glmmPQL1 <- glmmPQL(fixed = n ~ system + seasonYear + offset(log(n_hauls)),
                     random = ~ 1|systemZone,
                     family = "poisson",
+                    #offset = log(n_hauls),
                     correlation=corARMA(form=~1|systemZone/seasonYear,p=1),
                     data = modelDF)
 summary(glmmPQL1)
 plot(glmmPQL1)
 
 #kind of works, cant converge
-gmod_lme4_L <- glmer(n~factor(system)+
+library(lme4)
+gmod_lme4_L <- glmer(n~system+
                        offset(log(n_hauls))+
                        seasonYear+
                        (1|systemZone),
@@ -63,11 +61,13 @@ summary(gmod_lme4_L)
 gmod_lme4_agq <- update(gmod_lme4_L,nAGQ=10)
 
 #####
-options(mc.cores = parallel::detectCores())
 library(brms)
+
+options(mc.cores = parallel::detectCores())
+
 brm1 <- brm(formula = n ~ system + 
               seasonYear + 
-              (1|Zone) + 
+              (1|systemZone) + 
               offset(log(n_hauls)),
             data = modelDF,
             family = "poisson")
