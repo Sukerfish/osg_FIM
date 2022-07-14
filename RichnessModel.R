@@ -33,6 +33,22 @@ modelDF <- FullRichness %>%
   #filter(season == "summer")
   filter(season == "winter")
 
+# test <-modelDF %>%
+#   subset(select = c(seasonYear))
+# df <- fct_reorder(factor(modelDF$seasonYear),test$seasonYear)
+
+##### glmmTMB ####
+library(glmmTMB)
+rmod_tmb <- glmmTMB(n~system+
+                      seasonYear+
+                      offset(log(n_hauls))+
+                      ar1(factor(seasonYear) + 0|system)+
+                      (1|systemZone),
+                    zi=~1,
+                    family=poisson,
+                    data=modelDF)
+summary(rmod_tmb)
+VarCorr(rmod_tmb)
 
 ##### lme4 ####
 #converges if seasonYear is random
