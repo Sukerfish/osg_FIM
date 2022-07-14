@@ -38,19 +38,25 @@ HydroList <- TidyHydro %>%
   #filter by seasons of interest
   filter(season %in% SOI) 
 
-#create logic code for zone filtering
-# ZoneLogic <- ZoneFilter %>%
-#   subset(select = c(system, Zone)) %>%
-#   group_by(system) %>%
-#   summarise(code=paste(Zone,collapse=", "))
+#Zone filtering setup
 
+#establish zones of interest by estuary
+ZoneLogic <- ZoneFilter %>%
+  subset(select = c(system, Zone)) %>%
+  mutate(systemZone = str_c(system, "_", Zone)) %>%
+  subset(select = systemZone)
+
+#build new reference/Zone dataframe for processing
 TidyRefsList <- RefsList %>%
   subset(select = c(Reference, Zone)) %>%
   inner_join(HydroList) %>%
-  #inner_join(ZoneLogic) %>%
+  #sanitize Zone entries
   mutate(Zone = str_trim(Zone, side  = "both")) %>%
-  filter(Zone %in% ZoneFilter$Zone) %>%
-  subset(select = c(Reference, system, season, seasonYear, Zone))
+  mutate(Zone = str_to_upper(Zone)) %>%
+  mutate(systemZone = str_c(system, "_", Zone)) %>%
+  #filter by system_zones in logic vector
+  filter(systemZone %in% ZoneLogic$systemZone) %>%
+  subset(select = c(Reference, system, season, seasonYear, systemZone)) 
 
 TidyBio <- TidyRefsList %>%
   left_join(CleanHRBio, by = "Reference")
@@ -58,7 +64,7 @@ TidyBio <- TidyRefsList %>%
 save(CleanHRBio, 
      RefsList, 
      HydroList, 
-     ZoneFilter, 
+     ZoneLogic, 
      TidyRefsList, 
      TidyBio, 
      file = "TidyGearCode20.Rdata")
