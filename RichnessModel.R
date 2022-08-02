@@ -30,10 +30,10 @@ modelDF <- FullRichness %>%
   group_by(seasonYear, system, season) %>%
   add_count(name = "n_hauls") %>%
   ungroup() %>%
-  #mutate(n_hauls = log(n_hauls)) %>%
-  #filter(season == "summer") %>%
-  filter(season == "winter") %>%
-  filter(system == "TB")
+  # mutate(n_hauls = log(n_hauls)) %>%
+  # filter(season == "summer") %>%
+  # filter(system == "TB") %>%
+  filter(season == "winter")
 
 # test <-modelDF %>%
 #   subset(select = c(seasonYear))
@@ -43,10 +43,10 @@ modelDF <- FullRichness %>%
 library(nlme)
 library(MASS) # needs MASS (version 7.3-58)
 
-glmmPQL <- glmmPQL(n ~ seasonYear + offset(log(n_hauls)),
+glmmPQL <- glmmPQL(n ~ system + seasonYear + offset(log(n_hauls)),
                     random = ~ 1|systemZone,
                     family = poisson,
-                    correlation = corARMA(form = ~ 1|systemZone/seasonYear, p = 1, q = 1),
+                    correlation = corARMA(form = ~ 1|systemZone, p = 1, q = 1),
                     data = modelDF)
 summary(glmmPQL)
 plot(glmmPQL)
