@@ -1,71 +1,72 @@
-# diagnostic histograms for data exploration
+# Heatmap of zscored abundance data
 #
 #
 #### data input ######
 
+library(viridis)
 library(tidyverse)
 library(ggplot2)
+
 
 load('TidyGearCode20.Rdata')
 
 #### richness ####
 CleanHauls <- TidyBio %>%
   subset(select = c(Reference, system, season, seasonYear, systemZone, Scientificname, N2))
-  #filter(season == "summer" | season == "winter")
- # filter(season == "winter")
-#filter(season == "summer")
+
+summerHauls <- CleanHauls %>%
+  filter(season == "summer")
+
+winterHauls <- CleanHauls %>%
+  filter(season == "winter")
 
 ###### main ######
-SiteXSpeciesFull <- CleanHauls %>%
-  mutate(N2 = N2^.25) %>% #fourth-root transform
-  group_by(Reference) %>%
-  spread(Scientificname,N2) %>%
-  ungroup() %>%
-  subset(select = -c(Reference, season, systemZone)) %>%
-  replace(is.na(.), 0) %>% #replace all NA values with 0s, i.e. counting as true zero
-  group_by(system, seasonYear) %>%
-  summarise(across(everything(), ~ mean(.x, na.rm = TRUE)))
+# SiteXSpeciesFull <- CleanHauls %>%
+#   #mutate(N2 = N2^.25) %>% #fourth-root transform
+#   group_by(Reference) %>%
+#   spread(Scientificname,N2) %>%
+#   ungroup() %>%
+#   subset(select = -c(Reference, systemZone)) %>%
+#   replace(is.na(.), 0) #replace all NA values with 0s, i.e. counting as true zero
+#   
+# SXSSummary <- SiteXSpeciesFull %>%
+#   group_by(system, season, seasonYear) %>%
+#   summarise(across(everything(), ~ mean(.x, na.rm = TRUE)))
 
+rawAbs <- CleanHauls %>%
+  subset(select = c(Reference, system, season, seasonYear, Scientificname, N2))
 
-# class(FullRichness$system)
-# unique(FullRichness$system)
-# as.factor(FullRichness$system)
-# 
-# , levels = c("AP", "CK", "TB", "CH")
-# as.ordered), levels = c("AP", "CK", "TB", "CH")
+means <- CleanHauls %>%
+  #mutate(N2 = N2^.25) %>% #fourth-root transform
+  group_by(system, season, Scientificname) %>%
+  summarise(mean = mean(N2))
 
-ggplot(data=FullRichness)+
-  geom_histogram(binwidth = 1,
-                 aes(x=n)) +
-  theme_bw() + 
-  ggtitle("Richness per haul by estuary") +
-  xlab("Number of taxa in each haul") +
-  scale_x_continuous(breaks = seq(0, 100, 5)) +
-  ylab("Frequency") +
-  facet_grid(rows = vars(FullRichness$season), 
-             cols = vars(FullRichness$system)) +
-  theme(
-    text=element_text(size=20))
-        
-#total abundance
-ggplot(data=TotalAbundance)+
-  geom_histogram(binwidth = 1,
-                 aes(x=n)) +
-  theme_bw() + 
-  ggtitle("Total abundance per haul by estuary") +
-  xlab("Number of individuals in each haul (fourth-root transformed)") +
-  scale_x_continuous(breaks = seq(0, 100, 3)) +
-  ylab("Frequency") +
-  facet_grid(rows = vars(TotalAbundance$season), 
-             cols = vars(TotalAbundance$system)) +
-  theme(
-    text=element_text(size=20))
+stdev <- CleanHauls %>%
+  group_by(system, season, Scientificname) %>%
+  summarise(stdev = sd(N2))
 
-# p + theme(text=element_text(size=20), #change font size of all text
-#           axis.text=element_text(size=20), #change font size of axis text
-#           axis.title=element_text(size=20), #change font size of axis titles
-#           plot.title=element_text(size=20), #change font size of plot title
-#           legend.text=element_text(size=20), #change font size of legend text
-#           legend.title=element_text(size=20)) #change font size of legend title 
-# 
+centered <- rawAbs %>%
+  left_join(means) %>%
+  left_join(stdev) %>%
+  mutate(zscore = ((N2 - mean)/stdev))
+  # filter(Scientificname == "Anchoa spp.") %>%
+  # filter(seasonYear == "2001") %>%
+  # filter(system == "AP") %>%
+  # filter(season == "winter") %>%
+  # summarise(avg = mean(zscore))
+
+summary <- centered %>%
+  group_by(system, season, seasonYear, Scientificname) %>%
+  summarise(avg = mean(zscore)) %>%
+  filter(system == "TB") %>%
+  filter(season == "winter")
+
+ggplot(summary, aes(seasonYear, Scientificname, fill= avg)) + 
+  #facet_wrap(system~season) +
+ # scale_fill_gradient(low = "yellow", high = "red", na.value = NA) +
+  #scale_fill_gradientn(colours = terrain.colors(10))  +
+  #scale_fill_viridis(option="magma") +
+  scale_fill_gradientn(colours=c("blue","white", "red"), na.value = "grey98",
+                       limits = c(-3.5, 3.5)) +
+  geom_tile()
 
