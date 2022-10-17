@@ -7,7 +7,6 @@ library(viridis)
 library(tidyverse)
 library(ggplot2)
 
-
 load('TidyGearCode20.Rdata')
 
 #### richness ####
@@ -19,19 +18,6 @@ summerHauls <- CleanHauls %>%
 
 winterHauls <- CleanHauls %>%
   filter(season == "winter")
-
-###### main ######
-# SiteXSpeciesFull <- CleanHauls %>%
-#   #mutate(N2 = N2^.25) %>% #fourth-root transform
-#   group_by(Reference) %>%
-#   spread(Scientificname,N2) %>%
-#   ungroup() %>%
-#   subset(select = -c(Reference, systemZone)) %>%
-#   replace(is.na(.), 0) #replace all NA values with 0s, i.e. counting as true zero
-#   
-# SXSSummary <- SiteXSpeciesFull %>%
-#   group_by(system, season, seasonYear) %>%
-#   summarise(across(everything(), ~ mean(.x, na.rm = TRUE)))
 
 rawAbs <- CleanHauls %>%
   subset(select = c(Reference, system, season, seasonYear, Scientificname, N2))
@@ -58,15 +44,76 @@ centered <- rawAbs %>%
 summary <- centered %>%
   group_by(system, season, seasonYear, Scientificname) %>%
   summarise(avg = mean(zscore)) %>%
+  filter(Scientificname != "No fish") %>%
   filter(system == "TB") %>%
-  filter(season == "winter")
+  filter(season == "summer")
 
+
+#### plot heatmaps ####
 ggplot(summary, aes(seasonYear, Scientificname, fill= avg)) + 
   #facet_wrap(system~season) +
  # scale_fill_gradient(low = "yellow", high = "red", na.value = NA) +
   #scale_fill_gradientn(colours = terrain.colors(10))  +
   #scale_fill_viridis(option="magma") +
   scale_fill_gradientn(colours=c("blue","white", "red"), na.value = "grey98",
-                       limits = c(-3.5, 3.5)) +
+                       limits = c(-1, 1)) +
   geom_tile()
 
+#### centered logic ####
+
+centeredLogic <- centered %>%
+  mutate(logic = if_else(zscore == 0, 0,
+                         if_else(zscore > 0, 1, -1)))
+
+summaryLogic <- centeredLogic %>%
+  group_by(system, season, seasonYear, Scientificname) %>%
+  summarise(avg = mean(logic)) %>%
+  mutate(logic = if_else(avg == 0, 0,
+                         if_else(avg > 0, 1, -1))) %>%
+  filter(Scientificname != "No fish") %>%
+  filter(system == "TB") %>%
+  filter(season == "summer")
+
+ggplot(summaryLogic, aes(seasonYear, Scientificname, fill= logic)) + 
+  #facet_wrap(system~season) +
+  # scale_fill_gradient(low = "yellow", high = "red", na.value = NA) +
+  #scale_fill_gradientn(colours = terrain.colors(10))  +
+  #scale_fill_viridis(option="magma") +
+  scale_fill_gradientn(colours=c("blue","white", "red"), na.value = "grey98",
+                       limits = c(-1, 1)) +
+  geom_tile()
+
+#### Dornelas style ####
+# Linear regression to population abundances
+#   ignoring when species was absent (pre/post)
+# Sqrt first
+# Then scale for mean 0 and stdev 1
+# Fit OLS regression through trans data and calc slope/stat sig
+
+library(tseries)
+
+binaryAbs <- rawAbs %>%
+  mutate(logic = if_else(N2 > 0, 1, 0)) %>%
+  group_by(system, season, seasonYear, Scientificname) %>%
+  summarise(avg = mean(logic))
+
+SiteXSpeciesFull <- CleanHauls %>%
+  #mutate(N2 = N2^.5) %>% #square root transform
+  mutate(logic = if_else(N2 > 0, 1, 0)) %>%
+  #group_by(Reference) %>%
+  pivot_wider(id_cols = Reference:systemZone,
+              #id_expand = TRUE,
+              names_from = Scientificname,
+              values_from = logic,
+              values_fill = 0) %>% #replace all NA values with 0s, i.e. counting as true zero
+  ungroup() %>%
+  subset(select = -c(Reference, systemZone)) %>%
+  group_by(system, season, seasonYear) %>%
+  summarise(across(everything(), ~ mean(.x, na.rm = TRUE))) %>%
+  group_by(system, season, seasonYear) %>%
+  mutate(across(everything(), ~ if_else(.x > 0, 1, 0))) %>%
+  filter(system == "CK") %>%
+  filter(season == "summer")
+
+runs.test(as.factor(SiteXSpeciesFull$`Centropomus undecimalis`),
+          alternative = "less")
