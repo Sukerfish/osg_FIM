@@ -32,25 +32,18 @@ stdev <- CleanHauls %>%
   summarise(stdev = sd(N2))
 
 centered <- rawAbs %>%
+  group_by(system, season, seasonYear, Scientificname) %>%
+  summarise(avg = mean(N2)) %>%
   left_join(means) %>%
   left_join(stdev) %>%
-  mutate(zscore = ((N2 - mean)/stdev))
-  # filter(Scientificname == "Anchoa spp.") %>%
-  # filter(seasonYear == "2001") %>%
-  # filter(system == "AP") %>%
-  # filter(season == "winter") %>%
-  # summarise(avg = mean(zscore))
-
-summary <- centered %>%
-  group_by(system, season, seasonYear, Scientificname) %>%
-  summarise(avg = mean(zscore)) %>%
+  mutate(zscore = ((avg - mean)/stdev)) %>%
   filter(Scientificname != "No fish") %>%
-  filter(system == "TB") %>%
+  filter(Scientificname == "Centropomus undecimalis") %>%
+  #filter(system == "TB") %>%
   filter(season == "summer")
 
-
 #### plot heatmaps ####
-ggplot(summary, aes(seasonYear, Scientificname, fill= avg)) + 
+ggplot(centered, aes(seasonYear, Scientificname, fill= zscore)) + 
   #facet_wrap(system~season) +
  # scale_fill_gradient(low = "yellow", high = "red", na.value = NA) +
   #scale_fill_gradientn(colours = terrain.colors(10))  +
@@ -58,6 +51,17 @@ ggplot(summary, aes(seasonYear, Scientificname, fill= avg)) +
   scale_fill_gradientn(colours=c("blue","white", "red"), na.value = "grey98",
                        limits = c(-1, 1)) +
   geom_tile()
+
+ggplot(centered, aes(x=seasonYear, 
+                     y=zscore)) + 
+  #facet_wrap(system~season) +
+  # scale_fill_gradient(low = "yellow", high = "red", na.value = NA) +
+  #scale_fill_gradientn(colours = terrain.colors(10))  +
+  #scale_fill_viridis(option="magma") +
+  #scale_fill_gradientn(colours=c("blue","white", "red"), na.value = "grey98",
+                       #limits = c(-1, 1)) +
+  geom_line() +
+  facet_wrap(vars(system))
 
 #### centered logic ####
 
@@ -112,8 +116,8 @@ SiteXSpeciesFull <- CleanHauls %>%
   summarise(across(everything(), ~ mean(.x, na.rm = TRUE))) %>%
   group_by(system, season, seasonYear) %>%
   mutate(across(everything(), ~ if_else(.x > 0, 1, 0))) %>%
-  filter(system == "CK") %>%
+  filter(system == "TB") %>%
   filter(season == "summer")
 
-runs.test(as.factor(SiteXSpeciesFull$`Centropomus undecimalis`),
+runs.test(as.factor(SiteXSpeciesFull$`Opsanus beta`),
           alternative = "less")
