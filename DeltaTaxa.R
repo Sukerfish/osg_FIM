@@ -38,9 +38,12 @@ centered <- rawAbs %>%
   left_join(stdev) %>%
   mutate(zscore = ((avg - mean)/stdev)) %>%
   filter(Scientificname != "No fish") %>%
-  filter(Scientificname == "Centropomus undecimalis") %>%
-  #filter(system == "TB") %>%
+  filter(Scientificname == "Opsanus beta") %>%
+  filter(system == "TB") %>%
   filter(season == "summer")
+
+maxZS <- max(abs(centered$zscore), na.rm = TRUE)
+minZS <- min(centered$zscore, na.rm = TRUE)
 
 #### plot heatmaps ####
 ggplot(centered, aes(seasonYear, Scientificname, fill= zscore)) + 
@@ -49,7 +52,7 @@ ggplot(centered, aes(seasonYear, Scientificname, fill= zscore)) +
   #scale_fill_gradientn(colours = terrain.colors(10))  +
   #scale_fill_viridis(option="magma") +
   scale_fill_gradientn(colours=c("blue","white", "red"), na.value = "grey98",
-                       limits = c(-1, 1)) +
+                       limits = c(maxZS*-1, maxZS)) +
   geom_tile()
 
 ggplot(centered, aes(x=seasonYear, 
