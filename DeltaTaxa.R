@@ -13,46 +13,93 @@ load('TidyGearCode20.Rdata')
 CleanHauls <- TidyBio %>%
   subset(select = c(Reference, system, season, seasonYear, systemZone, Scientificname, N2))
 
-summerHauls <- CleanHauls %>%
-  filter(season == "summer")
+# summerHauls <- CleanHauls %>%
+#   filter(season == "summer")
+# 
+# winterHauls <- CleanHauls %>%
+#   filter(season == "winter")
+# 
+# rawAbs <- CleanHauls %>%
+#   subset(select = c(Reference, system, season, seasonYear, Scientificname, N2))
+# 
+# means <- CleanHauls %>%
+#   #mutate(N2 = N2^.25) %>% #fourth-root transform
+#   group_by(system, season, Scientificname) %>%
+#   summarise(mean = mean(N2))
+# 
+# stdev <- CleanHauls %>%
+#   group_by(system, season, Scientificname) %>%
+#   summarise(stdev = sd(N2))
+# 
+# centered <- rawAbs %>%
+#   group_by(system, season, seasonYear, Scientificname) %>%
+#   summarise(avg = mean(N2)) %>%
+#   left_join(means) %>%
+#   left_join(stdev) %>%
+#   mutate(zscore = ((avg - mean)/stdev)) %>%
+#   filter(Scientificname != "No fish") %>%
+#   filter(Scientificname == "Opsanus beta") %>%
+#   filter(system == "TB") %>%
+#   filter(season == "summer")
+# 
+# maxZS <- max(abs(centered$zscore), na.rm = TRUE)
+# minZS <- min(centered$zscore, na.rm = TRUE)
 
-winterHauls <- CleanHauls %>%
+SiteXSpeciesFull <- CleanHauls %>%
+  pivot_wider(id_cols = Reference:systemZone,
+              names_from = Scientificname,
+              values_from = N2,
+              values_fill = 0) %>% #replace all NA values with 0s, i.e. counting as true zero
+  ungroup()
+
+LTxSpeciesMeans <- SiteXSpeciesFull %>%
+  subset(select = -c(Reference, systemZone, seasonYear)) %>%
+  group_by(system, season) %>%
+  summarise(across(everything(), ~ mean(.x, na.rm = TRUE)))
+
+LTxSpeciesStdev <- SiteXSpeciesFull %>%
+  subset(select = -c(Reference, systemZone, seasonYear)) %>%
+  group_by(system, season) %>%
+  summarise(across(everything(), ~ sd(.x, na.rm = TRUE)))
+
+YearXSpeciesZ <- SiteXSpeciesFull %>%
+  subset(select = -c(Reference, systemZone)) %>%
+  group_by(system, season, seasonYear) %>%
+  summarise(across(everything(), ~ mean(.x, na.rm = TRUE))) %>%
+  ungroup() %>%
+  pivot_longer(cols = !c(system:seasonYear),
+              names_to = "Scientificname",
+              values_to = "avg") %>%
+              #expand back out to long form for leftjoins
+  ungroup() %>%
+  left_join(pivot_longer(data = LTxSpeciesMeans,
+                         cols = !c(system:season),
+                         names_to = "Scientificname",
+                         values_to = "LTmean")) %>%
+  left_join(pivot_longer(data = LTxSpeciesStdev,
+                         cols = !c(system:season),
+                         names_to = "Scientificname",
+                         values_to = "stdev")) %>%
+  group_by(system, season, seasonYear) %>%
+  mutate(zscore = ((avg - LTmean)/stdev)) %>%
+  filter(LTmean > 0) %>% #remove taxa entirely absent from each system - if LTmean = 0, taxa never observed
+  filter(Scientificname != "No fish") %>%
+  #filter(Scientificname == "Leiostomus xanthurus") %>%
+  filter(system == "AP") %>%
   filter(season == "winter")
 
-rawAbs <- CleanHauls %>%
-  subset(select = c(Reference, system, season, seasonYear, Scientificname, N2))
-
-means <- CleanHauls %>%
-  #mutate(N2 = N2^.25) %>% #fourth-root transform
-  group_by(system, season, Scientificname) %>%
-  summarise(mean = mean(N2))
-
-stdev <- CleanHauls %>%
-  group_by(system, season, Scientificname) %>%
-  summarise(stdev = sd(N2))
-
-centered <- rawAbs %>%
-  group_by(system, season, seasonYear, Scientificname) %>%
-  summarise(avg = mean(N2)) %>%
-  left_join(means) %>%
-  left_join(stdev) %>%
-  mutate(zscore = ((avg - mean)/stdev)) %>%
-  filter(Scientificname != "No fish") %>%
-  filter(Scientificname == "Opsanus beta") %>%
-  filter(system == "TB") %>%
-  filter(season == "summer")
-
-maxZS <- max(abs(centered$zscore), na.rm = TRUE)
-minZS <- min(centered$zscore, na.rm = TRUE)
+maxZS <- max(abs(YearXSpeciesZ$zscore), na.rm = TRUE)
 
 #### plot heatmaps ####
-ggplot(centered, aes(seasonYear, Scientificname, fill= zscore)) + 
+ggplot(YearXSpeciesZ, aes(seasonYear, Scientificname, fill= zscore)) + 
   #facet_wrap(system~season) +
  # scale_fill_gradient(low = "yellow", high = "red", na.value = NA) +
   #scale_fill_gradientn(colours = terrain.colors(10))  +
   #scale_fill_viridis(option="magma") +
-  scale_fill_gradientn(colours=c("blue","white", "red"), na.value = "grey98",
-                       limits = c(maxZS*-1, maxZS)) +
+  scale_fill_gradientn(colours=c("blue","white", "red"), 
+                       na.value = "grey98",
+                       limits = c(maxZS*-1, maxZS),
+                       ) +
   geom_tile()
 
 ggplot(centered, aes(x=seasonYear, 
