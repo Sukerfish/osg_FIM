@@ -120,17 +120,17 @@ binaryAbs <- YearXSpeciesZ %>%
               names_from = Scientificname,
               values_from = logic,
               values_fill = 0) %>% #replace all NA values with 0s, i.e. counting as true zero
-  filter(system == "CK") %>%
-  filter(season == "summer")
+  filter(system == "AP") %>%
+  filter(season == "winter")
 
-seasonLogic <- TidyRefsList %>%
-  select(system:season) %>%
-  distinct() %>%
-  unite(seasonLogic, 
-        sep = "_")
-
-runs.p <- runs.test(as.factor(binaryAbs$`Hypsoblennius hentz`),
-          alternative = "less")
+# seasonLogic <- TidyRefsList %>%
+#   select(system:season) %>%
+#   distinct() %>%
+#   unite(seasonLogic, 
+#         sep = "_")
+# 
+# runs.p <- runs.test(as.factor(binaryAbs$`Hypsoblennius hentz`),
+#           alternative = "less")
 
 N.turnovers <- function (vec=rbinom(50,1,0.5)) {
   
@@ -150,6 +150,15 @@ binaryAbsTaxa <- binaryAbs %>%
   ungroup() %>%
   select(!c(system:seasonYear))
 
+nonbinaryAbs <- YearXSpeciesZ %>%
+  #mutate(logic = if_else(avg > 0, 1, 0)) %>%
+  pivot_wider(id_cols = system:seasonYear,
+              names_from = Scientificname,
+              values_from = zscore,
+              values_fill = 0) %>% #replace all NA values with 0s, i.e. counting as true zero
+  filter(system == "AP") %>%
+  filter(season == "winter")
+
 for(i in 1:ncol(binaryAbsTaxa)){
   df <- binaryAbs
   
@@ -162,15 +171,47 @@ for(i in 1:ncol(binaryAbsTaxa)){
   WLEC[i,3] <- runs.p$p.value
   WLEC[i,4] <- turnover[1]
   WLEC[i,5] <- turnover[2]
+  WLEC[i,6:7]<-try(coef(summary(lm(nonbinaryAbs[[i+3]]~nonbinaryAbs$seasonYear)))[2,c(1,4)], silent = TRUE)
   
 }
 
-WLEC <- WLEC %>%
-  mutate(test = ifelse(runs.pvalue < 0.05, 1, 0)) %>%
-  filter(col > 0 & test == 1)
+test <- WLEC %>%
+  mutate(test = ifelse(slope.pvalue < 0.05, 1, 0)) %>%
+  mutate(testslope = ifelse(slope < 0, -1, 1)) %>%
+  filter(test == 1) %>%
+  filter(testslope == -1)
+  #filter(col > 0 & test == 1)
 
+plotup <- YearXSpeciesZ %>%
+  subset(Scientificname %in% test$Species) %>%
+  filter(system == "AP") %>%
+  filter(season == "winter")
 
+ggplot(plotup, aes(x=seasonYear, 
+                     y=zscore,
+                   color=Scientificname,
+                   group=Scientificname)) + 
+  ggtitle("Apalach Winter -") +
+  geom_line()
 
+test <- WLEC %>%
+  mutate(test = ifelse(slope.pvalue < 0.05, 1, 0)) %>%
+  mutate(testslope = ifelse(slope < 0, -1, 1)) %>%
+  filter(test == 1) %>%
+  filter(testslope == 1)
+#filter(col > 0 & test == 1)
+
+plotup <- YearXSpeciesZ %>%
+  subset(Scientificname %in% test$Species) %>%
+  filter(system == "AP") %>%
+  filter(season == "winter")
+
+ggplot(plotup, aes(x=seasonYear, 
+                   y=zscore,
+                   color=Scientificname,
+                   group=Scientificname)) + 
+  ggtitle("Apalach Winter +") +
+  geom_line()
 
 
 idplace<-1
