@@ -56,28 +56,29 @@ YearXSpeciesZ <- SiteXSpeciesFull %>%
                          values_to = "stdev")) %>%
   group_by(system, season, seasonYear) %>%
   mutate(zscore = ((avg - LTmean)/stdev)) %>% #calculate zscores using annual means
+  ungroup() %>%
   filter(LTmean > 0) %>% #remove taxa entirely absent from each system - if LTmean = 0, taxa never observed
-  filter(Scientificname != "No fish") %>%
-  #filter(Scientificname == "Leiostomus xanthurus") %>%
-  filter(system == "AP") %>%
-  filter(season == "winter")
+  filter(Scientificname != "No fish") 
+  # #filter(Scientificname == "Leiostomus xanthurus") %>%
+  # filter(system == "AP") %>%
+  # filter(season == "winter")
 
 #### plot heatmaps ####
 
 #calculate zscore limits
-maxZS <- max(abs(YearXSpeciesZ$zscore), na.rm = TRUE)
+# maxZS <- max(abs(YearXSpeciesZ$zscore), na.rm = TRUE)
+# 
+# ggplot(YearXSpeciesZ, aes(seasonYear, Scientificname, fill= zscore)) + 
+#   scale_fill_gradientn(colours=c("blue","white", "red"), 
+#                        na.value = "grey98",
+#                        limits = c(maxZS*-1, maxZS),
+#                        ) +
+#   geom_tile()
 
-ggplot(YearXSpeciesZ, aes(seasonYear, Scientificname, fill= zscore)) + 
-  scale_fill_gradientn(colours=c("blue","white", "red"), 
-                       na.value = "grey98",
-                       limits = c(maxZS*-1, maxZS),
-                       ) +
-  geom_tile()
-
-ggplot(centered, aes(x=seasonYear, 
-                     y=zscore)) + 
-  geom_line() +
-  facet_wrap(vars(system))
+# ggplot(centered, aes(x=seasonYear, 
+#                      y=zscore)) + 
+#   geom_line() +
+#   facet_wrap(vars(system))
 
 #### Dornelas style ####
 #
@@ -114,24 +115,6 @@ ggplot(centered, aes(x=seasonYear,
 
 library(tseries)
 
-binaryAbs <- YearXSpeciesZ %>%
-  mutate(logic = if_else(avg > 0, 1, 0)) %>%
-  pivot_wider(id_cols = system:seasonYear,
-              names_from = Scientificname,
-              values_from = logic,
-              values_fill = 0) %>% #replace all NA values with 0s, i.e. counting as true zero
-  filter(system == "AP") %>%
-  filter(season == "winter")
-
-# seasonLogic <- TidyRefsList %>%
-#   select(system:season) %>%
-#   distinct() %>%
-#   unite(seasonLogic, 
-#         sep = "_")
-# 
-# runs.p <- runs.test(as.factor(binaryAbs$`Hypsoblennius hentz`),
-#           alternative = "less")
-
 N.turnovers <- function (vec=rbinom(50,1,0.5)) {
   
   z <- diff(vec)   # get difference lag one
@@ -144,38 +127,114 @@ N.turnovers <- function (vec=rbinom(50,1,0.5)) {
   
 }
 
-WLEC<-data.frame(ID=0,Species=0,runs.pvalue=0,col=0,ext=0,slope=0,slope.pvalue=0,Ninit=0,meanN=0)
+# binaryAbs <- YearXSpeciesZ %>%
+#   mutate(logic = if_else(avg > 0, 1, 0)) %>%
+#   pivot_wider(id_cols = system:seasonYear,
+#               names_from = Scientificname,
+#               values_from = logic,
+#               values_fill = 0) %>% #replace all NA values with 0s, i.e. counting as true zero
+#   filter(system == "CH") %>%
+#   filter(season == "winter")
 
-binaryAbsTaxa <- binaryAbs %>%
-  ungroup() %>%
-  select(!c(system:seasonYear))
+# seasonLogic <- TidyRefsList %>%
+#   select(system:season) %>%
+#   distinct() %>%
+#   unite(seasonLogic,
+#         sep = "_")
+#
+# runs.p <- runs.test(as.factor(binaryAbs$`Hypsoblennius hentz`),
+#           alternative = "less")
+# 
+# binaryAbsTaxa <- binaryAbs %>%
+#   ungroup() %>%
+#   select(!c(system:seasonYear))
 
-nonbinaryAbs <- YearXSpeciesZ %>%
-  #mutate(logic = if_else(avg > 0, 1, 0)) %>%
+
+
+
+SiteXSpeciesAnnual <- YearXSpeciesZ %>%
+  mutate(avgXform = avg^.5) %>%
   pivot_wider(id_cols = system:seasonYear,
               names_from = Scientificname,
-              values_from = zscore,
-              values_fill = 0) %>% #replace all NA values with 0s, i.e. counting as true zero
-  filter(system == "AP") %>%
-  filter(season == "winter")
+              values_from = avgXform,
+              values_fill = 0) #replace all NA values with 0s, i.e. counting as true zero
 
-for(i in 1:ncol(binaryAbsTaxa)){
-  df <- binaryAbs
+SiteXSpeciesList <- SiteXSpeciesAnnual %>%
+  unite("systemSeason",
+        system:season,
+        sep = "_") %>%
+  #mutate(systemSeason = factor(systemSeason, levels = unique(systemSeason))) %>%
+  split(.$systemSeason)
   
-  z <- binaryAbs[[i+3]]
-  try(runs.p <- runs.test(as.factor(z),alternative="less"), silent = TRUE)
+systemSeason <- SiteXSpeciesAnnual %>%
+  select(system:season) %>%
+  unite("systemSeason",
+        system:season,
+        sep = "_") %>%
+  distinct()
+
+
+SlopesForAll <- list()
+for(i in 1:nrow(systemSeason)){
+  df <- SiteXSpeciesList[[i]]
+  zf <- data.frame(Scientificname=0,slope=0,p.value=0)
+  label <- unique(df$systemSeason)
+  
+  for(j in 1:(ncol(df)-2)){
+    zf[,1]<-colnames(df[j+2])
+    ######## clean out 0 taxa 
+    zf[,2:3]<-try(coef(summary(lm(df[[j+2]]~df$seasonYear)))[2,c(1,4)], silent = TRUE)
+    
+    ifelse(j == 1, 
+           SlopesForAll[[label]] <- zf,
+           SlopesForAll[[label]][j,1:3] <- zf)
+  }
+}
+
+
+
+SOI = c("summer",
+        "winter")
+
+YOI = c("AP",
+        "CK",
+        "TB",
+        "CH")
+
+SlopesForAll<-data.frame(ID=0,Species=0,runs.pvalue=0,col=0,ext=0,slope=0,slope.pvalue=0,Ninit=0,meanN=0)
+SlopesForAll <- list()
+
+for(i in length(SOI)){
+  df <- SiteXSpeciesAnnual %>%
+    filter(season == SOI[i])
+  
+  for(j in length(YOI)){
+    zf <- df %>%
+      filter(system == YOI[j]) %>%
+      select(all_of(names(.)[1:3]), where(~ is.numeric(.) && 
+                                            sum(., na.rm = TRUE) > 0))
+    SlopesForAll[[j,2]]   <- paste(colnames(zf[j+3]))
+    #SlopesForAll[[j,2]]   <- colnames(zf[j+3])
+    #SlopesForAll[[j,6]] <- coef(summary(lm(zf[[j+3]]~zf$seasonYear)))[2,c(1)]
+  }
+}
+  
+  #z <- binaryAbs[[i+3]]
+  #runs.p <- list()
+  #try(runs.p <- runs.test(as.factor(z),alternative="less"), silent = TRUE)
   turnover <- N.turnovers(z)
-  
-  #WLEC[i,1] <- 
-  WLEC[i,2] <- colnames(binaryAbs[i+3])
-  WLEC[i,3] <- runs.p$p.value
-  WLEC[i,4] <- turnover[1]
-  WLEC[i,5] <- turnover[2]
-  WLEC[i,6:7]<-try(coef(summary(lm(nonbinaryAbs[[i+3]]~nonbinaryAbs$seasonYear)))[2,c(1,4)], silent = TRUE)
+
+  #SlopesForAll[i,1] <- 
+  SlopesForAll[i,2] <- colnames(binaryAbs[i+3])
+  #SlopesForAll[i,3] <- runs.p$p.value
+  SlopesForAll[i,4] <- turnover[1]
+  SlopesForAll[i,5] <- turnover[2]
+  #SlopesForAll[i,6:7]<-coef(summary(glm(SiteXSpeciesAnnual[[i+3]]~SiteXSpeciesAnnual$seasonYear, family="poisson")))[2,c(1,4)]
+  SlopesForAll[i,6:7]<-coef(summary(lm(SiteXSpeciesAnnual[[i+3]]~SiteXSpeciesAnnual$seasonYear)))[2,c(1,4)]
   
 }
 
-test <- WLEC %>%
+test <- SlopesForAll %>%
   mutate(test = ifelse(slope.pvalue < 0.05, 1, 0)) %>%
   mutate(testslope = ifelse(slope < 0, -1, 1)) %>%
   filter(test == 1) %>%
@@ -194,7 +253,7 @@ ggplot(plotup, aes(x=seasonYear,
   ggtitle("Apalach Winter -") +
   geom_line()
 
-test <- WLEC %>%
+test <- SlopesForAll %>%
   mutate(test = ifelse(slope.pvalue < 0.05, 1, 0)) %>%
   mutate(testslope = ifelse(slope < 0, -1, 1)) %>%
   filter(test == 1) %>%
@@ -212,6 +271,12 @@ ggplot(plotup, aes(x=seasonYear,
                    group=Scientificname)) + 
   ggtitle("Apalach Winter +") +
   geom_line()
+
+
+
+
+
+
 
 
 idplace<-1
