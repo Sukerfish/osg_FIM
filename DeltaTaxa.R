@@ -153,7 +153,7 @@ N.turnovers <- function (vec=rbinom(50,1,0.5)) {
 
 
 SiteXSpeciesAnnual <- YearXSpeciesZ %>%
-  mutate(avgXform = avg^.5) %>%
+  mutate(avgXform = avg^.5) %>% #sqrt transform to account for overly abundant taxa
   pivot_wider(id_cols = system:seasonYear,
               names_from = Scientificname,
               values_from = avgXform,
@@ -176,13 +176,13 @@ systemSeason <- SiteXSpeciesAnnual %>%
 
 SlopesForAll <- list()
 for(i in 1:nrow(systemSeason)){
-  df <- SiteXSpeciesList[[i]]
+  df <- SiteXSpeciesList[[i]] %>%
+    select_if(negate(function(col) is.numeric(col) && sum(col) == 0)) #removes taxa absent from each systemSeason
   zf <- data.frame(Scientificname=0,slope=0,p.value=0)
   label <- unique(df$systemSeason)
   
   for(j in 1:(ncol(df)-2)){
     zf[,1]<-colnames(df[j+2])
-    ######## clean out 0 taxa 
     zf[,2:3]<-try(coef(summary(lm(df[[j+2]]~df$seasonYear)))[2,c(1,4)], silent = TRUE)
     
     ifelse(j == 1, 
@@ -193,46 +193,46 @@ for(i in 1:nrow(systemSeason)){
 
 
 
-SOI = c("summer",
-        "winter")
-
-YOI = c("AP",
-        "CK",
-        "TB",
-        "CH")
-
-SlopesForAll<-data.frame(ID=0,Species=0,runs.pvalue=0,col=0,ext=0,slope=0,slope.pvalue=0,Ninit=0,meanN=0)
-SlopesForAll <- list()
-
-for(i in length(SOI)){
-  df <- SiteXSpeciesAnnual %>%
-    filter(season == SOI[i])
-  
-  for(j in length(YOI)){
-    zf <- df %>%
-      filter(system == YOI[j]) %>%
-      select(all_of(names(.)[1:3]), where(~ is.numeric(.) && 
-                                            sum(., na.rm = TRUE) > 0))
-    SlopesForAll[[j,2]]   <- paste(colnames(zf[j+3]))
-    #SlopesForAll[[j,2]]   <- colnames(zf[j+3])
-    #SlopesForAll[[j,6]] <- coef(summary(lm(zf[[j+3]]~zf$seasonYear)))[2,c(1)]
-  }
-}
-  
-  #z <- binaryAbs[[i+3]]
-  #runs.p <- list()
-  #try(runs.p <- runs.test(as.factor(z),alternative="less"), silent = TRUE)
-  turnover <- N.turnovers(z)
-
-  #SlopesForAll[i,1] <- 
-  SlopesForAll[i,2] <- colnames(binaryAbs[i+3])
-  #SlopesForAll[i,3] <- runs.p$p.value
-  SlopesForAll[i,4] <- turnover[1]
-  SlopesForAll[i,5] <- turnover[2]
-  #SlopesForAll[i,6:7]<-coef(summary(glm(SiteXSpeciesAnnual[[i+3]]~SiteXSpeciesAnnual$seasonYear, family="poisson")))[2,c(1,4)]
-  SlopesForAll[i,6:7]<-coef(summary(lm(SiteXSpeciesAnnual[[i+3]]~SiteXSpeciesAnnual$seasonYear)))[2,c(1,4)]
-  
-}
+# SOI = c("summer",
+#         "winter")
+# 
+# YOI = c("AP",
+#         "CK",
+#         "TB",
+#         "CH")
+# 
+# SlopesForAll<-data.frame(ID=0,Species=0,runs.pvalue=0,col=0,ext=0,slope=0,slope.pvalue=0,Ninit=0,meanN=0)
+# SlopesForAll <- list()
+# 
+# for(i in length(SOI)){
+#   df <- SiteXSpeciesAnnual %>%
+#     filter(season == SOI[i])
+#   
+#   for(j in length(YOI)){
+#     zf <- df %>%
+#       filter(system == YOI[j]) %>%
+#       select(all_of(names(.)[1:3]), where(~ is.numeric(.) && 
+#                                             sum(., na.rm = TRUE) > 0))
+#     SlopesForAll[[j,2]]   <- paste(colnames(zf[j+3]))
+#     #SlopesForAll[[j,2]]   <- colnames(zf[j+3])
+#     #SlopesForAll[[j,6]] <- coef(summary(lm(zf[[j+3]]~zf$seasonYear)))[2,c(1)]
+#   }
+# }
+#   
+#   #z <- binaryAbs[[i+3]]
+#   #runs.p <- list()
+#   #try(runs.p <- runs.test(as.factor(z),alternative="less"), silent = TRUE)
+#   turnover <- N.turnovers(z)
+# 
+#   #SlopesForAll[i,1] <- 
+#   SlopesForAll[i,2] <- colnames(binaryAbs[i+3])
+#   #SlopesForAll[i,3] <- runs.p$p.value
+#   SlopesForAll[i,4] <- turnover[1]
+#   SlopesForAll[i,5] <- turnover[2]
+#   #SlopesForAll[i,6:7]<-coef(summary(glm(SiteXSpeciesAnnual[[i+3]]~SiteXSpeciesAnnual$seasonYear, family="poisson")))[2,c(1,4)]
+#   SlopesForAll[i,6:7]<-coef(summary(lm(SiteXSpeciesAnnual[[i+3]]~SiteXSpeciesAnnual$seasonYear)))[2,c(1,4)]
+#   
+# }
 
 test <- SlopesForAll %>%
   mutate(test = ifelse(slope.pvalue < 0.05, 1, 0)) %>%
