@@ -184,6 +184,7 @@ for(i in 1:nrow(systemSeason)){
   for(j in 1:(ncol(df)-2)){
     zf[,1]<-colnames(df[j+2])
     zf[,2:3]<-try(coef(summary(lm(df[[j+2]]~df$seasonYear)))[2,c(1,4)], silent = TRUE)
+    #zf[,2:3]<-try(coef(summary(glm(df[[j+2]]~df$seasonYear, family="poisson")))[2,c(1,4)], silent = TRUE)
     
     ifelse(j == 1, 
            SlopesForAll[[label]] <- zf,
@@ -191,7 +192,27 @@ for(i in 1:nrow(systemSeason)){
   }
 }
 
+test <- bind_rows(SlopesForAll, .id = "systemSeason") %>%
+  separate(systemSeason,
+           c("system","season"),
+           sep = "_") %>%
+  mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH")))
 
+ggplot(test, 
+       aes(x=slope))+
+  geom_histogram(binwidth = .01) +
+  geom_density(fill="#69b3a2", color="#e9ecef", alpha=0.8) +
+  geom_vline(xintercept = 0, linetype="dashed") +
+  facet_grid(season~system,
+             scales = "free_y") +
+  coord_cartesian(xlim = c(-0.05, 0.05)) +
+  xlab("Population Change") +
+  ylab("Number of Taxa") +
+  theme(axis.text=element_text(size = 12)) +
+  theme(axis.title=element_text(size = 16)) +
+  theme(strip.text = element_text(size = 16)) +
+  #ggtitle("GLM w/ NO Xform") +
+  theme(title=element_text(size = 20))
 
 # SOI = c("summer",
 #         "winter")
