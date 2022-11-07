@@ -183,7 +183,8 @@ for(i in 1:nrow(systemSeason)){
   
   for(j in 1:(ncol(df)-2)){
     zf[,1]<-colnames(df[j+2])
-    zf[,2:3]<-try(coef(summary(lm(df[[j+2]]~df$seasonYear)))[2,c(1,4)], silent = TRUE)
+    #zf[,2:3]<-try(coef(summary(lm(df[[j+2]]~df$seasonYear)))[2,c(1,4)], silent = TRUE)
+    zf[,2:3]<-coef(summary(lm(df[[j+2]]~df$seasonYear)))[2,c(1,4)]
     #zf[,2:3]<-try(coef(summary(glm(df[[j+2]]~df$seasonYear, family="poisson")))[2,c(1,4)], silent = TRUE)
     
     ifelse(j == 1, 
@@ -192,11 +193,15 @@ for(i in 1:nrow(systemSeason)){
   }
 }
 
-test <- bind_rows(SlopesForAll, .id = "systemSeason") %>%
+SlopesForAllDF <- bind_rows(SlopesForAll, .id = "systemSeason") %>%
   separate(systemSeason,
            c("system","season"),
            sep = "_") %>%
   mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH")))
+
+test <- SlopesForAllDF %>%
+  group_by(system, season) %>%
+  filter(p.value < 0.05)
 
 ggplot(test, 
        aes(x=slope))+
@@ -205,13 +210,13 @@ ggplot(test,
   geom_vline(xintercept = 0, linetype="dashed") +
   facet_grid(season~system,
              scales = "free_y") +
-  coord_cartesian(xlim = c(-0.05, 0.05)) +
+  coord_cartesian(xlim = c(-0.3, 0.3)) +
   xlab("Population Change") +
   ylab("Number of Taxa") +
   theme(axis.text=element_text(size = 12)) +
   theme(axis.title=element_text(size = 16)) +
   theme(strip.text = element_text(size = 16)) +
-  #ggtitle("GLM w/ NO Xform") +
+  #ggtitle("GLM w/ no Xform") +
   theme(title=element_text(size = 20))
 
 # SOI = c("summer",
@@ -255,24 +260,29 @@ ggplot(test,
 #   
 # }
 
-test <- SlopesForAll %>%
-  mutate(test = ifelse(slope.pvalue < 0.05, 1, 0)) %>%
-  mutate(testslope = ifelse(slope < 0, -1, 1)) %>%
-  filter(test == 1) %>%
-  filter(testslope == -1)
+# test <- SlopesForAll %>%
+#   mutate(test = ifelse(slope.pvalue < 0.05, 1, 0)) %>%
+#   mutate(testslope = ifelse(slope < 0, -1, 1)) %>%
+#   filter(test == 1) %>%
+#   filter(testslope == -1)
   #filter(col > 0 & test == 1)
 
 plotup <- YearXSpeciesZ %>%
-  subset(Scientificname %in% test$Species) %>%
-  filter(system == "AP") %>%
-  filter(season == "winter")
+  subset(Scientificname %in% test$Scientificname) %>%
+  left_join(test) %>%
+  na.exclude %>%
+  mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH")))
 
 ggplot(plotup, aes(x=seasonYear, 
                      y=zscore,
                    color=Scientificname,
                    group=Scientificname)) + 
-  ggtitle("Apalach Winter -") +
-  geom_line()
+  geom_line() +
+  facet_grid(season~system,
+             scales = "free_y") +
+  ggtitle("Sig Slope Linear") +
+  #theme(title=element_text(size = 20)) +
+  theme(legend.position="none")
 
 test <- SlopesForAll %>%
   mutate(test = ifelse(slope.pvalue < 0.05, 1, 0)) %>%
