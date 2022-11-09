@@ -199,18 +199,28 @@ SlopesForAllDF <- bind_rows(SlopesForAll, .id = "systemSeason") %>%
            sep = "_") %>%
   mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH")))
 
+SlopeStats <- SlopesForAllDF %>%
+  group_by(system, season) %>% 
+  summarise(stdev = sd(slope),
+            mean = mean(slope))
+
 test <- SlopesForAllDF %>%
   group_by(system, season) %>%
-  filter(p.value < 0.05)
+  #filter(p.value < 0.05)
+  left_join(SlopeStats) %>%
+  mutate(siq = stdev*3)
 
 ggplot(test, 
        aes(x=slope))+
   geom_histogram(binwidth = .01) +
   geom_density(fill="#69b3a2", color="#e9ecef", alpha=0.8) +
-  geom_vline(xintercept = 0, linetype="dashed") +
+  geom_vline(aes(xintercept = mean), test, linetype="dashed", colour = "blue")+
+  #geom_vline(xintercept = 0, linetype="dashed") +
+  geom_vline(aes(xintercept = mean+siq), test, colour = "red")+
+  geom_vline(aes(xintercept = mean-siq), test, colour = "red")+
   facet_grid(season~system,
              scales = "free_y") +
-  coord_cartesian(xlim = c(-0.3, 0.3)) +
+  coord_cartesian(xlim = c(-0.05, 0.05)) +
   xlab("Population Change") +
   ylab("Number of Taxa") +
   theme(axis.text=element_text(size = 12)) +
@@ -267,9 +277,13 @@ ggplot(test,
 #   filter(testslope == -1)
   #filter(col > 0 & test == 1)
 
+SigSlopes <- SlopesForAllDF %>%
+  group_by(system, season) %>%
+  filter(p.value < 0.05)
+
 plotup <- YearXSpeciesZ %>%
-  subset(Scientificname %in% test$Scientificname) %>%
-  left_join(test) %>%
+  subset(Scientificname %in% SigSlopes$Scientificname) %>%
+  left_join(SigSlopes) %>%
   na.exclude %>%
   mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH")))
 
