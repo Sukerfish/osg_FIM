@@ -30,10 +30,17 @@ modelDF <- FullRichness %>%
   group_by(seasonYear, system, season) %>%
   add_count(name = "n_hauls") %>%
   ungroup() %>%
+  #mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH"))) %>%
   # mutate(n_hauls = log(n_hauls)) %>%
   # filter(season == "summer") %>%
   # filter(system == "TB") %>%
   filter(season == "winter")
+
+ggplot(modelDF, aes(x=n)) +
+  geom_histogram(binwidth=1) +
+  facet_grid(season~system)
+
+modelDF$systemZone <- as.factor(modelDF$systemZone)
 
 # test <-modelDF %>%
 #   subset(select = c(seasonYear))
@@ -41,24 +48,52 @@ modelDF <- FullRichness %>%
 
 ###### pql ####
 library(nlme)
+library(lme4)
 library(MASS) # needs MASS (version 7.3-58)
 
+#DOES NOT WORK
 glmmPQL <- glmmPQL(n ~ system + seasonYear + offset(log(n_hauls)),
                     random = ~ 1|systemZone,
                     family = poisson,
-                    correlation = corARMA(form = ~ 1|systemZone, p = 1, q = 1),
+                    correlation = corARMA(form = ~1|systemZone, p = 1, q = 1),
                     data = modelDF)
 summary(glmmPQL)
 plot(glmmPQL)
+
+#alternative cor structure ... corAR1 converges
+glmmPQL <- glmmPQL(n ~ system + seasonYear + offset(log(n_hauls)),
+                   random = ~ 1|systemZone,
+                   family = poisson,
+                   correlation = corAR1(form = ~1|systemZone),
+                   data = modelDF)
+summary(glmmPQL)
+plot(glmmPQL)
+
+#converges without correlation
+glmmPQL <- glmmPQL(n ~ system + seasonYear + offset(log(n_hauls)),
+                   random = ~ 1|systemZone,
+                   family = poisson,
+                   data = modelDF)
+summary(glmmPQL)
+plot(glmmPQL)
+
+testlmer <- glmer(n ~ system + seasonYear + offset(log(n_hauls))
+                   + (1|systemZone),
+                   family = poisson,
+                  #correlation = corAR1(form = ~1|systemZone),
+                   data = modelDF)
+summary(testlmer)
+
+
 
 ##### glmmTMB ####
 library(glmmTMB)
 rmod_tmb <- glmmTMB(n~system+
                       seasonYear+
                       offset(log(n_hauls))+
-                      ar1(factor(seasonYear) + 0|system)+
+                      ar1(factor(seasonYear) + 1|systemZone)+
                       (1|systemZone),
-                    zi=~1,
+                    zi=~0,
                     family=poisson,
                     data=modelDF)
 summary(rmod_tmb)
