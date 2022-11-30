@@ -6,6 +6,7 @@
 library(viridis)
 library(tidyverse)
 library(ggplot2)
+library(writexl)
 
 load('TidyGearCode20.Rdata')
 
@@ -237,9 +238,9 @@ test <- SlopesForAllDF %>%
   #mutate(siq = stdev*3)
 
 ggplot(SlopesForAllDF, 
-       aes(x=raw_slope))+
+       aes(raw_slope))+
   geom_histogram(binwidth = .01) +
-  geom_density(fill="#69b3a2", color="#e9ecef", alpha=0.8) +
+  geom_density(adjust = 10, fill="#69b3a2", color="#e9ecef", alpha=0.8) +
   #geom_vline(aes(xintercept = mean), test, linetype="dashed", colour = "blue")+
   geom_vline(xintercept = 0, linetype="dashed") +
   #geom_vline(aes(xintercept = mean+siq), test, colour = "red")+
@@ -247,7 +248,7 @@ ggplot(SlopesForAllDF,
   facet_grid(season~system,
              scales = "free_y") +
   coord_cartesian(xlim = c(-0.05, 0.05)) +
-  xlab("Population Change") +
+  #xlab("Population Change") +
   #ylab("Number of Taxa") +
   theme(axis.text=element_text(size = 12)) +
   theme(axis.title=element_text(size = 16)) +
@@ -307,33 +308,36 @@ ggplot(SlopesForAllDF,
 SigSlopes <- SlopesForAllDF %>%
   group_by(system, season) %>%
   filter(p.value < 0.05)
+  # filter(system == "AP") %>%
+  # filter(season == "summer")
+
+#write_xlsx(SigSlopes, "~/osg_FIM/Outputs/SigSlopes.xlsx")
 
 plotup <- YearXSpeciesZ %>%
+  group_by(system, season) %>%
   subset(Scientificname %in% SigSlopes$Scientificname) %>%
   left_join(SigSlopes) %>%
   na.exclude %>%
   mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH")))
 
 ggplot(plotup, aes(x=seasonYear, 
-                     y=zscore,
-                   color=Scientificname,
-                   group=Scientificname)) + 
-  geom_line() +
+                     y=avg)) + 
+  geom_line(aes(color=Scientificname)) +
   facet_grid(season~system,
              scales = "free_y") +
-  ggtitle("Sig Slope Linear") +
+  ggtitle("Sig Slope Linear avg abund") +
   #theme(title=element_text(size = 20)) +
   theme(legend.position="none")
 
-test <- SlopesForAll %>%
-  mutate(test = ifelse(slope.pvalue < 0.05, 1, 0)) %>%
+test <- SlopesForAllDF %>%
+  mutate(test = ifelse(p.value < 0.05, 1, 0)) %>%
   mutate(testslope = ifelse(slope < 0, -1, 1)) %>%
   filter(test == 1) %>%
   filter(testslope == 1)
 #filter(col > 0 & test == 1)
 
 plotup <- YearXSpeciesZ %>%
-  subset(Scientificname %in% test$Species) %>%
+  subset(Scientificname %in% test$Scientificname) %>%
   filter(system == "AP") %>%
   filter(season == "winter")
 
