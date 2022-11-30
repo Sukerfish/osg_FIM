@@ -30,7 +30,7 @@ modelDF <- FullRichness %>%
   group_by(seasonYear, system, season) %>%
   add_count(name = "n_hauls") %>%
   ungroup() %>%
-  #mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH"))) %>%
+  mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH"))) %>%
   # mutate(n_hauls = log(n_hauls)) %>%
   # filter(season == "summer") %>%
   # filter(system == "TB") %>%
@@ -38,6 +38,22 @@ modelDF <- FullRichness %>%
 
 ggplot(modelDF, aes(x=n)) +
   geom_histogram(binwidth=1) +
+  theme(axis.text=element_text(size = 12)) +
+  theme(axis.title=element_text(size = 16)) +
+  theme(strip.text = element_text(size = 16)) +
+  ggtitle("Richness per haul") +
+  theme(title=element_text(size = 20)) +
+  facet_grid(season~system)
+
+ggplot(modelDF, aes(y=n,
+                    x = factor(seasonYear))) +
+  geom_boxplot() +
+  scale_x_discrete(breaks=c(2000,2005,2010,2015,2020))+
+  theme(axis.text=element_text(size = 12)) +
+  theme(axis.title=element_text(size = 16)) +
+  theme(strip.text = element_text(size = 16)) +
+  ggtitle("Richness per haul over time") +
+  theme(title=element_text(size = 20)) +
   facet_grid(season~system)
 
 modelDF$systemZone <- as.factor(modelDF$systemZone)
