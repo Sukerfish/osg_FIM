@@ -254,25 +254,61 @@ ggplot(SlopesForAllDF,
 #   summarise(stdev = sd(slope),
 #             mean = mean(slope))
 
-SigSlopes <- SlopesForAllDF %>%
+sigSlopes <- SlopesForAllDF %>%
   group_by(system, season) %>%
-  filter(p.value < 0.05)
+  filter(p.value < 0.05) %>%
+  arrange(system, season) %>%
+  unite("systemSeason",
+        system:season,
+        sep = "_")
   #arrange(desc(raw_slope), .by_group=TRUE)
   
 #left_join(SlopeStats) %>%
 #mutate(siq = stdev*3)
 
-ggplot(SigSlopes,
-       aes(y = reorder(Scientificname, raw_slope),
-         x = raw_slope)) + 
-  geom_point(size = 3) +
-  geom_errorbarh(aes(xmin=(raw_slope + (-2*raw_stderr)), xmax=(raw_slope + (2*raw_stderr)),
-                     ), color = "red") +
-  facet_grid(season~system,
-             scales = "free_y") +
-  geom_vline(xintercept = 0, linetype="dashed") +
-  #scale_y_discrete(limits = c(SigSlopes$Scientificname)) +
-  coord_cartesian(xlim = c(-.1, 0.1)) 
+#make several uniquely ordered plots and bind them...
+library(patchwork)
+
+#get unique list for the loop
+seasysKey <- sigSlopes %>%
+ distinct(systemSeason) %>%
+  arrange(match(systemSeason, c("AP",
+                                "CK",
+                                "TB",
+                                "CH")))
+
+plots <- list() #initialize
+#use actual values from the key list
+for (i in seasysKey$systemSeason){
+  #filter by key values
+  plotup <- sigSlopes %>%
+    filter(systemSeason == i)
+  
+  #make list of plots from the filtered plotup DF
+  plots[[i]] = ggplot(plotup,
+         aes(y = reorder(Scientificname, raw_slope), #order by decreasing slope top to bottom
+             x = raw_slope)) + 
+    geom_point(aes(color = cut(raw_slope, c(-Inf, 0, Inf))), #cut the slope data for +/- colors
+                           size = 3) +
+    scale_color_manual(name = "slope", #define the +/- colors
+                       values = c("(0, Inf]" = "blue",
+                                  "(-Inf,0]" = "red"),
+                       labels = c("pos", "neg")) +
+    geom_errorbarh(aes(xmin=(raw_slope + (-2*raw_stderr)), xmax=(raw_slope + (2*raw_stderr))),
+                   color = "darkgray") + #std err bars
+    ggtitle(i) + #dynamic title using the key value
+    theme(axis.title.y=element_blank()) +
+    geom_vline(xintercept = 0, linetype="dashed") +
+    coord_cartesian(xlim = c(-.1, 0.1))
+}
+
+png(file = "~/osg_FIM/Outputs/sigslopesrawSxS.png",
+    width = 1920, height = 1080)
+
+#wrap them from the list
+wrap_plots(plots, ncol = 2, guides = "collect")
+
+dev.off()
 
 
 # SOI = c("summer",
