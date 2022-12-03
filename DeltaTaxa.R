@@ -261,21 +261,13 @@ sigSlopes <- SlopesForAllDF %>%
   unite("systemSeason",
         system:season,
         sep = "_")
-  #arrange(desc(raw_slope), .by_group=TRUE)
-  
-#left_join(SlopeStats) %>%
-#mutate(siq = stdev*3)
 
 #make several uniquely ordered plots and bind them...
 library(patchwork)
 
 #get unique list for the loop
 seasysKey <- sigSlopes %>%
- distinct(systemSeason) %>%
-  arrange(match(systemSeason, c("AP",
-                                "CK",
-                                "TB",
-                                "CH")))
+ distinct(systemSeason)
 
 plots <- list() #initialize
 #use actual values from the key list
