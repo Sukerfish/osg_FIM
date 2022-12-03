@@ -150,22 +150,22 @@ systemSeason <- SiteXSpeciesAnnual %>%
         sep = "_") %>%
   distinct()
 
-SlopesForAll <- list()
+SlopesForAll <- list() #initialize
 for(i in 1:nrow(systemSeason)){
   df <- SiteXSpeciesList[[i]] %>%
-    select_if(negate(function(col) is.numeric(col) && sum(col) == 0)) #removes taxa absent from each systemSeason
-  zf <- data.frame(Scientificname=0,slope=0,p.value=0)
-  label <- unique(df$systemSeason)
+    select_if(negate(function(col) is.numeric(col) && sum(col) == 0)) #removes taxa entirely absent from each systemSeason
+  zf <- data.frame(Scientificname=0,slope=0,stderr=0,p.value=0) #initialize rolling slope output df
+  label <- unique(df$systemSeason) #pull out identifier
   
   for(j in 1:(ncol(df)-2)){
-    zf[,1]<-colnames(df[j+2])
-    #zf[,2:3]<-try(coef(summary(lm(df[[j+2]]~df$seasonYear)))[2,c(1,4)], silent = TRUE)
-    zf[,2:3]<-coef(summary(lm(df[[j+2]]~df$seasonYear)))[2,c(1,4)]
-    #zf[,2:3]<-try(coef(summary(glm(df[[j+2]]~df$seasonYear, family="poisson")))[2,c(1,4)], silent = TRUE)
+    zf[,1]<-colnames(df[j+2]) #grab column name (i.e. Scientific name) and drop in the row
+    zf[,2:4]<-coef(summary(lm(df[[j+2]]~df$seasonYear)))[2,c(1,2,4)] #run lm and extract coef, p-value, SE
+    
+    #zf[,2:4]<-try(coef(summary(glm(df[[j+2]]~df$seasonYear, family="poisson")))[2,c(1,2,4)], silent = TRUE)
     
     ifelse(j == 1, 
-           SlopesForAll[[label]] <- zf,
-           SlopesForAll[[label]][j,1:3] <- zf)
+           SlopesForAll[[label]] <- zf, #catch initial "incorrect number of subscripts on matrix" issue
+           SlopesForAll[[label]][j,1:4] <- zf) #proceed with all others
   }
 }
 
@@ -175,23 +175,23 @@ SlopesForAllDF <- bind_rows(SlopesForAll, .id = "systemSeason") %>%
            sep = "_") %>%
   mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH")))
 
-###### RERUN WITH RAW AB FOR TRUE SLOPE VALUE ######
+###### RERUN WITH RAW AB FOR TRUE SLOPE VALUE (in separate DFs) ######
 
-SiteXSpeciesAnnual <- YearXSpeciesZ %>%
+SiteXSpeciesAnnualRaw <- YearXSpeciesZ %>%
   #mutate(avgXform = avg^.5) %>% #sqrt transform to account for overly abundant taxa
   pivot_wider(id_cols = system:seasonYear,
               names_from = Scientificname,
               values_from = avg,
               values_fill = 0) #replace all NA values with 0s, i.e. counting as true zero
 
-SiteXSpeciesList <- SiteXSpeciesAnnual %>%
+SiteXSpeciesListRaw <- SiteXSpeciesAnnualRaw %>%
   unite("systemSeason",
         system:season,
         sep = "_") %>%
   #mutate(systemSeason = factor(systemSeason, levels = unique(systemSeason))) %>%
   split(.$systemSeason)
 
-systemSeason <- SiteXSpeciesAnnual %>%
+systemSeasonRaw <- SiteXSpeciesAnnualRaw %>%
   select(system:season) %>%
   unite("systemSeason",
         system:season,
@@ -199,21 +199,21 @@ systemSeason <- SiteXSpeciesAnnual %>%
   distinct()
 
 SlopesForAllRaw <- list()
-for(i in 1:nrow(systemSeason)){
-  df <- SiteXSpeciesList[[i]] %>%
-    select_if(negate(function(col) is.numeric(col) && sum(col) == 0)) #removes taxa absent from each systemSeason
-  zf <- data.frame(Scientificname=0,slope=0,p.value=0)
-  label <- unique(df$systemSeason)
+for(i in 1:nrow(systemSeasonRaw)){
+  df <- SiteXSpeciesListRaw[[i]] %>%
+    select_if(negate(function(col) is.numeric(col) && sum(col) == 0)) #removes taxa entirely absent from each systemSeason
+  zf <- data.frame(Scientificname=0,raw_slope=0,stderr=0,p.value=0) #initialize rolling slope output df
+  label <- unique(df$systemSeason) #pull out identifier
   
   for(j in 1:(ncol(df)-2)){
-    zf[,1]<-colnames(df[j+2])
-    #zf[,2:3]<-try(coef(summary(lm(df[[j+2]]~df$seasonYear)))[2,c(1,4)], silent = TRUE)
-    zf[,2:3]<-coef(summary(lm(df[[j+2]]~df$seasonYear)))[2,c(1,4)]
-    #zf[,2:3]<-try(coef(summary(glm(df[[j+2]]~df$seasonYear, family="poisson")))[2,c(1,4)], silent = TRUE)
+    zf[,1]<-colnames(df[j+2]) #grab column name (i.e. Scientific name) and drop in the row
+    zf[,2:4]<-coef(summary(lm(df[[j+2]]~df$seasonYear)))[2,c(1,2,4)] #run lm and extract coef, p-value, SE
+    
+    #zf[,2:4]<-try(coef(summary(glm(df[[j+2]]~df$seasonYear, family="poisson")))[2,c(1,2,4)], silent = TRUE)
     
     ifelse(j == 1, 
-           SlopesForAllRaw[[label]] <- zf,
-           SlopesForAllRaw[[label]][j,1:3] <- zf)
+           SlopesForAllRaw[[label]] <- zf, #catch initial "incorrect number of subscripts on matrix" issue
+           SlopesForAllRaw[[label]][j,1:4] <- zf) #proceed with all others
   }
 }
 
@@ -223,20 +223,11 @@ SlopesForAllDFRaw <- bind_rows(SlopesForAllRaw, .id = "systemSeason") %>%
            sep = "_") %>%
   mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH")))
 
-SlopesForAllDF$raw_slope <- SlopesForAllDFRaw$slope
+#add raw slope into original DF
+SlopesForAllDF$raw_slope <- SlopesForAllDFRaw$raw_slope 
+SlopesForAllDF$raw_stderr <- SlopesForAllDFRaw$stderr
 
-
-SlopeStats <- SlopesForAllDF %>%
-  group_by(system, season) %>% 
-  summarise(stdev = sd(slope),
-            mean = mean(slope))
-
-test <- SlopesForAllDF %>%
-  group_by(system, season) %>%
-  filter(p.value < 0.05)
-  #left_join(SlopeStats) %>%
-  #mutate(siq = stdev*3)
-
+###### plot it up ######
 ggplot(SlopesForAllDF, 
        aes(raw_slope))+
   geom_histogram(binwidth = .01) +
@@ -255,6 +246,33 @@ ggplot(SlopesForAllDF,
   theme(strip.text = element_text(size = 16)) +
   #ggtitle("GLM w/ no Xform") +
   theme(title=element_text(size = 20))
+
+##### significant slopes wrangling ######
+
+# SlopeStats <- SlopesForAllDF %>%
+#   group_by(system, season) %>% 
+#   summarise(stdev = sd(slope),
+#             mean = mean(slope))
+
+SigSlopes <- SlopesForAllDF %>%
+  group_by(system, season) %>%
+  filter(p.value < 0.05)
+  #arrange(desc(raw_slope), .by_group=TRUE)
+  
+#left_join(SlopeStats) %>%
+#mutate(siq = stdev*3)
+
+ggplot(SigSlopes,
+       aes(y = reorder(Scientificname, raw_slope),
+         x = raw_slope)) + 
+  geom_point(size = 3) +
+  geom_errorbarh(aes(xmin=(raw_slope + (-2*raw_stderr)), xmax=(raw_slope + (2*raw_stderr)),
+                     ), color = "red") +
+  facet_grid(season~system,
+             scales = "free_y") +
+  geom_vline(xintercept = 0, linetype="dashed") +
+  #scale_y_discrete(limits = c(SigSlopes$Scientificname)) +
+  coord_cartesian(xlim = c(-.1, 0.1)) 
 
 
 # SOI = c("summer",
