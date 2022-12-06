@@ -286,22 +286,111 @@ for (i in seasysKey$systemSeason){
                        values = c("(0, Inf]" = "blue",
                                   "(-Inf,0]" = "red"),
                        labels = c("pos", "neg")) +
-    geom_errorbarh(aes(xmin=(raw_slope + (-2*raw_stderr)), xmax=(raw_slope + (2*raw_stderr))),
+    geom_errorbarh(aes(xmin=(raw_slope + (-2*stderr)), xmax=(raw_slope + (2*stderr))),
                    color = "darkgray") + #std err bars
     ggtitle(i) + #dynamic title using the key value
     theme(axis.title.y=element_blank()) +
-    geom_vline(xintercept = 0, linetype="dashed") +
-    coord_cartesian(xlim = c(-.1, 0.1))
+    coord_cartesian(xlim = c(-.2, 0.2)) +
+    geom_vline(xintercept = 0, linetype="dashed")
 }
 
-png(file = "~/osg_FIM/Outputs/sigslopesrawSxS.png",
-    width = 1920, height = 1080)
+# png(file = "~/osg_FIM/Outputs/sigslopesrawSxS.png",
+#     width = 1920, height = 1080)
 
 #wrap them from the list
 wrap_plots(plots, ncol = 2, guides = "collect")
 
-dev.off()
+# dev.off()
 
+library(rfishbase)
+
+#call FishBase
+sigEcoFull <- ecosystem(species_list = unique(c(sigSlopes$Scientificname)))
+
+sigEco <- sigEcoFull %>%
+  select(Species, Climate) %>%
+  group_by(Species) %>%
+  distinct() %>% #parse out unique species/climate combos
+  mutate(ClimateClean = str_to_lower(str_squish(Climate))) %>% #clean them up
+  select(Species, ClimateClean) %>%
+  group_by(Species) %>%
+  distinct() %>% #parse out unique combos again
+  filter(!is.na(ClimateClean)) %>% #remove nonexistent ones for now
+  mutate(presence = 1) %>% #prepare for wide pivot
+  pivot_wider(names_from = ClimateClean, values_from = presence) %>%
+  #bitfield coding setup (tropical is inherently value 1)
+  mutate(subtropical = subtropical*2) %>% 
+  mutate(temperate = temperate*4) %>%
+  mutate(boreal = NA) %>%
+  #sum bitfield rowwise to compress to one data field
+  rowwise() %>%
+  mutate(tempLogic = sum(subtropical, tropical, temperate, boreal, na.rm = TRUE)) %>%
+  #coerce as factor and recode using key
+  mutate(tempLogic = as.factor(tempLogic)) %>%
+  mutate(tempLogic = recode_factor(tempLogic,
+                                   '1' = "tropical",
+                                   '2' = "subtropical",
+                                   '3' = "tropical/subtropical",
+                                   '4' = "temperate",
+                                   '5' = "tropical/temperate",
+                                   '6' = "subtropical/temperate",
+                                   '7' = "tropical/subtropical/temperate")) %>%
+  select(Species, tempLogic) %>% #select and rename for leftjoin with other data
+  rename(Scientificname = Species)
+
+sigSlopesEco <- sigSlopes %>%
+  left_join(sigEco) %>%
+  filter(!is.na(tempLogic)) 
+ 
+plotsEco <- list() #initialize
+#use actual values from the key list
+for (i in seasysKey$systemSeason){
+  #filter by key values
+  plotup <- sigSlopesEco %>%
+    filter(systemSeason == i)
+  
+  #make list of plots from the filtered plotup DF
+  plotsEco[[i]] = ggplot(plotup,
+                      aes(y = reorder(Scientificname, raw_slope), #order by decreasing slope top to bottom
+                          x = raw_slope,
+                          shape = tempLogic)) + 
+    geom_point(aes(color = cut(raw_slope, c(-Inf, 0, Inf))), #cut the slope data for +/- colors
+               size = 3) +
+    scale_color_manual(name = "slope", #define the +/- colors
+                       values = c("(0, Inf]" = "blue",
+                                  "(-Inf,0]" = "red"),
+                       labels = c("pos", "neg")) +
+    geom_errorbarh(aes(xmin=(raw_slope + (-2*stderr)), xmax=(raw_slope + (2*stderr))),
+                   color = "darkgray") + #std err bars
+    scale_shape_manual(
+      breaks = c(
+        "tropical",
+        "subtropical",
+        "tropical/subtropical",
+        "temperate",
+        "tropical/temperate",
+        "subtropical/temperate",
+        "tropical/subtropical/temperate"
+      ),
+      values = c(15, 16, 17, 18, 0, 1, 2), #use scale shape identities
+      drop = FALSE
+    ) +
+    ggtitle(i) + #dynamic title using the key value
+    theme(axis.title.y=element_blank()) +
+    coord_cartesian(xlim = c(-.2, 0.2)) +
+    geom_vline(xintercept = 0, linetype="dashed")
+}
+
+# png(file = "~/osg_FIM/Outputs/sigslopesrawSxSwithEco.png",
+#     width = 1920, height = 1080)
+
+wrap_plots(plotsEco, ncol = 2, guides = "collect")
+
+# dev.off()
+
+
+
+######## old stuff #########
 
 # SOI = c("summer",
 #         "winter")
