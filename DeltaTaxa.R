@@ -303,7 +303,46 @@ wrap_plots(plots, ncol = 2, guides = "collect")
 # dev.off()
 
 library(rfishbase)
+library(taxize)
 
+####### taxize testing ######
+# genera <- sigSlopes %>%
+#   mutate(epithet = Scientificname) %>%
+#   separate(epithet,
+#            into = c("genus","species"),
+#            sep = " ") %>%
+#   select(genus) %>%
+#   distinct()
+# 
+# sigClassA <- rbind(classification(genera$genus, db = 'itis', rows=1))
+# sigClassB <- rbind(classification(unique(sigSlopes$Scientificname), db = 'itis', rows=1))
+# 
+# modClassA <- sigClassA %>%
+#   select(query, name, rank) %>%
+#   filter(rank == "family") %>%
+#   rename(genus = query)
+# 
+# modClassB <- sigClassB %>%
+#   separate(query,
+#            into = c("genus","species"),
+#            sep = " ") %>%
+#   select(genus, name, rank) %>%
+#   filter(rank == "family")
+# 
+# totalClass <- rbind(modClassA, modClassB) %>%
+#   distinct() %>%
+#   select(!rank) %>%
+#   rename(family = name)
+# 
+# sigFam <- sigSlopes %>%
+#   mutate(epithet = Scientificname) %>%
+#   separate(epithet,
+#            into = c("genus","species"),
+#            sep = " ") %>%
+#   select(!species) %>%
+#   left_join(totalClass)
+
+######### FishBase Info #########
 #call FishBase
 sigEcoFull <- ecosystem(species_list = unique(c(sigSlopes$Scientificname)))
 
@@ -362,7 +401,7 @@ for (i in seasysKey$systemSeason){
                        labels = c("pos", "neg")) +
     geom_errorbarh(aes(xmin=(raw_slope + (-2*stderr)), xmax=(raw_slope + (2*stderr))),
                    color = "darkgray") + #std err bars
-    scale_shape_manual(
+    scale_shape_manual( #need to force legends to be identical (i.e. show all possibilities) to merge w/ patchwork
       breaks = c(
         "tropical",
         "subtropical",
