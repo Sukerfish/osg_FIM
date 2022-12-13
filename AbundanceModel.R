@@ -30,6 +30,9 @@ totalAbundance <- SiteXSpeciesFull %>%
   mutate(Ntotal = sum(across(!c(Reference:systemZone)))) %>%
   select(Reference:systemZone, Ntotal)
 
+XtotalAbundance <- totalAbundance %>%
+  mutate(xform = Ntotal^.5)
+
 ggplot(totalAbundance, 
        aes(Ntotal))+
   geom_boxplot() +
@@ -42,6 +45,43 @@ ggplot(totalAbundance,
   theme(strip.text = element_text(size = 16)) +
   #ggtitle("GLM w/ no Xform") +
   theme(title=element_text(size = 20))
+
+ggplot(totalAbundance, aes(y=Ntotal,
+                    x = factor(seasonYear))) +
+  geom_boxplot() +
+  scale_x_discrete(breaks=c(2000,2005,2010,2015,2020))+
+  coord_cartesian(ylim = c(0, 500)) +
+  theme(axis.text=element_text(size = 12)) +
+  theme(axis.title=element_text(size = 16)) +
+  theme(strip.text = element_text(size = 16)) +
+  ggtitle("Abundance per haul over time") +
+  theme(title=element_text(size = 20)) +
+  facet_grid(season~system)
+
+ggplot(XtotalAbundance, 
+       aes(xform))+
+  geom_boxplot() +
+  facet_grid(season~system) +
+  coord_cartesian(xlim = c(0, 30)) +
+  #xlab("Population Change") +
+  #ylab("Number of Taxa") +
+  theme(axis.text=element_text(size = 12)) +
+  theme(axis.title=element_text(size = 16)) +
+  theme(strip.text = element_text(size = 16)) +
+  #ggtitle("GLM w/ no Xform") +
+  theme(title=element_text(size = 20))
+
+ggplot(XtotalAbundance, aes(y=xform,
+                           x = factor(seasonYear))) +
+  geom_boxplot() +
+  scale_x_discrete(breaks=c(2000,2005,2010,2015,2020))+
+  coord_cartesian(ylim = c(0, 30)) +
+  theme(axis.text=element_text(size = 12)) +
+  theme(axis.title=element_text(size = 16)) +
+  theme(strip.text = element_text(size = 16)) +
+  ggtitle("Abundance per haul over time") +
+  theme(title=element_text(size = 20)) +
+  facet_grid(season~system)
 
 # test<- SiteXSpeciesFull %>%
 #   filter(Reference == "APM2000120701") %>%
