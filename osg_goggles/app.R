@@ -76,11 +76,15 @@ ui <- fluidPage(
 
     # Sidebar with a slider input for number of bins 
     wellPanel(
-          selectInput(
+      actionButton("reload", "Reset", icon("arrows-rotate"), 
+                   style="color: #fff; background-color: #963ab7; border-color: #2e6da4"),
+      selectizeInput(
             "display_var",
             "Which taxa to display?",
-            choices = c(taxaList)
-          
+            choices = c(taxaList),
+            selected = sample(taxaList, 1),
+            multiple = TRUE,
+            options = list(plugins= list('remove_button'))
         )),
 wellPanel(
         # Show a plot of the generated distribution
@@ -90,17 +94,22 @@ wellPanel(
 
 
 # Define server logic required to draw a histogram
-server <- function(input, output) {
+server <- function(input, output, session) {
 
   chunk <- eventReactive(input$display_var, {
     filter(YearXSpeciesZ, Scientificname %in% c(input$display_var))
   })
   
+  observeEvent(input$reload, {
+  updateSelectizeInput(session, "display_var", selected = NULL, choices = c(taxaList))
+  })
+    
   #science plot
   output$taxaPlot <- renderPlot({
     ggplot(data = chunk(),#dynamically filter the sci variable of interest
            aes(x=seasonYear,
-               y=zscore)) +
+               y=zscore,
+               color=Scientificname)) +
       geom_point() +
       geom_line() +
       theme(axis.text=element_text(size = 12)) +
