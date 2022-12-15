@@ -262,6 +262,49 @@ sigSlopes <- SlopesForAllDF %>%
         system:season,
         sep = "_")
 
+#count taxa that were significant slopes
+sigSlopesInt <- sigSlopes %>%
+  ungroup() %>%
+  separate(systemSeason,
+           c("system","season"),
+           sep = "_") %>%
+  group_by(system, season) %>%
+  summarise(sigCount = n_distinct(Scientificname))
+
+#separate out the positive slopes
+sigSlopesPos <- sigSlopes %>%
+  ungroup() %>%
+  separate(systemSeason,
+           c("system","season"),
+           sep = "_") %>%
+  group_by(system, season) %>%
+  filter(raw_slope > 0) %>%
+  summarise(posCount = n_distinct(Scientificname))
+  
+#and the negative slopes
+sigSlopesNeg <- sigSlopes %>%
+  ungroup() %>%
+  separate(systemSeason,
+           c("system","season"),
+           sep = "_") %>%
+  group_by(system, season) %>%
+  filter(raw_slope< 0) %>%
+  summarise(negCount = n_distinct(Scientificname))
+
+#summarize the signficantly changing taxa in context of all taxa in each sys/seas
+sigSummary <- YearXSpeciesZ %>%
+  ungroup() %>%
+  group_by(system, season) %>%
+  summarise(count = n_distinct(Scientificname)) %>%
+  left_join(sigSlopesInt) %>%
+  left_join(sigSlopesPos) %>%
+  left_join(sigSlopesNeg) %>%
+  mutate(sig_percent = sigCount/count) %>%
+  mutate(pos_percent = posCount/count) %>%
+  mutate(neg_percent = negCount/count)
+
+#write_xlsx(sigSummary, "~/osg_FIM/Outputs/sigSummary.xlsx")
+
 #make several uniquely ordered plots and bind them...
 library(patchwork)
 
