@@ -118,6 +118,8 @@ VarCorr(rmod_tmb)
 ##### lme4 ####
 #converges if seasonYear is random
 library(lme4)
+library(lmerTest)
+
 gmod_lme4_L <- glmer(n~system+
                        offset(log(n_hauls))+
                        (1|systemZone/seasonYear),
@@ -128,6 +130,85 @@ gmod_lme4_L <- glmer(n~system+
 summary(gmod_lme4_L)
 plot(gmod_lme4_L)
 plot(gmod_lme4_L,systemZone~resid(.))
+
+gmod_lme4_L <- glmer(n~system+seasonYear+
+                       offset(log(n_hauls))+
+                       (1|systemZone),
+                     family="poisson",
+                     data=modelDF,
+                     control=glmerControl(optimizer="bobyqa",
+                                          check.conv.grad=.makeCC("warning",0.05)))
+summary(gmod_lme4_L)
+
+
+interceptOnly <- lmer(n ~ 1 + (1|systemZone),
+                       data = modelDF)
+summary(interceptOnly)
+# Linear mixed model fit by REML. t-tests use Satterthwaite's method ['lmerModLmerTest']
+# Formula: n ~ 1 + (1 | systemZone)
+#    Data: modelDF
+# 
+# REML criterion at convergence: 47233.5
+# 
+# Scaled residuals: 
+#     Min      1Q  Median      3Q     Max 
+# -2.3774 -0.7433 -0.1415  0.6357  4.8244 
+# 
+# Random effects:
+#  Groups     Name        Variance Std.Dev.
+#  systemZone (Intercept)  2.498   1.581   
+#  Residual               11.045   3.323   
+# Number of obs: 9002, groups:  systemZone, 13
+# 
+# Fixed effects:
+#             Estimate Std. Error      df t value Pr(>|t|)    
+# (Intercept)   5.5275     0.4398 12.0087   12.57 2.86e-08 ***
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+model1 <- lmer(n ~ 1 + system + seasonYear + (1|systemZone),
+               data = modelDF)
+summary(model1)
+# Linear mixed model fit by REML. t-tests use Satterthwaite's method ['lmerModLmerTest']
+# Formula: n ~ 1 + system + seasonYear + (1 | systemZone)
+#    Data: modelDF
+# 
+# REML criterion at convergence: 47224.1
+# 
+# Scaled residuals:
+#     Min      1Q  Median      3Q     Max
+# -2.3921 -0.7530 -0.1404  0.6483  4.8387
+# 
+# Random effects:
+#  Groups     Name        Variance Std.Dev.
+#  systemZone (Intercept)  1.045   1.022
+#  Residual               11.045   3.323
+# Number of obs: 9002, groups:  systemZone, 13
+# 
+# Fixed effects:
+#               Estimate Std. Error         df t value Pr(>|t|)
+# (Intercept) -4.350e+00  1.149e+01  8.906e+03  -0.379    0.705
+# systemCK    -1.297e+00  1.029e+00  8.945e+00  -1.261    0.239
+# systemTB     4.995e-01  8.616e-01  8.979e+00   0.580    0.576
+# systemCH     2.395e+00  8.914e-01  8.961e+00   2.687    0.025 *
+# seasonYear   4.551e-03  5.704e-03  8.991e+03   0.798    0.425
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Correlation of Fixed Effects:
+#            (Intr) systCK systTB systCH
+# systemCK   -0.045
+# systemTB   -0.060  0.597
+# systemCH   -0.056  0.577  0.689
+# seasonYear -0.998  0.000  0.006  0.004
+
+model2 <- lmer(n ~ 1 + system + seasonYear + (1 + seasonYear|systemZone),
+               data = modelDF)
+summary(model2)
+
+
+
+
 
 
 library(broom.mixed)
