@@ -42,9 +42,10 @@ library(vegan)
 
 for (i in 1:length(systemLogic)){
   tempDF <- SiteXSpeciesFull %>%
-  filter(system == as.character(systemLogic[i])) %>%
+    filter(system == as.character(systemLogic[i])) %>%
   subset(select = -c(system)) %>%
-  column_to_rownames(var = "seasonYear")
+  column_to_rownames(var = "seasonYear") 
+    #select(which(!colSums(., na.rm=TRUE) %in% 0)) #technically unnecessary removal of totally absent taxa
   
   distmat <- as.matrix(vegdist(tempDF, method ="bray"))
   
@@ -52,6 +53,11 @@ for (i in 1:length(systemLogic)){
   
   out[[name]] <- distmat[,1]
 }
+
+adonis(distmat ~ system,
+       data = SiteXSpeciesFull %>% filter(system=="TB"),
+       permutations=99, 
+       method = "bray")
 
 yearLogic <- SiteXSpeciesFull %>%
   subset(select = c(system, seasonYear)) %>%
@@ -61,8 +67,50 @@ lessgo <- stack(out) %>%
   rename(commsim = values) %>%
   rename(system = ind) %>%
   cbind(seasonYear = yearLogic$seasonYear) %>%
-  filter(commsim > 0) %>%
+  #filter(commsim > 0) %>%
   mutate(season = "winter")
+
+##### PERMANOVA #######
+SXSRaw <- CleanHauls %>%
+  mutate(N2 = N2^.25) %>% #fourth-root transform
+  group_by(Reference) %>%
+  filter(sum(N2)>0) %>% #remove all References with 0 taxa found
+  spread(Scientificname,N2) %>%
+  ungroup() %>%
+  #subset(select = -c(Reference, season, systemZone)) %>%
+  replace(is.na(.), 0) %>% #replace all NA values with 0s, i.e. counting as true zero
+  group_by(system, seasonYear) %>%
+  mutate(seasonYear = as.factor(seasonYear))
+#summarise(across(everything(), ~ mean(.x, na.rm = TRUE)))
+
+SXSRaw_spe <- SXSRaw %>%
+  subset(select = -c(Reference:systemZone)) %>%
+  select(which(!colSums(., na.rm=TRUE) %in% 0))
+
+SXSRaw_env <- SXSRaw %>%
+  subset(select = c(Reference:systemZone))
+
+example_NMDS=metaMDS(SXSRaw_spe,
+                     k=2)
+
+perm1 = adonis2(SXSRaw_spe ~ system + seasonYear,
+       data = SXSRaw_env,
+       permutations=99)
+       #parallel = getOption("mc.cores"))
+# Permutation test for adonis under reduced model
+# Terms added sequentially (first to last)
+# Permutation: free
+# Number of permutations: 99
+# 
+# adonis2(formula = SXSRaw_spe ~ system + seasonYear, data = SXSRaw_env, permutations = 99, parallel = getOption("mc.cores"))
+# Df SumOfSqs      R2       F Pr(>F)   
+# system        3    256.4 0.08045 254.933   0.01 **
+#   seasonYear   22     76.2 0.02389  10.324   0.01 **
+#   Residual   8514   2854.5 0.89565                  
+# Total      8539   3187.1 1.00000                  
+# ---
+#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
 
 
 CleanHauls <- TidyBio %>%
