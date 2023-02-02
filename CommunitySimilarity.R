@@ -12,8 +12,8 @@ library(tidyverse)
 
 load('TidyGearCode20.Rdata')
 
-CleanHauls <- TidyBio %>%
-  subset(select = c(Reference, system, season, seasonYear, systemZone, Scientificname, N2)) %>%
+CleanHaulsWinter <- TidyBio %>%
+  subset(select = c(Reference, system, season, seasonYear, BottomVegCover, systemZone, Scientificname, N2)) %>%
   #filter(season == "summer" | season == "winter")
   filter(season == "winter")
   #filter(season == "summer")
@@ -71,7 +71,7 @@ lessgo <- stack(out) %>%
   mutate(season = "winter")
 
 ##### PERMANOVA #######
-SXSRaw <- CleanHauls %>%
+SXSRaw_winter <- CleanHaulsWinter %>%
   mutate(N2 = N2^.25) %>% #fourth-root transform
   group_by(Reference) %>%
   filter(sum(N2)>0) %>% #remove all References with 0 taxa found
@@ -80,22 +80,40 @@ SXSRaw <- CleanHauls %>%
   #subset(select = -c(Reference, season, systemZone)) %>%
   replace(is.na(.), 0) %>% #replace all NA values with 0s, i.e. counting as true zero
   group_by(system, seasonYear) %>%
-  mutate(seasonYear = as.factor(seasonYear))
-#summarise(across(everything(), ~ mean(.x, na.rm = TRUE)))
+  mutate(seasonYear = as.factor(seasonYear)) %>%
+  summarise(across(everything(), ~ mean(.x, na.rm = TRUE)))
 
-SXSRaw_spe <- SXSRaw %>%
-  subset(select = -c(Reference:systemZone)) %>%
+SXSRaw_spe <- SXSRaw_winter %>%
+  subset(select = -c(system, seasonYear, Reference,systemZone, BottomVegCover,season)) %>%
   select(which(!colSums(., na.rm=TRUE) %in% 0))
 
-SXSRaw_env <- SXSRaw %>%
-  subset(select = c(Reference:systemZone))
+SXSRaw_env <- SXSRaw_winter %>%
+  subset(select = c(system,seasonYear,BottomVegCover))
 
-example_NMDS=metaMDS(SXSRaw_spe,
+example_NMDS2=metaMDS(SXSRaw_spe,
+                      distance = "bray",
                      k=2)
+SXSRaw_sppfit <- envfit(example_NMDS2, SXSRaw_spe, permutations = 999)
 
-perm1 = adonis2(SXSRaw_spe ~ system + seasonYear,
+plot(example_NMDS2, type = "n", las = 1, main = "NMDS winter")
+points(example_NMDS2, display = "sites")
+points(example_NMDS2, display = "species", col = "red", pch = 3)
+ordiellipse(example_NMDS2,
+            groups = SXSRaw_env$system,
+            kind = "se",
+            conf = 0.95,
+            display = "sites",
+            label=T)
+
+plot(example_NMDS2, main = "NMDS winter")
+ordihull(example_NMDS2,groups=SXSRaw_env$system,draw="polygon",col="grey90",label=T)
+#plot(SXSRaw_sppfit, p.max = 0.001, col = "black", cex = 0.7)
+
+
+perm1 = adonis2(SXSRaw_spe ~ system+seasonYear+BottomVegCover,
        data = SXSRaw_env,
-       permutations=99)
+       method="bray",
+       permutations=999)
        #parallel = getOption("mc.cores"))
 # Permutation test for adonis under reduced model
 # Terms added sequentially (first to last)
@@ -113,21 +131,41 @@ perm1 = adonis2(SXSRaw_spe ~ system + seasonYear,
 
 
 
-CleanHauls <- TidyBio %>%
-  subset(select = c(Reference, system, season, seasonYear, systemZone, Scientificname, N2)) %>%
+CleanHaulsSummer <- TidyBio %>%
+  subset(select = c(Reference, system, season, seasonYear, systemZone, BottomVegCover, Scientificname, N2)) %>%
   #filter(season == "summer" | season == "winter")
   #filter(season == "winter")
   filter(season == "summer")
 
-SiteXSpeciesFull <- CleanHauls %>%
+SXSRaw_summer <- CleanHaulsSummer %>%
   mutate(N2 = N2^.25) %>% #fourth-root transform
   group_by(Reference) %>%
+  filter(sum(N2)>0) %>% #remove all References with 0 taxa found
   spread(Scientificname,N2) %>%
   ungroup() %>%
-  subset(select = -c(Reference, season, systemZone)) %>%
+  #subset(select = -c(Reference, season, systemZone)) %>%
   replace(is.na(.), 0) %>% #replace all NA values with 0s, i.e. counting as true zero
   group_by(system, seasonYear) %>%
+  mutate(seasonYear = as.factor(seasonYear)) %>%
   summarise(across(everything(), ~ mean(.x, na.rm = TRUE)))
+
+SXSRaw_spe <- SXSRaw_summer %>%
+  subset(select = -c(system, seasonYear, Reference,systemZone, BottomVegCover,season)) %>%
+  select(which(!colSums(., na.rm=TRUE) %in% 0))
+
+SXSRaw_env <- SXSRaw_summer %>%
+  subset(select = c(system,seasonYear,BottomVegCover))
+
+example_NMDS3=metaMDS(SXSRaw_spe,
+                      distance = "bray",
+                      k=2)
+SXSRaw_sppfit <- envfit(example_NMDS3, SXSRaw_spe, permutations = 999)
+
+plot(example_NMDS3, type = "n", las = 1, main = "NMDS summer")
+points(example_NMDS3, display = "sites")
+points(example_NMDS3, display = "species", col = "red", pch = 3)
+ordihull(example_NMDS3,groups = SXSRaw_env$system,display = "sites",label=T)
+
 
 # TBFull <- SiteXSpeciesFull %>%
 #   filter(system == "TB") %>%
