@@ -146,8 +146,36 @@ SXSf_winter_env <- SXS_full %>%
   filter(season == "winter") %>%
   subset(select = c(system,seasonYear,BottomVegCover))
 
-winterfAbundPERM = adonis2(SXSf_winter_spe ~ system+seasonYear+BottomVegCover,
+# bray curtis distance... square rooted - to make all eigenvalues positive per 
+SXSf_winter_bray = vegdist(SXSf_winter_spe)
+SXSf_winter_bray2 = SXSf_winter_bray^.5
+
+homdisp1 = permutest(betadisper(SXSf_winter_bray2, SXSf_winter_env$system, type = "centroid"), 
+                     pairwise = TRUE, permutations = 999)
+# Permutation test for homogeneity of multivariate dispersions
+# Permutation: free
+# Number of permutations: 999
+# 
+# Response: Distances
+# Df Sum Sq Mean Sq      F N.Perm Pr(>F)    
+# Groups       3  1.794 0.59793 157.91    999  0.001 ***
+#   Residuals 8536 32.322 0.00379                         
+# ---
+#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Pairwise comparisons:
+#   (Observed p-value below diagonal, permuted p-value above diagonal)
+# AP          CH          CK    TB
+# AP              1.0000e-03  1.0000e-03 0.001
+# CH  4.1915e-06              1.0000e-03 0.001
+# CK  1.2255e-08  3.9532e-29             0.001
+# TB  6.7991e-42 8.5214e-104  2.0450e-09      
+homdisp2 = permutest(betadisper(SXSf_winter_bray2, SXSf_winter_env$seasonYear, type = "centroid"), 
+                     pairwise = TRUE, permutations = 999, parallel = 6)
+
+winterfAbundPERM = adonis2(SXSf_winter_spe ~ system * seasonYear + BottomVegCover,
                           data = SXSf_winter_env,
+                          #add = "lingoes",
                           method="bray",
                           permutations=999)
 # Permutation test for adonis under reduced model
@@ -156,7 +184,7 @@ winterfAbundPERM = adonis2(SXSf_winter_spe ~ system+seasonYear+BottomVegCover,
 # Number of permutations: 999
 # 
 # adonis2(formula = SXSf_winter_spe ~ system + seasonYear + BottomVegCover, data = SXSf_winter_env, permutations = 999, method = "bray")
-# Df SumOfSqs      R2       F Pr(>F)    
+#                  Df SumOfSqs      R2       F Pr(>F)    
 # system            3    256.4 0.08045 264.887  0.001 ***
 # seasonYear       22     76.2 0.02389  10.727  0.001 ***
 # BottomVegCover    1    107.6 0.03376 333.459  0.001 ***
