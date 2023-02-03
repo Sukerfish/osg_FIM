@@ -158,12 +158,12 @@ winterfAbundPERM = adonis2(SXSf_winter_spe ~ system+seasonYear+BottomVegCover,
 # adonis2(formula = SXSf_winter_spe ~ system + seasonYear + BottomVegCover, data = SXSf_winter_env, permutations = 999, method = "bray")
 # Df SumOfSqs      R2       F Pr(>F)    
 # system            3    256.4 0.08045 264.887  0.001 ***
-#   seasonYear       22     76.2 0.02389  10.727  0.001 ***
-#   BottomVegCover    1    107.6 0.03376 333.459  0.001 ***
-#   Residual       8513   2746.9 0.86189                   
+# seasonYear       22     76.2 0.02389  10.727  0.001 ***
+# BottomVegCover    1    107.6 0.03376 333.459  0.001 ***
+# Residual       8513   2746.9 0.86189                   
 # Total          8539   3187.1 1.00000                   
 # ---
-#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
 
 # TBFull <- SiteXSpeciesFull %>%
@@ -184,7 +184,20 @@ summerfAbundPERM = adonis2(SXSf_summer_spe ~ system+seasonYear+BottomVegCover,
                            data = SXSf_summer_env,
                            method="bray",
                            permutations=999)
-
+# Permutation test for adonis under reduced model
+# Terms added sequentially (first to last)
+# Permutation: free
+# Number of permutations: 999
+# 
+# adonis2(formula = SXSf_summer_spe ~ system + seasonYear + BottomVegCover, data = SXSf_summer_env, permutations = 999, method = "bray")
+# Df SumOfSqs      R2        F Pr(>F)    
+# system            3   235.08 0.08217 288.9500  0.001 ***
+# seasonYear       22    40.60 0.01419   6.8047  0.001 ***
+# BottomVegCover    1   164.84 0.05762 607.8462  0.001 ***
+# Residual       8925  2420.36 0.84602                    
+# Total          8951  2860.88 1.00000                    
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
 
 
