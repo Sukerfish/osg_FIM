@@ -144,7 +144,8 @@ SXSf_winter_spe <- SXS_full %>%
 
 SXSf_winter_env <- SXS_full %>%
   filter(season == "winter") %>%
-  subset(select = c(system,seasonYear,BottomVegCover))
+  subset(select = c(system,seasonYear,BottomVegCover)) %>%
+  mutate(contYear = as.numeric(as.character(seasonYear)))
 
 # bray curtis distance... square rooted - to make all eigenvalues positive per 
 SXSf_winter_bray = vegdist(SXSf_winter_spe)
@@ -210,7 +211,7 @@ homdisp2 = permutest(betadisper(SXSf_winter_bray2, SXSf_winter_env$seasonYear, t
 # 1999 8.2817e-01 4.2137e-04 1.7795e-01 6.3038e-01 4.0287e-04 2.4037e-06 3.9744e-03 7.5933e-06 3.1229e-03 1.3921e-01 8.8078e-01 3.0587e-05 1.3315e-04 1.1786e-02 1.5009e-03 2.0421e-02 5.3286e-05 1.2395e-02 9.3907e-07 1.7007e-05 8.9144e-01            0.663
 # 2000 4.8051e-01 5.4754e-05 6.0538e-02 3.1277e-01 4.1395e-05 1.2306e-07 5.3748e-04 5.0484e-07 4.9104e-04 3.2971e-01 5.0654e-01 2.4578e-06 1.3342e-05 2.0829e-03 2.0741e-04 4.2121e-03 4.6789e-06 2.2146e-03 4.6001e-08 1.2489e-06 7.4956e-01 6.6108e-01          
 
-winterfAbundPERM = adonis2(SXSf_winter_bray2 ~ system * seasonYear + BottomVegCover,
+winterfAbundPERM = adonis2(SXSf_winter_bray2 ~ system * seasonYear + contYear + BottomVegCover,
                           data = SXSf_winter_env,
                           #add = "lingoes",
                           parallel = 6,
