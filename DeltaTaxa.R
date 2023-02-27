@@ -312,16 +312,21 @@ library(patchwork)
 seasysKey <- sigSlopes %>%
  distinct(systemSeason)
 
+taxaList_grouped <- read.csv("./Outputs/taxaList_grouped.csv")
+
+sigSlopes_grouped <- sigSlopes %>%
+  left_join(taxaList_grouped)
+
 plots <- list() #initialize
 #use actual values from the key list
 for (i in seasysKey$systemSeason){
   #filter by key values
-  plotup <- sigSlopes %>%
+  plotup <- sigSlopes_grouped %>%
     filter(systemSeason == i)
   
   #make list of plots from the filtered plotup DF
   plots[[i]] = ggplot(plotup,
-         aes(y = reorder(Scientificname, raw_slope), #order by decreasing slope top to bottom
+         aes(y = reorder(group, raw_slope), #order by decreasing slope top to bottom
              x = raw_slope)) + 
     geom_point(aes(color = cut(raw_slope, c(-Inf, 0, Inf))), #cut the slope data for +/- colors
                            size = 3) +
