@@ -124,6 +124,10 @@ ui <- fluidPage(
             multiple = TRUE,
             options = list(plugins= list('remove_button'))
         ),
+      checkboxInput(
+        inputId = "taxOpt",
+        label = "Smooth"
+      ),
 wellPanel(
         # Show a plot of the generated distribution
            plotOutput("taxaPlot")
@@ -137,6 +141,10 @@ tabPanel(title = "Hydrology",
            selected = "Temperature",
            multiple = TRUE,
            options = list(plugins= list('remove_button'))
+         ),
+         checkboxInput(
+           inputId = "hydOpt",
+           label = "Smooth"
          ),
          wellPanel(
            # Show a plot of the generated distribution
@@ -159,7 +167,7 @@ server <- function(input, output, session) {
     
   #science plot
   output$taxaPlot <- renderPlot({
-    ggplot(data = chunk(),#dynamically filter the sci variable of interest
+    p <- ggplot(data = chunk(),#dynamically filter the sci variable of interest
            aes(x=seasonYear,
                y=zscore,
                color=Scientificname)) +
@@ -169,6 +177,12 @@ server <- function(input, output, session) {
       theme(axis.title=element_text(size = 16)) +
       theme(strip.text = element_text(size = 16)) +
       facet_grid(season~system)
+    
+    if (input$taxOpt){
+      p <- p + geom_smooth(method=lm, se=FALSE)
+    }
+    
+    print(p)
   })
   
   hunk <- eventReactive(input$hydro_var, {
@@ -177,7 +191,7 @@ server <- function(input, output, session) {
   
   #hydro plot
   output$hydroPlot <- renderPlot({
-    ggplot(data = hunk(),#dynamically filter the sci variable of interest
+    q <- ggplot(data = hunk(),#dynamically filter the sci variable of interest
            aes(x=seasonYear,
                y=zscore,
                color=param)) +
@@ -187,6 +201,12 @@ server <- function(input, output, session) {
       theme(axis.title=element_text(size = 16)) +
       theme(strip.text = element_text(size = 16)) +
       facet_grid(season~system)
+    
+    if (input$hydOpt){
+      q <- q + geom_smooth(method=lm, se=FALSE)
+    }
+    
+    print(q)
   })
 }
 
