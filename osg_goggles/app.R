@@ -1,12 +1,3 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
-
 library(shiny)
 library(tidyverse)
 library(ggplot2)
@@ -68,40 +59,102 @@ YearXSpeciesZ <- SiteXSpeciesFull %>%
 taxaList = unique(YearXSpeciesZ$Scientificname) %>%
   sort()
 
+#### z scored hydro data #####
+cleanHydro <- SiteXSpeciesFull %>%
+  select(Reference:seasonYear) %>%
+  left_join(HydroList)
+
+#collapse full site x hydro matrix to long term means
+LTxHydroMeans <- cleanHydro %>%
+  subset(select = -c(Reference, seasonYear, Sampling_Date, year, month, Depth)) %>%
+  group_by(system, season) %>%
+  summarise(across(everything(), ~ mean(.x, na.rm = TRUE)))
+
+LTxHydroStdev <- cleanHydro %>%
+  subset(select = -c(Reference, seasonYear, Sampling_Date, year, month, Depth)) %>%
+  group_by(system, season) %>%
+  summarise(across(everything(), ~ sd(.x, na.rm = TRUE)))
+
+#Z score conversion process
+YearXHydroZ <- cleanHydro %>%
+  subset(select = -c(Reference, Sampling_Date, year, month, Depth)) %>%
+  group_by(system, season, seasonYear) %>%
+  summarise(across(everything(), ~ mean(.x, na.rm = TRUE))) %>% #collapse to annual means 
+  ungroup() %>%
+  pivot_longer(cols = !c(system:seasonYear),
+               names_to = "param",
+               values_to = "avg") %>%
+  #expand back out to long form for leftjoins with LT mean and LT stdev
+  ungroup() %>%
+  left_join(pivot_longer(data = LTxHydroMeans, #LT mean column added
+                         cols = !c(system:season),
+                         names_to = "param",
+                         values_to = "LTmean")) %>%
+  left_join(pivot_longer(data = LTxHydroStdev, #LT stdev column added
+                         cols = !c(system:season),
+                         names_to = "param",
+                         values_to = "stdev")) %>%
+  group_by(system, season, seasonYear) %>%
+  mutate(zscore = ((avg - LTmean)/stdev)) %>% #calculate zscores using annual means
+  ungroup() %>%
+  mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH")))
+
+hydroList = unique(YearXHydroZ$param) %>%
+  sort()
+
+######### UI ##########
 # Define UI for application that draws a histogram
 ui <- fluidPage(
 
     # Application title
-    titlePanel("FWRI FIM Data"),
+    titlePanel("FWRI FIM Data Exploration"),
 
     # Sidebar with a slider input for number of bins 
-    wellPanel(
-      actionButton("reload", "Reset", icon("arrows-rotate"), 
-                   style="color: #fff; background-color: #963ab7; border-color: #2e6da4"),
+    tabsetPanel(
+      tabPanel(title = "Biology",
+               actionButton(inputId = "reload", 
+                            label = "Random", 
+                            icon("arrows-rotate"),
+                            style = "color: #fff; background-color: #963ab7; border-color: #2e6da4"),
       selectizeInput(
-            "display_var",
-            "Which taxa to display?",
+            inputId = "bio_var",
+            label = "Which taxa to display?",
             choices = c(taxaList),
             selected = sample(taxaList, 1),
             multiple = TRUE,
             options = list(plugins= list('remove_button'))
-        )),
+        ),
 wellPanel(
         # Show a plot of the generated distribution
            plotOutput("taxaPlot")
         )
-    )
+    ),
+tabPanel(title = "Hydrology",
+         selectizeInput(
+           inputId = "hydro_var",
+           label = "Which hydro data to display?",
+           choices = c(hydroList),
+           selected = "Temperature",
+           multiple = TRUE,
+           options = list(plugins= list('remove_button'))
+         ),
+         wellPanel(
+           # Show a plot of the generated distribution
+           plotOutput("hydroPlot")
+         )
+)
+))
 
-
+######## server ########
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
 
-  chunk <- eventReactive(input$display_var, {
-    filter(YearXSpeciesZ, Scientificname %in% c(input$display_var))
+  chunk <- eventReactive(input$bio_var, {
+    filter(YearXSpeciesZ, Scientificname %in% c(input$bio_var))
   })
   
   observeEvent(input$reload, {
-  updateSelectizeInput(session, "display_var", selected = NULL, choices = c(taxaList))
+  updateSelectizeInput(session, "bio_var", choices = c(taxaList), selected = sample(taxaList, 1))
   })
     
   #science plot
@@ -110,6 +163,24 @@ server <- function(input, output, session) {
            aes(x=seasonYear,
                y=zscore,
                color=Scientificname)) +
+      geom_point() +
+      geom_line() +
+      theme(axis.text=element_text(size = 12)) +
+      theme(axis.title=element_text(size = 16)) +
+      theme(strip.text = element_text(size = 16)) +
+      facet_grid(season~system)
+  })
+  
+  hunk <- eventReactive(input$hydro_var, {
+    filter(YearXHydroZ, param %in% c(input$hydro_var))
+  })
+  
+  #hydro plot
+  output$hydroPlot <- renderPlot({
+    ggplot(data = hunk(),#dynamically filter the sci variable of interest
+           aes(x=seasonYear,
+               y=zscore,
+               color=param)) +
       geom_point() +
       geom_line() +
       theme(axis.text=element_text(size = 12)) +
