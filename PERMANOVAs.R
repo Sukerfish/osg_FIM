@@ -60,8 +60,9 @@ for(i in systemSeason_list$systemSeason){
 
   bf <- (vegdist(df_spe))^0.5 #Bray-Curtis w/ sqrt to prevent negative eigenvalues
   
-  PERM = adonis2(bf ~ contYear * Temperature + BottomVegCover,
+  PERM = adonis2(bf ~ seasonYear * Temperature + BottomVegCover,
                               data = df_env,
+                strata = df_env$seasonYear,
                               #add = "lingoes",
                               parallel = 6,
                               #method="bray", 
