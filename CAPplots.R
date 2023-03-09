@@ -101,37 +101,41 @@ for(i in systemSeason_list$systemSeason){
   
   bf <- (vegdist(df_spe))^0.5 #Bray-Curtis w/ sqrt to prevent negative eigenvalues
   
-  dbrda <- capscale(bf ~ Temperature + BottomVegCover,
-                    data = df_env)
+  dbrda <- dbrda(bf ~ Temperature + BottomVegCover,
+                 data = df_env)
+  
+  example_NMDS=metaMDS(df_spe,k=2,trymax=100)
   
   CAP <- CAPdiscrim(bf ~ seasonYear,
-                 data = df_env,
-                 #add = "lingoes",
-                 #parallel = 6,
-                 #method="bray", 
-                 #permutations = 999
-                 )
+                    data = df_env,
+                    #add = "lingoes",
+                    #parallel = 6,
+                    #method="bray", 
+                    #permutations = 999
+                    )
   
   CAPsforAll[[i]] <- CAP
 }
 
 plot(CAP)
 
-ordiplot(CAP,
-         display = "si",
+ordiplot(example_NMDS,
+         display = "species",
          type = "n",
-         xlim = c(-1, 1),
-         ylim = c(-2, 2),
-         axes = TRUE
+         #xlim = c(-1, 1),
+         #ylim = c(-2, 2),
+         #axes = TRUE
          )
-ordiellipse(CAP, df_env$contYear, 
+plot(example_NMDS)
+ordisurf(example_NMDS,df_env$Temperature,main="",col="forestgreen")
+ordiellipse(example_NMDS, df_env$seasonYear, 
             #draw = "none",
-            col=c(unique(as.numeric(df_env$contYear))),
+            col=c(unique(as.numeric(df_env$seasonYear))),
             label = TRUE)
-ordicenter(CAP,
-           groups = df_env$contYear,
+ordicenter(example_NMDS,
+           groups = df_env$seasonYear,
             #draw = "none",
-            col=c(unique(as.numeric(df_env$contYear))),
+            col=c(unique(as.numeric(df_env$seasonYear))),
             )
 
 ordiarrows (CAP, 
