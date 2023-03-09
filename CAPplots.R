@@ -3,6 +3,8 @@
 #### data input ######
 library(tidyverse)
 library(vegan)
+library(BiodiversityR)
+library(MASS)
 
 #source ('http://www.davidzeleny.net/anadat-r/doku.php/en:customized_functions:ordicenter?do=export_code&codeblock=0')
 ordicenter <- function (ord, groups, display = "sites", w = weights(ord, display), 
@@ -99,16 +101,16 @@ for(i in systemSeason_list$systemSeason){
   
   bf <- (vegdist(df_spe))^0.5 #Bray-Curtis w/ sqrt to prevent negative eigenvalues
   
-  CAP = capscale(bf ~ contYear * Temperature + BottomVegCover,
+  dbrda <- capscale(bf ~ Temperature + BottomVegCover,
+                    data = df_env)
+  
+  CAP <- CAPdiscrim(bf ~ seasonYear,
                  data = df_env,
                  #add = "lingoes",
                  #parallel = 6,
                  #method="bray", 
                  #permutations = 999
                  )
-  
-  Ordination.model1 <- metaMDS(df_spe, distance='bray', k=2, trymax=1, 
-                               autotransform=TRUE, noshare=0.1, expand=TRUE, trace=1, plot=FALSE)
   
   CAPsforAll[[i]] <- CAP
 }
