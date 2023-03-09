@@ -256,12 +256,28 @@ homdisp3 = permutest(betadisper(SXSf_winter_bray2, SXSf_winter_env$contYear, typ
 # 2019 1.3469e-07 9.3907e-07 4.6001e-08 2.5578e-07 2.6714e-01 3.4178e-05 1.6144e-07 9.0450e-02 6.7599e-01 5.8137e-03 7.4849e-01 4.4019e-02 3.0146e-14 3.4419e-08 5.2849e-01 3.5043e-01 3.3648e-03 7.5333e-02 2.7593e-03 4.8776e-01 3.1310e-03            0.594
 # 2020 3.8690e-06 1.7007e-05 1.2489e-06 5.3257e-06 5.4683e-01 4.3229e-04 4.0812e-06 2.6503e-01 8.9539e-01 3.3727e-02 8.4776e-01 1.4191e-01 3.1476e-12 9.1205e-07 9.0981e-01 6.7505e-01 1.9996e-02 2.1606e-01 1.6117e-02 8.5427e-01 1.8923e-02 6.0468e-01      
 
-winterfAbundPERM = adonis2(SXSf_winter_bray2 ~ system * contYear + BottomVegCover,
+winterfAbundPERM = adonis2(SXSf_winter_bray2 ~ system * seasonYear,
                           data = SXSf_winter_env,
                           #add = "lingoes",
                           parallel = 6,
                           #method="bray", 
                           permutations=999)
+# Permutation test for adonis under reduced model
+# Terms added sequentially (first to last)
+# Permutation: free
+# Number of permutations: 999
+# 
+# adonis2(formula = SXSf_winter_bray2 ~ system * seasonYear, data = SXSf_winter_env, permutations = 999, parallel = 6)
+# Df SumOfSqs      R2        F Pr(>F)    
+# system               3    170.0 0.04689 143.3393  0.001 ***
+#   seasonYear          22     55.8 0.01539   6.4165  0.001 ***
+#   system:seasonYear   60     59.0 0.01629   2.4894  0.001 ***
+#   Residual          8450   3340.4 0.92143                    
+# Total             8535   3625.3 1.00000                    
+# ---
+#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
 # Permutation test for adonis under reduced model
 # Terms added sequentially (first to last)
 # Permutation: free
@@ -503,12 +519,28 @@ homdispYrSummer = permutest(betadisper(SXSf_winter_bray2, SXSf_winter_env$season
 # 1999 5.3286e-05 1.2395e-02 9.3907e-07 1.7007e-05 8.9144e-01            0.643
 # 2000 4.6789e-06 2.2146e-03 4.6001e-08 1.2489e-06 7.4956e-01 6.6108e-01      
 
-summerfAbundPERM = adonis2(SXSf_summer_spe ~ system * seasonYear + contYear + BottomVegCover,
+summerfAbundPERM = adonis2(SXSf_summer_bray2 ~ system * seasonYear,
                            data = SXSf_summer_env,
                            #add = "lingoes",
                            parallel = 6,
                            #method="bray", 
                            permutations=999)
+# Permutation test for adonis under reduced model
+# Terms added sequentially (first to last)
+# Permutation: free
+# Number of permutations: 999
+# 
+# adonis2(formula = SXSf_summer_bray2 ~ system * seasonYear, data = SXSf_summer_env, permutations = 999, parallel = 6)
+# Df SumOfSqs      R2        F Pr(>F)    
+# system               3    56.97 0.04819 153.7922  0.001 ***
+#   seasonYear          22    12.79 0.01082   4.7099  0.001 ***
+#   system:seasonYear   60    17.97 0.01520   2.4259  0.001 ***
+#   Residual          8863  1094.40 0.92578                    
+# Total             8948  1182.14 1.00000                    
+# ---
+#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
 # Permutation test for adonis under reduced model
 # Terms added sequentially (first to last)
 # Permutation: free
