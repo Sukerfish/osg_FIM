@@ -5,6 +5,10 @@ library(tidyverse)
 library(vegan)
 library(BiodiversityR)
 #library(MASS)
+library(colortools)
+library(ggrepel)
+library(RColorBrewer)
+library(egg)
 
 #source ('http://www.davidzeleny.net/anadat-r/doku.php/en:customized_functions:ordicenter?do=export_code&codeblock=0')
 ordicenter <- function (ord, groups, display = "sites", w = weights(ord, display), 
@@ -103,6 +107,7 @@ for(i in systemSeason_list$systemSeason){
   
   CAP <- CAPdiscrim(bf ~ seasonYear,
                     data = df_env,
+                    mmax = 100,
                     #add = "lingoes",
                     #parallel = 6,
                     #method="bray", 
@@ -110,43 +115,74 @@ for(i in systemSeason_list$systemSeason){
                     )
   
   CAPsforAll[[i]] <- CAP
+  CAPsforAll[[i]] <- add.spec.scores(CAPsforAll[[i]], df_spe)
+  var_CA <- round(100 * CAPsforAll[[i]][["lda.other"]][["svd"]]^2/sum(CAPsforAll[[i]][["lda.other"]][["svd"]]^2), 2)
+  site_scores <- data.frame(CAPsforAll[[i]]$x)
+  spp_vecs <- data.frame(CAPsforAll[[i]]$cproj)
+  mult <- 6
+  #cbPalette1    <- brewer.pal(8, "Paired")[c(2, 3, 6, 7)]
+  #cbPalette2    <- brewer.pal(4, "Dark2")
+  
+  CAPsforAll[[i]]$plots <- ggplot(site_scores) + 
+    geom_vline(xintercept = 0,
+               colour     = "grey70",
+               size       = .25) +
+    geom_hline(yintercept = 0,
+               colour     = "grey70",
+               size       = .25) +
+    scale_x_continuous(limits       = symmetric_range((1+mult)*spp_vecs$LD1),
+                       breaks       = c(-6,-3,0,3,6),
+                       minor_breaks = NULL) +
+    scale_y_continuous(limits       = symmetric_range,
+                       breaks       = c(-6,-3,0,3,6),
+                       minor_breaks = NULL) +
+    geom_point(aes(x    = LD1, 
+                   y    = LD2, 
+                   fill = NULL),
+               size   = 1, 
+               stroke = 0.1,
+               pch    = 21, 
+               colour = "black") +
+    labs(title = NULL,
+         x     = paste("CA1 (",var_CA[1],"%)",sep=""),
+         y     = paste("CA2 (",var_CA[2],"%)",sep=""),
+         fill  = NULL) +
+    # scale_fill_manual(values = cbPalette1,
+    #                   labels = c(unique(as.character(df_env$seasonYear)))) +
+    theme_bw() +
+    theme(legend.text       = element_text(size=rel(0.8)),
+          legend.position   = c(0.055,0.89),
+          legend.background = element_blank(),
+          legend.key        = element_blank(),
+          panel.grid        = element_blank()) +
+    geom_segment(data = spp_vecs,
+                 aes(x    = 0,
+                     xend = mult*LD1,
+                     y    = 0,
+                     yend = mult*LD2),
+                 arrow = arrow(length = unit(0.1,"inches")),
+                 color = "grey1",
+                 size  = .75,
+                 alpha = 0.6)+
+    geom_label_repel(data = spp_vecs,
+                     aes(x     = mult*LD1 + 0.2*cos(atan(LD2/LD1))*sign(LD1),
+                         y     = mult*LD2 + 0.2*sin(atan(LD2/LD1))*sign(LD2),
+                         label = rownames(spp_vecs)),
+                     segment.alpha = 0,
+                     size          = 3.25,
+                     color         = "blue",
+                     fontface      = "bold",
+                     fill          = "white",
+                     alpha         = 0.7,
+                     box.padding   = .25,
+                     lineheight    = 0.4,
+                     label.size    = 0.25,
+                     nudge_x       = ifelse(spp_vecs$LD1>0,0.05,-0.05),
+                     nudge_y       = ifelse(spp_vecs$LD2>-0.02,0.05,-0.05),
+                     force         = 0.3) +
+    guides(fill = guide_legend(override.aes = list(size = 2.5),
+                               keyheight    = 0.15,
+                               keywidth     = 0.2))
+  
+  ggsave(paste("./Outputs/CAPs/CAP_", i, ".tiff", sep = ""), CAPsforAll[[i]]$plots, width = 8, height = 8, dpi = 800)
 }
-
-
-# dbrda <- dbrda(bf ~ Temperature + BottomVegCover,
-#                data = df_env)
-
-# example_NMDS=metaMDS(df_spe,k=2,trymax=100)
-
-ordiplot(CAP,
-         #display = "species",
-         type = "n",
-         #xlim = c(-1, 1),
-         #ylim = c(-2, 2),
-         #axes = TRUE
-)
-ordiellipse(CAP, df_env$seasonYear,
-            #draw = "none",
-            col=c(unique(as.numeric(df_env$seasonYear))),
-            label = TRUE)
-
-
-
-ordisurf(example_NMDS,df_env$Temperature,main="",col="forestgreen")
-ordiellipse(CAP, df_env$seasonYear, 
-            #draw = "none",
-            col=c(unique(as.numeric(df_env$seasonYear))),
-            label = TRUE)
-ordicenter(example_NMDS,
-           groups = df_env$seasonYear,
-            #draw = "none",
-            col=c(unique(as.numeric(df_env$seasonYear))),
-            )
-
-ordiarrows (CAP, 
-            groups = df_env$contYear, 
-            order.by = df_env$contYear, 
-            startmark = 1, label = TRUE, length = .1)
-# 
-# plot(CAP, display = "sites")
-
