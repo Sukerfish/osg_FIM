@@ -4,7 +4,7 @@
 library(tidyverse)
 library(vegan)
 library(BiodiversityR)
-library(MASS)
+#library(MASS)
 
 #source ('http://www.davidzeleny.net/anadat-r/doku.php/en:customized_functions:ordicenter?do=export_code&codeblock=0')
 ordicenter <- function (ord, groups, display = "sites", w = weights(ord, display), 
@@ -95,16 +95,11 @@ for(i in systemSeason_list$systemSeason){
     subset(select = -c(systemSeason, seasonYear, Reference, systemZone, BottomVegCover, Temperature)) %>%
     select(which(!colSums(., na.rm=TRUE) %in% 0))
   
-  df_env <- df %>% #pull out environmental variables
+  df_env <- data.frame(df %>% #pull out environmental variables
     subset(select = c(systemSeason, seasonYear, BottomVegCover, Temperature)) %>%
-    mutate(contYear = as.numeric(as.character(seasonYear)))
+    mutate(contYear = as.numeric(as.character(seasonYear))))
   
-  bf <- (vegdist(df_spe))^0.5 #Bray-Curtis w/ sqrt to prevent negative eigenvalues
-  
-  dbrda <- dbrda(bf ~ Temperature + BottomVegCover,
-                 data = df_env)
-  
-  example_NMDS=metaMDS(df_spe,k=2,trymax=100)
+  bf <- (vegdist(df_spe))^0.5 #Bray-Curtis w/ sqrt to reduce negative eigenvalues
   
   CAP <- CAPdiscrim(bf ~ seasonYear,
                     data = df_env,
@@ -117,18 +112,28 @@ for(i in systemSeason_list$systemSeason){
   CAPsforAll[[i]] <- CAP
 }
 
-plot(CAP)
 
-ordiplot(example_NMDS,
-         display = "species",
+# dbrda <- dbrda(bf ~ Temperature + BottomVegCover,
+#                data = df_env)
+
+# example_NMDS=metaMDS(df_spe,k=2,trymax=100)
+
+ordiplot(CAP,
+         #display = "species",
          type = "n",
          #xlim = c(-1, 1),
          #ylim = c(-2, 2),
          #axes = TRUE
-         )
-plot(example_NMDS)
+)
+ordiellipse(CAP, df_env$seasonYear,
+            #draw = "none",
+            col=c(unique(as.numeric(df_env$seasonYear))),
+            label = TRUE)
+
+
+
 ordisurf(example_NMDS,df_env$Temperature,main="",col="forestgreen")
-ordiellipse(example_NMDS, df_env$seasonYear, 
+ordiellipse(CAP, df_env$seasonYear, 
             #draw = "none",
             col=c(unique(as.numeric(df_env$seasonYear))),
             label = TRUE)
