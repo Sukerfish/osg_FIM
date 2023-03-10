@@ -9,6 +9,7 @@ library(colortools)
 library(ggrepel)
 library(RColorBrewer)
 library(egg)
+library(patchwork)
 
 #source ('http://www.davidzeleny.net/anadat-r/doku.php/en:customized_functions:ordicenter?do=export_code&codeblock=0')
 ordicenter <- function (ord, groups, display = "sites", w = weights(ord, display), 
@@ -107,7 +108,7 @@ for(i in systemSeason_list$systemSeason){
   
   CAP <- CAPdiscrim(bf ~ seasonYear,
                     data = df_env,
-                    mmax = 100,
+                    mmax = 200,
                     #add = "lingoes",
                     #parallel = 6,
                     #method="bray", 
@@ -116,14 +117,22 @@ for(i in systemSeason_list$systemSeason){
   
   CAPsforAll[[i]] <- CAP
   CAPsforAll[[i]] <- add.spec.scores(CAPsforAll[[i]], df_spe)
+
+  #cbPalette1    <- brewer.pal(8, "Paired")[c(2, 3, 6, 7)]
+  #cbPalette2    <- brewer.pal(4, "Dark2")
+}
+
+#save(CAPsforAll, file = "CAPsforAll.RData")
+load('CAPSforAll.Rdata')
+
+plots <- list()
+for(i in systemSeason_list$systemSeason){
+  print(i) #watch progress through list
   var_CA <- round(100 * CAPsforAll[[i]][["lda.other"]][["svd"]]^2/sum(CAPsforAll[[i]][["lda.other"]][["svd"]]^2), 2)
   site_scores <- data.frame(CAPsforAll[[i]]$x)
   spp_vecs <- data.frame(CAPsforAll[[i]]$cproj)
   mult <- 6
-  #cbPalette1    <- brewer.pal(8, "Paired")[c(2, 3, 6, 7)]
-  #cbPalette2    <- brewer.pal(4, "Dark2")
-  
-  CAPsforAll[[i]]$plots <- ggplot(site_scores) + 
+  plots[[i]] <- ggplot(site_scores) + 
     geom_vline(xintercept = 0,
                colour     = "grey70",
                size       = .25) +
@@ -143,7 +152,7 @@ for(i in systemSeason_list$systemSeason){
                stroke = 0.1,
                pch    = 21, 
                colour = "black") +
-    labs(title = NULL,
+    labs(title = i,
          x     = paste("CA1 (",var_CA[1],"%)",sep=""),
          y     = paste("CA2 (",var_CA[2],"%)",sep=""),
          fill  = NULL) +
@@ -184,5 +193,36 @@ for(i in systemSeason_list$systemSeason){
                                keyheight    = 0.15,
                                keywidth     = 0.2))
   
-  ggsave(paste("./Outputs/CAPs/CAP_", i, ".tiff", sep = ""), CAPsforAll[[i]]$plots, width = 8, height = 8, dpi = 800)
+  ggsave(paste("./Outputs/CAPs/CAP_", i, ".tiff", sep = ""), CAPsforAll[[i]]$plots, width = 8, height = 8, dpi = 400)
+}
+
+testing <- wrap_plots(plots[c(8)])
+
+testing <- wrap_plots(CAPsforAll$AP_winter$plots,
+                        CAPsforAll$AP_summer$plots,
+                        CAPsforAll$CK_winter$plots,
+                        CAPsforAll$CK_summer$plots,
+                        CAPsforAll$TB_winter$plots,
+                        CAPsforAll$TB_summer$plots,
+                        CAPsforAll$CH_winter$plots,
+                        CAPsforAll$CH_summer$plots,
+                      ncol = 4)
+
+#ggsave("./Outputs/CAPs/all", testing, width = 11, height = 8.5, dpi = 800)
+
+CAPsforAll[1]plots +
+CAPsforAll[[2]]$plots +
+CAPsforAll[[3]]$plots +
+CAPsforAll[[4]]$plots +
+CAPsforAll[[5]]$plots +
+CAPsforAll[[6]]$plots +
+CAPsforAll[[7]]$plots +
+CAPsforAll[[8]]$plots +
+plot_layout(ncol = 4)
+
+for(i in systemSeason_list$systemSeason){
+  print(i) #watch progress through list
+  
+  patchwork <- CAPsforAll[[i]]$plots 
+  
 }
