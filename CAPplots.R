@@ -126,11 +126,13 @@ for(i in systemSeason_list$systemSeason){
 load('CAPSforAll.Rdata')
 
 plots <- list()
+sppvecs_list <- list()
 for(i in systemSeason_list$systemSeason){
   print(i) #watch progress through list
   var_CA <- round(100 * CAPsforAll[[i]][["lda.other"]][["svd"]]^2/sum(CAPsforAll[[i]][["lda.other"]][["svd"]]^2), 2)
   site_scores <- data.frame(CAPsforAll[[i]]$x)
   spp_vecs <- data.frame(CAPsforAll[[i]]$cproj)
+  sppvecs_list[[i]] <- spp_vecs
   mult <- 6
   plots[[i]] <- ggplot(site_scores) + 
     geom_vline(xintercept = 0,
@@ -173,56 +175,185 @@ for(i in systemSeason_list$systemSeason){
                  color = "grey1",
                  size  = .75,
                  alpha = 0.6)+
-    geom_label_repel(data = spp_vecs,
-                     aes(x     = mult*LD1 + 0.2*cos(atan(LD2/LD1))*sign(LD1),
-                         y     = mult*LD2 + 0.2*sin(atan(LD2/LD1))*sign(LD2),
-                         label = rownames(spp_vecs)),
-                     segment.alpha = 0,
-                     size          = 3.25,
-                     color         = "blue",
-                     fontface      = "bold",
-                     fill          = "white",
-                     alpha         = 0.7,
-                     box.padding   = .25,
-                     lineheight    = 0.4,
-                     label.size    = 0.25,
-                     nudge_x       = ifelse(spp_vecs$LD1>0,0.05,-0.05),
-                     nudge_y       = ifelse(spp_vecs$LD2>-0.02,0.05,-0.05),
-                     force         = 0.3) +
+    # geom_label_repel(data = spp_vecs,
+    #                  aes(x     = mult*LD1 + 0.2*cos(atan(LD2/LD1))*sign(LD1),
+    #                      y     = mult*LD2 + 0.2*sin(atan(LD2/LD1))*sign(LD2),
+    #                      label = rownames(spp_vecs)),
+    #                  segment.alpha = 0,
+    #                  size          = 3.25,
+    #                  color         = "blue",
+    #                  fontface      = "bold",
+    #                  fill          = "white",
+    #                  alpha         = 0.7,
+    #                  box.padding   = .25,
+    #                  lineheight    = 0.4,
+    #                  label.size    = 0.25,
+    #                  nudge_x       = ifelse(spp_vecs$LD1>0,0.05,-0.05),
+    #                  nudge_y       = ifelse(spp_vecs$LD2>-0.02,0.05,-0.05),
+    #                  force         = 0.3) +
     guides(fill = guide_legend(override.aes = list(size = 2.5),
                                keyheight    = 0.15,
                                keywidth     = 0.2))
   
-  ggsave(paste("./Outputs/CAPs/CAP_", i, ".tiff", sep = ""), CAPsforAll[[i]]$plots, width = 8, height = 8, dpi = 400)
+  #ggsave(paste("./Outputs/CAPs/CAP_", i, ".tiff", sep = ""), CAPsforAll[[i]]$plots, width = 8, height = 8, dpi = 400)
 }
 
-testing <- wrap_plots(plots[c(8)])
 
-testing <- wrap_plots(CAPsforAll$AP_winter$plots,
-                        CAPsforAll$AP_summer$plots,
-                        CAPsforAll$CK_winter$plots,
-                        CAPsforAll$CK_summer$plots,
-                        CAPsforAll$TB_winter$plots,
-                        CAPsforAll$TB_summer$plots,
-                        CAPsforAll$CH_winter$plots,
-                        CAPsforAll$CH_summer$plots,
+######### BRUTE FORCE PLOTTING ########
+plots$a <- plots$AP_winter +
+  geom_label_repel(data = sppvecs_list$AP_winter,
+                   aes(x     = mult*LD1 + 0.2*cos(atan(LD2/LD1))*sign(LD1),
+                       y     = mult*LD2 + 0.2*sin(atan(LD2/LD1))*sign(LD2),
+                       label = rownames(sppvecs_list$AP_winter)),
+                   segment.alpha = 0,
+                   size          = 3.25,
+                   color         = "blue",
+                   fontface      = "bold",
+                   fill          = "white",
+                   alpha         = 0.7,
+                   box.padding   = .25,
+                   lineheight    = 0.4,
+                   label.size    = 0.25,
+                   nudge_x       = ifelse(sppvecs_list$AP_winter$LD1>0,0.05,-0.05),
+                   nudge_y       = ifelse(sppvecs_list$AP_winter$LD2>-0.02,0.05,-0.05),
+                   force         = 0.3)
+
+plots$b <- plots$AP_summer +
+  geom_label_repel(data = sppvecs_list$AP_summer,
+                   aes(x     = mult*LD1 + 0.2*cos(atan(LD2/LD1))*sign(LD1),
+                       y     = mult*LD2 + 0.2*sin(atan(LD2/LD1))*sign(LD2),
+                       label = rownames(sppvecs_list$AP_summer)),
+                   segment.alpha = 0,
+                   size          = 3.25,
+                   color         = "blue",
+                   fontface      = "bold",
+                   fill          = "white",
+                   alpha         = 0.7,
+                   box.padding   = .25,
+                   lineheight    = 0.4,
+                   label.size    = 0.25,
+                   nudge_x       = ifelse(sppvecs_list$AP_summer$LD1>0,0.05,-0.05),
+                   nudge_y       = ifelse(sppvecs_list$AP_summer$LD2>-0.02,0.05,-0.05),
+                   force         = 0.3)
+
+plots$c <- plots$CK_winter +
+  geom_label_repel(data = sppvecs_list$CK_winter,
+                   aes(x     = mult*LD1 + 0.2*cos(atan(LD2/LD1))*sign(LD1),
+                       y     = mult*LD2 + 0.2*sin(atan(LD2/LD1))*sign(LD2),
+                       label = rownames(sppvecs_list$CK_winter)),
+                   segment.alpha = 0,
+                   size          = 3.25,
+                   color         = "blue",
+                   fontface      = "bold",
+                   fill          = "white",
+                   alpha         = 0.7,
+                   box.padding   = .25,
+                   lineheight    = 0.4,
+                   label.size    = 0.25,
+                   nudge_x       = ifelse(sppvecs_list$CK_winter$LD1>0,0.05,-0.05),
+                   nudge_y       = ifelse(sppvecs_list$CK_winter$LD2>-0.02,0.05,-0.05),
+                   force         = 0.3)
+
+plots$d <- plots$CK_summer +
+  geom_label_repel(data = sppvecs_list$CK_summer,
+                   aes(x     = mult*LD1 + 0.2*cos(atan(LD2/LD1))*sign(LD1),
+                       y     = mult*LD2 + 0.2*sin(atan(LD2/LD1))*sign(LD2),
+                       label = rownames(sppvecs_list$CK_summer)),
+                   segment.alpha = 0,
+                   size          = 3.25,
+                   color         = "blue",
+                   fontface      = "bold",
+                   fill          = "white",
+                   alpha         = 0.7,
+                   box.padding   = .25,
+                   lineheight    = 0.4,
+                   label.size    = 0.25,
+                   nudge_x       = ifelse(sppvecs_list$CK_summer$LD1>0,0.05,-0.05),
+                   nudge_y       = ifelse(sppvecs_list$CK_summer$LD2>-0.02,0.05,-0.05),
+                   force         = 0.3)
+
+plots$e <- plots$TB_winter +
+  geom_label_repel(data = sppvecs_list$TB_winter,
+                   aes(x     = mult*LD1 + 0.2*cos(atan(LD2/LD1))*sign(LD1),
+                       y     = mult*LD2 + 0.2*sin(atan(LD2/LD1))*sign(LD2),
+                       label = rownames(sppvecs_list$TB_winter)),
+                   segment.alpha = 0,
+                   size          = 3.25,
+                   color         = "blue",
+                   fontface      = "bold",
+                   fill          = "white",
+                   alpha         = 0.7,
+                   box.padding   = .25,
+                   lineheight    = 0.4,
+                   label.size    = 0.25,
+                   nudge_x       = ifelse(sppvecs_list$TB_winter$LD1>0,0.05,-0.05),
+                   nudge_y       = ifelse(sppvecs_list$TB_winter$LD2>-0.02,0.05,-0.05),
+                   force         = 0.3)
+
+plots$f <- plots$TB_summer +
+  geom_label_repel(data = sppvecs_list$TB_summer,
+                   aes(x     = mult*LD1 + 0.2*cos(atan(LD2/LD1))*sign(LD1),
+                       y     = mult*LD2 + 0.2*sin(atan(LD2/LD1))*sign(LD2),
+                       label = rownames(sppvecs_list$TB_summer)),
+                   segment.alpha = 0,
+                   size          = 3.25,
+                   color         = "blue",
+                   fontface      = "bold",
+                   fill          = "white",
+                   alpha         = 0.7,
+                   box.padding   = .25,
+                   lineheight    = 0.4,
+                   label.size    = 0.25,
+                   nudge_x       = ifelse(sppvecs_list$TB_summer$LD1>0,0.05,-0.05),
+                   nudge_y       = ifelse(sppvecs_list$TB_summer$LD2>-0.02,0.05,-0.05),
+                   force         = 0.3)
+
+plots$g <- plots$CH_winter +
+  geom_label_repel(data = sppvecs_list$CH_winter,
+                   aes(x     = mult*LD1 + 0.2*cos(atan(LD2/LD1))*sign(LD1),
+                       y     = mult*LD2 + 0.2*sin(atan(LD2/LD1))*sign(LD2),
+                       label = rownames(sppvecs_list$CH_winter)),
+                   segment.alpha = 0,
+                   size          = 3.25,
+                   color         = "blue",
+                   fontface      = "bold",
+                   fill          = "white",
+                   alpha         = 0.7,
+                   box.padding   = .25,
+                   lineheight    = 0.4,
+                   label.size    = 0.25,
+                   nudge_x       = ifelse(sppvecs_list$CH_winter$LD1>0,0.05,-0.05),
+                   nudge_y       = ifelse(sppvecs_list$CH_winter$LD2>-0.02,0.05,-0.05),
+                   force         = 0.3)
+
+plots$h <- plots$CH_summer +
+  geom_label_repel(data = sppvecs_list$CH_summer,
+                   aes(x     = mult*LD1 + 0.2*cos(atan(LD2/LD1))*sign(LD1),
+                       y     = mult*LD2 + 0.2*sin(atan(LD2/LD1))*sign(LD2),
+                       label = rownames(sppvecs_list$CH_summer)),
+                   segment.alpha = 0,
+                   size          = 3.25,
+                   color         = "blue",
+                   fontface      = "bold",
+                   fill          = "white",
+                   alpha         = 0.7,
+                   box.padding   = .25,
+                   lineheight    = 0.4,
+                   label.size    = 0.25,
+                   nudge_x       = ifelse(sppvecs_list$CH_summer$LD1>0,0.05,-0.05),
+                   nudge_y       = ifelse(sppvecs_list$CH_summer$LD2>-0.02,0.05,-0.05),
+                   force         = 0.3)
+
+
+
+testing <- wrap_plots(plots$a,
+                      plots$c,
+                      plots$e,
+                      plots$g,
+                      plots$b,
+                      plots$d,
+                      plots$f,
+                      plots$h,
                       ncol = 4)
 
-#ggsave("./Outputs/CAPs/all", testing, width = 11, height = 8.5, dpi = 800)
-
-CAPsforAll[1]plots +
-CAPsforAll[[2]]$plots +
-CAPsforAll[[3]]$plots +
-CAPsforAll[[4]]$plots +
-CAPsforAll[[5]]$plots +
-CAPsforAll[[6]]$plots +
-CAPsforAll[[7]]$plots +
-CAPsforAll[[8]]$plots +
-plot_layout(ncol = 4)
-
-for(i in systemSeason_list$systemSeason){
-  print(i) #watch progress through list
-  
-  patchwork <- CAPsforAll[[i]]$plots 
-  
-}
+plot(testing)
