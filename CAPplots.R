@@ -160,33 +160,40 @@ for(i in systemSeason_list$systemSeason){
                  aes(x    = 0,
                      xend = mult*LD1,
                      y    = 0,
-                     yend = mult*LD2),
+                     yend = mult*LD2,
+                     ),
                  arrow = arrow(length = unit(0.1,"inches")),
                  color = "grey1",
                  size  = .75,
                  alpha = 0.6)+
-    # geom_label_repel(data = spp_vecs,
-    #                  aes(x     = mult*LD1 + 0.2*cos(atan(LD2/LD1))*sign(LD1),
-    #                      y     = mult*LD2 + 0.2*sin(atan(LD2/LD1))*sign(LD2),
-    #                      label = rownames(spp_vecs)),
-    #                  segment.alpha = 0,
-    #                  size          = 3.25,
-    #                  color         = "blue",
-    #                  fontface      = "bold",
-    #                  fill          = "white",
-    #                  alpha         = 0.7,
-    #                  box.padding   = .25,
-    #                  lineheight    = 0.4,
-    #                  label.size    = 0.25,
-    #                  nudge_x       = ifelse(spp_vecs$LD1>0,0.05,-0.05),
-    #                  nudge_y       = ifelse(spp_vecs$LD2>-0.02,0.05,-0.05),
-    #                  force         = 0.3) +
+    geom_label_repel(data = spp_vecs,
+                     aes(x     = mult*LD1 + 0.2*cos(atan(LD2/LD1))*sign(LD1),
+                         y     = mult*LD2 + 0.2*sin(atan(LD2/LD1))*sign(LD2),
+                         label = rownames(spp_vecs),
+                         ),
+                     segment.alpha = 0,
+                     size          = 3.25,
+                     color         = "blue",
+                     fontface      = "bold",
+                     fill          = "white",
+                     alpha         = 0.7,
+                     box.padding   = .25,
+                     lineheight    = 0.4,
+                     label.size    = 0.25,
+                     nudge_x       = ifelse(spp_vecs$LD1>0,0.05,-0.05),
+                     nudge_y       = ifelse(spp_vecs$LD2>-0.02,0.05,-0.05),
+                     force         = 0.3) +
     guides(fill = guide_legend(override.aes = list(size = 2.5),
                                keyheight    = 0.15,
                                keywidth     = 0.2))
   
   #ggsave(paste("./Outputs/CAPs/CAP_", i, ".tiff", sep = ""), CAPsforAll[[i]]$plots, width = 8, height = 8, dpi = 400)
 }
+
+fullPlot <- wrap_plots(plots,
+                       ncol = 4)
+
+plot(fullPlot)
 
 
 ######### BRUTE FORCE PLOTTING ########
