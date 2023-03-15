@@ -191,6 +191,7 @@ fullPlot <- wrap_plots(plotsforAll,
 
 plot(fullPlot)
 
+#ggsave("./Outputs/RDAs/RDAsforAll.tiff", fullPlot, width = 18, height = 9, dpi = 600)
 
 ######### BRUTE FORCE PLOTTING ########
 # plots$a <- plots$AP_winter +
