@@ -315,40 +315,30 @@ seasysKey <- sigSlopes %>%
 taxaList_grouped <- read.csv("./Outputs/taxaList_grouped.csv")
 
 sigSlopes_grouped <- sigSlopes %>%
-  left_join(taxaList_grouped)
+  left_join(taxaList_grouped) %>%
+  mutate(id_color = sign(raw_slope))
 
-plots <- list() #initialize
-#use actual values from the key list
-for (i in seasysKey$systemSeason){
-  #filter by key values
-  plotup <- sigSlopes_grouped %>%
-    filter(systemSeason == i)
-  
-  #make list of plots from the filtered plotup DF
-  plots[[i]] = ggplot(plotup,
-         aes(y = reorder(group, raw_slope), #order by decreasing slope top to bottom
-             x = raw_slope)) + 
-    geom_point(aes(color = cut(raw_slope, c(-Inf, 0, Inf))), #cut the slope data for +/- colors
-                           size = 3) +
-    scale_color_manual(name = "slope", #define the +/- colors
-                       values = c("(0, Inf]" = "blue",
-                                  "(-Inf,0]" = "red"),
-                       labels = c("pos", "neg")) +
-    geom_errorbarh(aes(xmin=(raw_slope + (-2*stderr)), xmax=(raw_slope + (2*stderr))),
-                   color = "darkgray") + #std err bars
-    ggtitle(i) + #dynamic title using the key value
-    theme(axis.title.y=element_blank()) +
-    coord_cartesian(xlim = c(-.2, 0.2)) +
-    geom_vline(xintercept = 0, linetype="dashed")
-}
+sigSlopes_grouped$group[sigSlopes_grouped$group == "syngnathid"] <- "fish"
 
-# png(file = "~/osg_FIM/Outputs/sigslopesrawSxS.png",
-#     width = 1920, height = 1080)
+sigSlopes_grouped$group <- as.factor(sigSlopes_grouped$group)
+sigSlopes_grouped$id_color <- as.factor(sigSlopes_grouped$id_color, levels = c("-1", "1"))
 
-#wrap them from the list
-wrap_plots(plots, ncol = 2, guides = "collect")
-
-# dev.off()
+ggplot(sigSlopes_grouped,
+       aes(y = group,
+           x = raw_slope)) + 
+  geom_point(aes(color = as.factor(id_color))) +
+  scale_color_manual(values = c("red","blue")) +
+  facet_wrap(~ systemSeason,
+             ncol = 2) +
+  geom_errorbarh(aes(xmin=(raw_slope + (-2*stderr)), xmax=(raw_slope + (2*stderr))),
+                 color = "darkgray") + #std err bars
+  ggtitle("Change in density over time by group") + 
+  theme_bw() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank()
+        ) +
+  #coord_cartesian(xlim = c(-.2, 0.2)) +
+  geom_vline(xintercept = 0, linetype="dashed")
 
 library(rfishbase)
 library(taxize)
