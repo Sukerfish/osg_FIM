@@ -46,8 +46,14 @@ SXS_full <- CleanHauls %>%
 waterBVC_full <- SXS_full %>%
   select(c(Reference, systemSeason, seasonYear, Temperature, BottomVegCover)) %>%
   group_by(systemSeason, seasonYear) %>%
-  mutate(meanBVC = mean(BottomVegCover)) %>%
-  mutate(meanTemp = mean(Temperature)) %>%
+  mutate(meanBVC = mean(BottomVegCover),
+         meanTemp = mean(Temperature),
+         sdTemp = sd(Temperature),
+         sdBVC = sd(BottomVegCover),
+         nTemp = length(Temperature),
+         nBVC = length(BottomVegCover)) %>%
+  mutate(seTemp = sdTemp/sqrt(nTemp),
+         seBVC = sdBVC/sqrt(nBVC)) %>%
   separate(systemSeason,
            c("system","season"),
            sep = "_") %>%
@@ -64,10 +70,12 @@ ggplot(waterBVC_full,
              #colour = "black"
                ) +
   geom_smooth(method=lm) +
-  # labs(title = i,
-  #      x     = paste("CA1 (",var_CA[1],"%)",sep=""),
-  #      y     = paste("CA2 (",var_CA[2],"%)",sep=""),
-  #      fill  = NULL) +
+  geom_errorbar(aes(ymin = meanBVC-seBVC, ymax = meanBVC+seBVC))+
+  labs(title = "Annual Bottom Veg Cover Over Time",
+       x     = "Year",
+       y     = "Mean Annual Bottom Veg Cover (%)",
+       #fill  = NULL
+       ) +
   # scale_fill_manual(values = cbPalette1,
   #                   labels = c(unique(as.character(df_env$seasonYear)))) +
   theme_bw() +
@@ -75,8 +83,34 @@ ggplot(waterBVC_full,
         legend.position   = c(0.1,0.89),
         legend.background = element_blank(),
         legend.key        = element_blank(),
-        panel.grid        = element_blank()) +
+        #panel.grid        = element_blank()
+        ) +
   facet_grid(season ~ system)
-  # guides(fill = guide_legend(override.aes = list(size = 2.5),
-  #                            keyheight    = 0.15,
-  #                            keywidth     = 0.2))
+
+ggplot(waterBVC_full,
+       aes(x    = as.numeric(as.character(seasonYear)), 
+           y    = meanTemp, 
+           #color = season
+       )) + 
+  geom_point(#size   = 2, 
+    #stroke = 0.1,
+    #pch    = 21, 
+    #colour = "black"
+  ) +
+  geom_smooth(method=lm) +
+  geom_errorbar(aes(ymin = meanTemp-seTemp, ymax = meanTemp+seTemp))+
+  labs(title = "Annual Water Temperature Over Time",
+       x     = "Year",
+       y     = "Mean Annual Water Temperature (°C)",
+       #fill  = NULL
+  ) +
+  # scale_fill_manual(values = cbPalette1,
+  #                   labels = c(unique(as.character(df_env$seasonYear)))) +
+  theme_bw() +
+  theme(legend.text       = element_text(size=rel(0.8)),
+        legend.position   = c(0.1,0.89),
+        legend.background = element_blank(),
+        legend.key        = element_blank(),
+        #panel.grid        = element_blank()
+  ) +
+  facet_grid(season ~ system)
