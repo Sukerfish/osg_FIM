@@ -93,76 +93,77 @@ for(i in systemSeason_list$systemSeason){
                   trymax = 50,
                   wascores = TRUE)
   
-  NMDSforAll[[i]] <- nmds
-  #CAPsforAll[[i]] <- add.spec.scores(CAPsforAll[[i]], df_spe)
+  data.scores = as.data.frame(scores(nmds))
+  data.scores$Time = df_filtered$seasonYear
+  cent <- aggregate(cbind(NMDS1, NMDS2) ~ Time, data = data.scores, FUN = mean)
   
-  #cbPalette1    <- brewer.pal(8, "Paired")[c(2, 3, 6, 7)]
-  #cbPalette2    <- brewer.pal(4, "Dark2")
+  NMDSforAll[[i]] <- nmds
+  NMDSforAll[[i]]$data.scores <- data.scores
+  NMDSforAll[[i]]$cent <- cent
+  
+  plot.cent <- ggplot(NMDSforAll[[i]]$cent, aes(x = NMDS1, y = NMDS2,
+                                           label = as.character(Time))) + 
+    #geom_point(size = 4, aes( colour = as.numeric(as.character(Time))))+ 
+    # scale_x_continuous(limits       = c(-.01,.01),
+    #                    #breaks       = c(-6,-3,0,3,6),
+    #                    minor_breaks = NULL) +
+    # scale_y_continuous(limits       = c(-.004,.004),
+    #                    #breaks       = c(-6,-3,0,3,6),
+    #                    minor_breaks = NULL) +
+    geom_path() +
+    scale_colour_gradient(
+      low = "red",
+      high = "blue",
+    ) +
+    geom_text(aes(colour = as.numeric(as.character(Time)))) +
+    labs(title = "NMDS",
+         x     = "NMDS1",
+         y     = "NMDS2",
+         caption = paste0("Stress: ", nmds$stress),
+    ) +
+    theme(axis.text.y = element_text(colour = "black", size = 12, face = "bold"), 
+          axis.text.x = element_text(colour = "black", face = "bold", size = 12), 
+          legend.text = element_text(size = 12, face ="bold", colour ="black"), 
+          #legend.position = "right", axis.title.y = element_text(face = "bold", size = 14), 
+          axis.title.x = element_text(face = "bold", size = 14, colour = "black"), 
+          legend.title = element_text(size = 14, colour = "black", face = "bold"), 
+          panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
+          legend.key=element_blank(),
+          legend.position ="none",
+    )
+  
+  plot.full <-
+    ggplot(NMDSforAll[[i]]$data.scores, aes(x = NMDS1, y = NMDS2)) + 
+    geom_point(size = 2, aes( colour = as.numeric(as.character(Time))))+ 
+    # scale_x_continuous(limits       = c(-.01,.01),
+    #                    #breaks       = c(-6,-3,0,3,6),
+    #                    minor_breaks = NULL) +
+    # scale_y_continuous(limits       = c(-.004,.004),
+    #                    #breaks       = c(-6,-3,0,3,6),
+    #                    minor_breaks = NULL) +
+    scale_colour_gradient(
+      low = "red",
+      high = "blue",
+    ) +
+    labs(title = "NMDS",
+         x     = "NMDS1",
+         y     = "NMDS2",
+         caption = paste0("Stress: ", nmds$stress),
+    ) +
+    theme(axis.text.y = element_text(colour = "black", size = 12, face = "bold"), 
+          axis.text.x = element_text(colour = "black", face = "bold", size = 12), 
+          legend.text = element_text(size = 12, face ="bold", colour ="black"), 
+          #legend.position = "right", axis.title.y = element_text(face = "bold", size = 14), 
+          axis.title.x = element_text(face = "bold", size = 14, colour = "black"), 
+          legend.title = element_text(size = 14, colour = "black", face = "bold"), 
+          panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
+          legend.key=element_blank(),
+          legend.position ="none",
+    )
+  
+  NMDSforAll[[i]]$plot.full <- plot.full
+  NMDSforAll[[i]]$plot.cent <- plot.cent
 }
-
-data.scores = as.data.frame(scores(nmds))
-
-#data.scores$Sample = pc$Sample
-data.scores$Time = df_filtered$seasonYear
-#data.scores$Type = pc$Type
-
-cent <- aggregate(cbind(NMDS1, NMDS2) ~ Time, data = data.scores, FUN = mean)
-
-ggplot(data.scores, aes(x = NMDS1, y = NMDS2)) + 
-  geom_point(size = 2, aes( colour = as.numeric(as.character(Time))))+ 
-  # scale_x_continuous(limits       = c(-.01,.01),
-  #                    #breaks       = c(-6,-3,0,3,6),
-  #                    minor_breaks = NULL) +
-  # scale_y_continuous(limits       = c(-.004,.004),
-  #                    #breaks       = c(-6,-3,0,3,6),
-  #                    minor_breaks = NULL) +
-  scale_colour_gradient(
-    low = "red",
-    high = "blue",
-  ) +
-  labs(title = "NMDS",
-       x     = "NMDS1",
-       y     = "NMDS2",
-       caption = paste0("Stress: ", nmds$stress),
-  ) +
-  theme(axis.text.y = element_text(colour = "black", size = 12, face = "bold"), 
-        axis.text.x = element_text(colour = "black", face = "bold", size = 12), 
-        legend.text = element_text(size = 12, face ="bold", colour ="black"), 
-        #legend.position = "right", axis.title.y = element_text(face = "bold", size = 14), 
-        axis.title.x = element_text(face = "bold", size = 14, colour = "black"), 
-        legend.title = element_text(size = 14, colour = "black", face = "bold"), 
-        panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
-        legend.key=element_blank(),
-        legend.position ="none",
-  )
-
-ggplot(cent, aes(x = NMDS1, y = NMDS2)) + 
-  geom_point(size = 4, aes( colour = as.numeric(as.character(Time))))+ 
-  # scale_x_continuous(limits       = c(-.01,.01),
-  #                    #breaks       = c(-6,-3,0,3,6),
-  #                    minor_breaks = NULL) +
-  # scale_y_continuous(limits       = c(-.004,.004),
-  #                    #breaks       = c(-6,-3,0,3,6),
-  #                    minor_breaks = NULL) +
-  scale_colour_gradient(
-    low = "red",
-    high = "blue",
-  ) +
-  labs(title = "NMDS",
-       x     = "NMDS1",
-       y     = "NMDS2",
-       caption = paste0("Stress: ", nmds$stress),
-  ) +
-  theme(axis.text.y = element_text(colour = "black", size = 12, face = "bold"), 
-        axis.text.x = element_text(colour = "black", face = "bold", size = 12), 
-        legend.text = element_text(size = 12, face ="bold", colour ="black"), 
-        #legend.position = "right", axis.title.y = element_text(face = "bold", size = 14), 
-        axis.title.x = element_text(face = "bold", size = 14, colour = "black"), 
-        legend.title = element_text(size = 14, colour = "black", face = "bold"), 
-        panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
-        legend.key=element_blank(),
-        legend.position ="none",
-        )
 
 
 #save(CAPsforAll, file = "CAPsforAll.RData")
