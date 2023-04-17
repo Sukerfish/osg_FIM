@@ -9,6 +9,7 @@
 #### data input ######
 
 library(tidyverse)
+library(vegan)
 
 load('TidyGearCode20.Rdata')
 
@@ -20,112 +21,6 @@ CleanHauls <- TidyBio %>%
 
 WaterTemp <- HydroList %>%
   subset(select = c(Reference, Temperature))
-
-##### NMDS/annual PERMANOVA #######
-library(vegan)
-
-SXS_annual <- CleanHauls %>%
-  mutate(N2 = N2^.25) %>% #fourth-root transform
-  group_by(Reference) %>%
-  filter(sum(N2)>0) %>% #remove all References with 0 taxa found
-  spread(Scientificname,N2) %>%
-  ungroup() %>%
-  #subset(select = -c(Reference, season, systemZone)) %>%
-  replace(is.na(.), 0) %>% #replace all NA values with 0s, i.e. counting as true zero
-  group_by(season, system, seasonYear) %>%
-  mutate(seasonYear = as.factor(seasonYear)) %>%
-  summarise(across(everything(), ~ mean(.x, na.rm = TRUE)))
-
-SXS_winter_spe <- SXS_annual %>%
-  filter(season == "winter") %>%
-  subset(select = -c(season, system, seasonYear, Reference,systemZone, BottomVegCover,season)) %>%
-  select(which(!colSums(., na.rm=TRUE) %in% 0))
-
-SXS_winter_env <- SXS_annual %>%
-  filter(season == "winter") %>%
-  subset(select = c(system,seasonYear,BottomVegCover))
-
-winterAbundNMDS = metaMDS(SXS_winter_spe,
-                          distance = "bray",
-                          k=2)
-SXS_winter_sppfit <- envfit(winterAbundNMDS, SXS_winter_spe, permutations = 999)
-
-plot(winterAbundNMDS, type = "n", las = 1, main = "NMDS winter")
-points(winterAbundNMDS, display = "sites")
-points(winterAbundNMDS, display = "species", col = "red", pch = 3)
-ordiellipse(winterAbundNMDS,
-            groups = SXS_winter_env$system,
-            kind = "se",
-            conf = 0.95,
-            display = "sites",
-            label=T)
-
-plot(winterAbundNMDS, main = "NMDS winter")
-ordihull(winterAbundNMDS,groups=SXS_winter_env$system,draw="polygon",col="grey90",label=T)
-plot(SXS_winter_sppfit, p.max = 0.001, col = "black", cex = 0.7)
-
-
-winterAbundPERM = adonis2(SXS_winter_spe ~ system+seasonYear+BottomVegCover,
-       data = SXS_winter_env,
-       method="bray",
-       permutations=999)
-# Permutation test for adonis under reduced model
-# Terms added sequentially (first to last)
-# Permutation: free
-# Number of permutations: 999
-# 
-# adonis2(formula = SXS_winter_spe ~ system + seasonYear + BottomVegCover, data = SXS_winter_env, permutations = 999, method = "bray")
-# Df SumOfSqs      R2       F Pr(>F)    
-# system          3   6.4588 0.66082 71.0720  0.001 ***
-# seasonYear     22   1.4815 0.15157  2.2230  0.001 ***
-# BottomVegCover  1   0.0465 0.00475  1.5338  0.158    
-# Residual       59   1.7872 0.18286                   
-# Total          85   9.7739 1.00000                   
-# ---
-# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-
-
-SXS_summer_spe <- SXS_annual %>%
-  filter(season == "summer") %>%
-  subset(select = -c(season, system, seasonYear, Reference,systemZone, BottomVegCover,season)) %>%
-  select(which(!colSums(., na.rm=TRUE) %in% 0))
-
-SXS_summer_env <- SXS_annual %>%
-  filter(season == "winter") %>%
-  subset(select = c(system,seasonYear,BottomVegCover))
-
-summerAbundNMDS = metaMDS(SXS_summer_spe,
-                          distance = "bray",
-                          k=2)
-SXS_summer_sppfit <- envfit(summerAbundNMDS, SXS_summer_spe, permutations = 999)
-
-plot(summerAbundNMDS, type = "n", las = 1, main = "NMDS summer")
-points(summerAbundNMDS, display = "sites")
-points(summerAbundNMDS, display = "species", col = "red", pch = 3)
-ordiellipse(summerAbundNMDS,
-            groups = SXS_summer_env$system,
-            kind = "se",
-            conf = 0.95,
-            display = "sites",
-            label=T)
-
-plot(summerAbundNMDS, main = "NMDS summer")
-ordihull(summerAbundNMDS,groups=SXS_summer_env$system,draw="polygon",col="grey90",label=T)
-#plot(SXS_summer_sppfit, p.max = 0.001, col = "black", cex = 0.7)
-
-
-summerAbundPERM = adonis2(SXS_summer_spe ~ system+seasonYear+BottomVegCover,
-                          data = SXS_summer_env,
-                          method="bray",
-                          permutations=999)
-
-plot(summerAbundNMDS, type = "n", las = 1, main = "NMDS summer")
-points(summerAbundNMDS, display = "sites")
-points(summerAbundNMDS, display = "species", col = "red", pch = 3)
-ordihull(summerAbundNMDS,groups = SXS_summer_env$system,display = "sites",label=T)
-
-
 
 ###### PERMANOVAs pairwise ######
 SXS_full <- CleanHauls %>%
@@ -142,12 +37,51 @@ SXS_full <- CleanHauls %>%
   filter(!is.na(Temperature)) #only excludes 7 sampling events from above pool
   #summarise(across(everything(), ~ mean(.x, na.rm = TRUE)))
 
-SXSf_winter_spe <- SXS_full %>%
+systemSeason_list <- SXS_full %>%
+  select(systemSeason) %>%
+  distinct()
+
+SXS_filteredList <- list()
+for(i in systemSeason_list$systemSeason){
+  print(i) #watch progress through list
+  
+  df <- SXS_full %>% #filter out systemSeason of interest
+    filter(systemSeason %in% i)
+  
+  df_spe <- df %>% #pull out taxa only
+    subset(select = -c(systemSeason, seasonYear, Reference, systemZone, BottomVegCover, Temperature)) %>%
+    select(which(!colSums(., na.rm=TRUE) %in% 0)) #select only taxa present in this systemSeason
+  
+  df_pa <- df_spe
+  df_pa[df_pa > 0] <- 1 #convert to pa
+  
+  spp <- length(df_spe)
+  spx <- nrow(df_spe)
+  
+  df_pa_filtered <- df_pa %>%
+    select_if(colSums(.)>(0.05*spx))
+  
+  df_filtered <- df %>%
+    select(c(Reference, seasonYear, all_of(colnames(df_pa_filtered)))) %>%
+    rowwise() %>%
+    mutate(n = sum(across(!c(Reference:seasonYear)))) %>%
+    ungroup() %>%
+    filter(n > 0) %>%
+    select(Reference)
+  
+  SXS_filteredList[[i]] <- df_filtered
+  
+}
+
+SXS_filtered <- bind_rows(SXS_filteredList) %>%
+  left_join(SXS_full)
+
+SXSf_winter_spe <- SXS_filtered %>%
   filter(season == "winter") %>%
   subset(select = -c(season, system, seasonYear, Reference,systemZone, BottomVegCover,season, Temperature)) %>%
   select(which(!colSums(., na.rm=TRUE) %in% 0))
 
-SXSf_winter_env <- SXS_full %>%
+SXSf_winter_env <- SXS_filtered %>%
   filter(season == "winter") %>%
   subset(select = c(system,seasonYear,BottomVegCover, Temperature)) %>%
   mutate(contYear = as.numeric(as.character(seasonYear)))
@@ -156,7 +90,7 @@ SXSf_winter_env <- SXS_full %>%
 SXSf_winter_bray = vegdist(SXSf_winter_spe)
 SXSf_winter_bray2 = SXSf_winter_bray^.5
 
-homdisp1 = permutest(betadisper(SXSf_winter_bray2, SXSf_winter_env$system, type = "centroid"), 
+homdispSyWinter = permutest(betadisper(SXSf_winter_bray2, SXSf_winter_env$system, type = "centroid"), 
                      pairwise = TRUE, permutations = 999, parallel = 6)
 # Permutation test for homogeneity of multivariate dispersions
 # Permutation: free
@@ -176,8 +110,8 @@ homdisp1 = permutest(betadisper(SXSf_winter_bray2, SXSf_winter_env$system, type 
 # CH  4.1915e-06              1.0000e-03 0.001
 # CK  1.2255e-08  3.9532e-29             0.001
 # TB  6.7991e-42 8.5214e-104  2.0450e-09      
-homdisp2 = permutest(betadisper(SXSf_winter_bray2, SXSf_winter_env$seasonYear, type = "centroid"), 
-                     pairwise = TRUE, permutations = 999, parallel = 6)
+# homdisp2 = permutest(betadisper(SXSf_winter_bray2, SXSf_winter_env$seasonYear, type = "centroid"), 
+#                      pairwise = TRUE, permutations = 999, parallel = 6)
 # Permutation test for homogeneity of multivariate dispersions
 # Permutation: free
 # Number of permutations: 999
@@ -216,8 +150,9 @@ homdisp2 = permutest(betadisper(SXSf_winter_bray2, SXSf_winter_env$seasonYear, t
 # 1999 8.2817e-01 4.2137e-04 1.7795e-01 6.3038e-01 4.0287e-04 2.4037e-06 3.9744e-03 7.5933e-06 3.1229e-03 1.3921e-01 8.8078e-01 3.0587e-05 1.3315e-04 1.1786e-02 1.5009e-03 2.0421e-02 5.3286e-05 1.2395e-02 9.3907e-07 1.7007e-05 8.9144e-01            0.663
 # 2000 4.8051e-01 5.4754e-05 6.0538e-02 3.1277e-01 4.1395e-05 1.2306e-07 5.3748e-04 5.0484e-07 4.9104e-04 3.2971e-01 5.0654e-01 2.4578e-06 1.3342e-05 2.0829e-03 2.0741e-04 4.2121e-03 4.6789e-06 2.2146e-03 4.6001e-08 1.2489e-06 7.4956e-01 6.6108e-01          
 
-homdisp3 = permutest(betadisper(SXSf_winter_bray2, SXSf_winter_env$contYear, type = "centroid"), 
+homdispYrWinter = permutest(betadisper(SXSf_winter_bray2, SXSf_winter_env$seasonYear, type = "centroid"),
                      pairwise = TRUE, permutations = 999, parallel = 6)
+
 # Permutation test for homogeneity of multivariate dispersions
 # Permutation: free
 # Number of permutations: 999
@@ -260,8 +195,11 @@ winterfAbundPERM = adonis2(SXSf_winter_bray2 ~ system * seasonYear,
                           data = SXSf_winter_env,
                           #add = "lingoes",
                           parallel = 6,
-                          #method="bray", 
+                          #method="bray",
                           permutations=999)
+
+
+
 # Permutation test for adonis under reduced model
 # Terms added sequentially (first to last)
 # Permutation: free
@@ -310,24 +248,24 @@ winterfAbundPERM = adonis2(SXSf_winter_bray2 ~ system * seasonYear,
 # ---
 # Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
-SXS_TB_winter_spe <- SXS_full %>%
-  filter(season == "winter") %>%
-  filter(system == "TB") %>%
-  subset(select = -c(season, system, seasonYear, Reference,systemZone, BottomVegCover,season, Temperature)) %>%
-  select(which(!colSums(., na.rm=TRUE) %in% 0))
-
-SXS_TB_winter_env <- SXS_full %>%
-  filter(season == "winter") %>%
-  filter(system == "TB") %>%
-  subset(select = c(system,seasonYear,BottomVegCover, Temperature)) %>%
-  mutate(contYear = as.numeric(as.character(seasonYear)))
-
-# bray curtis distance... square rooted - to make all eigenvalues positive per 
-SXS_TB_winter_bray = vegdist(SXS_TB_winter_spe)
-SXS_TB_winter_bray2 = SXS_TB_winter_bray^.5
-
-homdisp4 = permutest(betadisper(SXS_TB_winter_bray2, SXS_TB_winter_env$contYear, type = "centroid"), 
-                     pairwise = TRUE, permutations = 999, parallel = 6)
+# SXS_TB_winter_spe <- SXS_filtered %>%
+#   filter(season == "winter") %>%
+#   filter(system == "TB") %>%
+#   subset(select = -c(season, system, seasonYear, Reference,systemZone, BottomVegCover,season, Temperature)) %>%
+#   select(which(!colSums(., na.rm=TRUE) %in% 0))
+# 
+# SXS_TB_winter_env <- SXS_filtered %>%
+#   filter(season == "winter") %>%
+#   filter(system == "TB") %>%
+#   subset(select = c(system,seasonYear,BottomVegCover, Temperature)) %>%
+#   mutate(contYear = as.numeric(as.character(seasonYear)))
+# 
+# # bray curtis distance... square rooted - to make all eigenvalues positive per 
+# SXS_TB_winter_bray = vegdist(SXS_TB_winter_spe)
+# SXS_TB_winter_bray2 = SXS_TB_winter_bray^.5
+# 
+# homdisp4 = permutest(betadisper(SXS_TB_winter_bray2, SXS_TB_winter_env$contYear, type = "centroid"), 
+#                      pairwise = TRUE, permutations = 999, parallel = 6)
 
 # Permutation test for homogeneity of multivariate dispersions
 # Permutation: free
@@ -391,12 +329,12 @@ homdisp4 = permutest(betadisper(SXS_TB_winter_bray2, SXS_TB_winter_env$contYear,
 # 2019 1.1461e-01 7.7297e-01 1.7027e-02 1.1874e-01 2.8900e-01            0.329
 # 2020 1.0573e-02 5.3171e-01 1.6195e-01 5.1207e-01 9.0291e-01 3.3864e-01      
 
-winterTBAbundPERM = adonis2(SXS_TB_winter_bray2 ~ contYear * Temperature + BottomVegCover,
-                           data = SXS_TB_winter_env,
-                           #add = "lingoes",
-                           parallel = 6,
-                           #method="bray", 
-                           permutations=999)
+# winterTBAbundPERM = adonis2(SXS_TB_winter_bray2 ~ contYear * Temperature + BottomVegCover,
+#                            data = SXS_TB_winter_env,
+#                            #add = "lingoes",
+#                            parallel = 6,
+#                            #method="bray", 
+#                            permutations=999)
 
 # Permutation test for adonis under reduced model
 # Terms added sequentially (first to last)
@@ -420,12 +358,12 @@ winterTBAbundPERM = adonis2(SXS_TB_winter_bray2 ~ contYear * Temperature + Botto
 #   subset(select = -c(system)) %>%
 #   column_to_rownames(var = "seasonYear")
 
-SXSf_summer_spe <- SXS_full %>%
+SXSf_summer_spe <- SXS_filtered %>%
   filter(season == "summer") %>%
   subset(select = -c(season, system, seasonYear, Reference,systemZone, BottomVegCover,season)) %>%
   select(which(!colSums(., na.rm=TRUE) %in% 0))
 
-SXSf_summer_env <- SXS_full %>%
+SXSf_summer_env <- SXS_filtered %>%
   filter(season == "summer") %>%
   subset(select = c(system,seasonYear,BottomVegCover)) %>%
   mutate(contYear = as.numeric(as.character(seasonYear)))
@@ -556,6 +494,15 @@ summerfAbundPERM = adonis2(SXSf_summer_bray2 ~ system * seasonYear,
 # Total             8951  2860.88 1.00000                    
 # ---
 # Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
+
+
+###### output #####
+save(winterfAbundPERM, summerfAbundPERM, homdispYrSummer, homdispSySummer, homdispYrWinter, homdispSyWinter, file = "bigPERMANOVAs.RData")
+
+
+
 
 
 
