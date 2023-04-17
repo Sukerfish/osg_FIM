@@ -34,13 +34,17 @@ SXS_full <- CleanHauls %>%
   group_by(season, system, seasonYear) %>%
   mutate(seasonYear = as.factor(seasonYear)) %>%
   left_join(WaterTemp) %>%
-  filter(!is.na(Temperature)) #only excludes 7 sampling events from above pool
-  #summarise(across(everything(), ~ mean(.x, na.rm = TRUE)))
+  filter(!is.na(Temperature)) %>% #only excludes 7 sampling events from above pool
+  unite("systemSeason",
+        system:season,
+        sep = "_") %>%
+  ungroup()
 
 systemSeason_list <- SXS_full %>%
   select(systemSeason) %>%
   distinct()
 
+## filter out hauls that were solely rare (<=5% presence in total samples)
 SXS_filteredList <- list()
 for(i in systemSeason_list$systemSeason){
   print(i) #watch progress through list
@@ -74,7 +78,12 @@ for(i in systemSeason_list$systemSeason){
 }
 
 SXS_filtered <- bind_rows(SXS_filteredList) %>%
-  left_join(SXS_full)
+  left_join(SXS_full) %>%
+  separate(systemSeason,
+           c("system","season"),
+           sep = "_") %>%
+  mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH"))) %>%
+  mutate(seasonYear = as.factor(seasonYear))
 
 SXSf_winter_spe <- SXS_filtered %>%
   filter(season == "winter") %>%
