@@ -42,7 +42,7 @@ SXS_full <- CleanHauls %>%
 #summarise(across(everything(), ~ mean(.x, na.rm = TRUE)))
 
 
-##### setup for NMDS loop ####
+##### setup for CAP loop ####
 systemSeason_list <- SXS_full %>%
   select(systemSeason) %>%
   distinct()
@@ -86,18 +86,12 @@ for(i in systemSeason_list$systemSeason){
   
   bf <- (vegdist(df_spe_filtered))^0.5 #Bray-Curtis w/ sqrt to reduce negative eigenvalues
   
-  nmds2 <- metaMDS(bf,
-                  distance = "bray",
-                  k = 2,
-                  maxit = 999, 
-                  trymax = 500,
-                  wascores = FALSE,
-                  parallel = 4)
-  
   nmds <- metaMDS(bf,
                   distance = "bray",
                   k = 2,
-                  previous.best = nmds2)
+                  maxit = 50, 
+                  trymax = 50,
+                  wascores = TRUE)
   
   data.scores = as.data.frame(scores(nmds))
   data.scores$Time = df_filtered$seasonYear
