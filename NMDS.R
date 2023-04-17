@@ -166,6 +166,7 @@ for(i in systemSeason_list$systemSeason){
 }
 
 #save(NMDSforAll, file = "NMDSforAll.RData")
+load("NMDSforAll.RData")
 
 plotsforAll <- list()
 for(i in systemSeason_list$systemSeason){
