@@ -3,9 +3,9 @@ library(tidyverse)
 library(vegan)
 #library(BiodiversityR)
 #library(MASS)
-library(colortools)
-library(ggrepel)
-library(RColorBrewer)
+#library(colortools)
+#library(ggrepel)
+#library(RColorBrewer)
 library(egg)
 library(patchwork)
 
@@ -165,5 +165,73 @@ for(i in systemSeason_list$systemSeason){
   NMDSforAll[[i]]$plot.cent <- plot.cent
 }
 
+#save(NMDSforAll, file = "NMDSforAll.RData")
 
-#save(CAPsforAll, file = "CAPsforAll.RData")
+plotsforAll <- list()
+for(i in systemSeason_list$systemSeason){
+  print(i) #watch progress through list
+plot.cent <- ggplot(NMDSforAll[[i]]$cent, aes(x = NMDS1, y = NMDS2,
+                                              label = as.character(Time))) + 
+  #geom_point(size = 4, aes( colour = as.numeric(as.character(Time))))+ 
+  # scale_x_continuous(limits       = c(-.01,.01),
+  #                    #breaks       = c(-6,-3,0,3,6),
+  #                    minor_breaks = NULL) +
+  # scale_y_continuous(limits       = c(-.004,.004),
+  #                    #breaks       = c(-6,-3,0,3,6),
+  #                    minor_breaks = NULL) +
+  geom_path() +
+  scale_colour_gradient(
+    low = "red",
+    high = "blue",
+  ) +
+  geom_text(aes(colour = as.numeric(as.character(Time)))) +
+  labs(title = i,
+       x     = "NMDS1",
+       y     = "NMDS2",
+       caption = paste0("Stress: ", NMDSforAll[[i]]$stress),
+  ) +
+  theme(axis.text.y = element_text(colour = "black", size = 12, face = "bold"), 
+        axis.text.x = element_text(colour = "black", face = "bold", size = 12), 
+        legend.text = element_text(size = 12, face ="bold", colour ="black"), 
+        #legend.position = "right", axis.title.y = element_text(face = "bold", size = 14), 
+        axis.title.x = element_text(face = "bold", size = 14, colour = "black"), 
+        legend.title = element_text(size = 14, colour = "black", face = "bold"), 
+        panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
+        legend.key=element_blank(),
+        legend.position ="none",
+  )
+
+plot.full <-
+  ggplot(NMDSforAll[[i]]$data.scores, aes(x = NMDS1, y = NMDS2)) + 
+  geom_point(size = 2, aes( colour = as.numeric(as.character(Time))))+ 
+  # scale_x_continuous(limits       = c(-.01,.01),
+  #                    #breaks       = c(-6,-3,0,3,6),
+  #                    minor_breaks = NULL) +
+  # scale_y_continuous(limits       = c(-.004,.004),
+  #                    #breaks       = c(-6,-3,0,3,6),
+  #                    minor_breaks = NULL) +
+  scale_colour_gradient(
+    low = "red",
+    high = "blue",
+  ) +
+  labs(title = i,
+       x     = "NMDS1",
+       y     = "NMDS2",
+       caption = paste0("Stress: ", NMDSforAll[[i]]$stress),
+  ) +
+  theme(axis.text.y = element_text(colour = "black", size = 12, face = "bold"), 
+        axis.text.x = element_text(colour = "black", face = "bold", size = 12), 
+        legend.text = element_text(size = 12, face ="bold", colour ="black"), 
+        #legend.position = "right", axis.title.y = element_text(face = "bold", size = 14), 
+        axis.title.x = element_text(face = "bold", size = 14, colour = "black"), 
+        legend.title = element_text(size = 14, colour = "black", face = "bold"), 
+        panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
+        legend.key=element_blank(),
+        legend.position ="none",
+  )
+
+#plotsforAll[[i]]$plot.full <- plot.full
+plotsforAll[[i]] <- plot.cent
+}
+
+wrap_plots(plotsforAll, ncol = 4)
