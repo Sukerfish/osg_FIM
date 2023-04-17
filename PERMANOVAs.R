@@ -49,16 +49,38 @@ for(i in systemSeason_list$systemSeason){
   
   df <- SXS_full %>% #filter out systemSeason of interest
     filter(systemSeason %in% i)
-
+  
   df_spe <- df %>% #pull out taxa only
     subset(select = -c(systemSeason, seasonYear, Reference, systemZone, BottomVegCover, Temperature)) %>%
-    select(which(!colSums(., na.rm=TRUE) %in% 0))
-
-  df_env <- df %>% #pull out environmental variables
-    subset(select = c(systemSeason, seasonYear, BottomVegCover, Temperature)) %>%
-    mutate(contYear = as.numeric(as.character(seasonYear)))
-
-  bf <- (vegdist(df_spe))^0.5 #Bray-Curtis w/ sqrt to prevent negative eigenvalues
+    select(which(!colSums(., na.rm=TRUE) %in% 0)) #select only taxa present in this systemSeason
+  
+  df_pa <- df_spe
+  df_pa[df_pa > 0] <- 1 #convert to pa
+  
+  spp <- length(df_spe)
+  spx <- nrow(df_spe)
+  
+  df_pa_filtered <- df_pa %>%
+    select_if(colSums(.)>(0.05*spx))
+  
+  df_filtered <- df %>%
+    select(c(Reference, seasonYear, all_of(colnames(df_pa_filtered)))) %>%
+    rowwise() %>%
+    mutate(N = sum(across(!c(Reference:seasonYear)))) %>%
+    ungroup() %>%
+    filter(N > 0) %>%
+    select(!c(N))
+  
+  df_spe_filtered <- df %>%
+    filter(Reference %in% df_filtered$Reference) %>%
+    subset(select = -c(systemSeason, seasonYear, Reference, systemZone, BottomVegCover, Temperature)) %>%
+    select(which(!colSums(., na.rm=TRUE) %in% 0)) #select only taxa present in this systemSeason
+  
+  # df_env <- data.frame(df %>% #pull out environmental variables
+  #                        subset(select = c(systemSeason, seasonYear, BottomVegCover, Temperature)) %>%
+  #                        mutate(contYear = as.numeric(as.character(seasonYear))))
+  
+  bf <- (vegdist(df_spe_filtered))^0.5 #Bray-Curtis w/ sqrt to reduce negative eigenvalues
   
   PERM = adonis2(bf ~ seasonYear,
                               data = df_env,
@@ -77,4 +99,4 @@ PERMSforAllDF <- bind_rows(PERMSforAll, .id = "systemSeason") %>%
            sep = "_") %>%
   mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH")))
 
-write.csv(PERMSforAllDF, './Outputs/PERMSforALLDF.csv')
+save(PERMSforAllDF, './Outputs/PERMSforALLDF.Rdata')
