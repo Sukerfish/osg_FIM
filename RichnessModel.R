@@ -4,41 +4,104 @@ library(tidyverse)
 
 load('TidyGearCode20.Rdata')
 
-bottomVeg <- TidyBio %>%
-  subset(select = c(Reference, BottomVegCover)) %>%
+#get the biological data and associated site chars
+CleanHauls <- TidyBio %>%
+  subset(select = c(Reference, system, season, seasonYear, BottomVegCover, systemZone, Scientificname, N2))
+#filter(season == "summer" | season == "winter")
+#filter(season == "winter")
+#filter(season == "summer")
+
+#get water temp from hydrology dataset
+WaterTemp <- HydroList %>%
+  subset(select = c(Reference, Temperature))
+
+#collect everything by Reference and spread to long form
+SXS_full <- CleanHauls %>%
+  mutate(N2 = N2^.25) %>% #fourth-root transform
   group_by(Reference) %>%
-  summarise(bvc.mean = mean(BottomVegCover, na.rm = TRUE)) %>%
-  mutate(BottomVegCover = bvc.mean) %>%
-  filter(!is.na(bvc.mean)) %>%
-  subset(select = c(Reference, BottomVegCover))
+  filter(sum(N2)>0) %>% #remove all References with 0 taxa found
+  spread(Scientificname,N2) %>%
+  ungroup() %>%
+  #subset(select = -c(Reference, season, systemZone)) %>%
+  replace(is.na(.), 0) %>% #replace all NA values with 0s, i.e. counting as true zero
+  group_by(season, system, seasonYear) %>%
+  mutate(seasonYear = as.factor(seasonYear)) %>%
+  left_join(WaterTemp) %>%
+  filter(!is.na(Temperature)) %>% #only excludes 7 sampling events from above pool
+  unite("systemSeason",
+        system:season,
+        sep = "_") %>%
+  ungroup()
+#summarise(across(everything(), ~ mean(.x, na.rm = TRUE)))
+
+
+##### setup for CAP loop ####
+systemSeason_list <- SXS_full %>%
+  select(systemSeason) %>%
+  distinct()
+
+SXS_filteredList <- list()
+for(i in systemSeason_list$systemSeason){
+  print(i) #watch progress through list
   
-OnlyFish <- TidyBio %>%
-  filter(Scientificname != "No fish")
-
-NoFish <- TidyBio %>%
-  filter(Scientificname == "No fish") %>%
-  mutate(n = 0) %>%
-  subset(select = c(Reference, n, system, season, seasonYear, systemZone))
-
-FullRichness <- OnlyFish %>%
-  group_by(Reference) %>%
-  count() %>%
-  inner_join(TidyRefsList) %>%
-  ungroup() %>%
-  bind_rows(NoFish) %>%
-  left_join(bottomVeg)
+  df <- SXS_full %>% #filter out systemSeason of interest
+    filter(systemSeason %in% i)
+  
+  df_spe <- df %>% #pull out taxa only
+    subset(select = -c(systemSeason, seasonYear, Reference, systemZone, BottomVegCover, Temperature)) %>%
+    select(which(!colSums(., na.rm=TRUE) %in% 0)) #select only taxa present in this systemSeason
+  
+  df_pa <- df_spe
+  df_pa[df_pa > 0] <- 1 #convert to pa
+  
+  spp <- length(df_spe)
+  spx <- nrow(df_spe)
+  
+  df_pa_filtered <- df_pa %>%
+    select_if(colSums(.)>(0.05*spx))
+  
+  df_filtered <- df %>%
+    select(c(Reference, seasonYear, all_of(colnames(df_pa_filtered)))) %>%
+    rowwise() %>%
+    mutate(n = sum(across(!c(Reference:seasonYear)))) %>%
+    ungroup() %>%
+    filter(n > 0) %>%
+    select(Reference)
  
-# GLMM:
-# Response: richness or total abundance
-# Fixed effects: estuary (four levels) and year
-# Random effect: within-estuary zone
-# Offset term for variation in number of seine hauls
-# Autoregressive term to account for serial correlation
+SXS_filteredList[[i]] <- df_filtered
+  
+}
 
-modelDF_winter <- FullRichness %>%
-  group_by(seasonYear, system, season) %>%
+SXS_filtered <- bind_rows(SXS_filteredList) %>%
+  left_join(SXS_full)
+
+SXS_filtered_env <- SXS_filtered %>%
+  select(c(Reference, systemSeason, seasonYear, systemZone, BottomVegCover, Temperature))
+
+SXS_filtered_spp <- SXS_filtered %>%
+  select(!c(Reference, systemSeason, seasonYear, systemZone, BottomVegCover, Temperature))
+
+SXR_filtered_spp <- SXS_filtered %>%
+  select(!c(systemSeason, seasonYear, systemZone, BottomVegCover, Temperature)) %>%
+  pivot_longer(cols = !c(Reference),
+               names_to = "taxa") %>%
+  mutate(PA = ifelse(value > 0, 1, 0)) %>%
+  select(!c(taxa, value)) %>%
+  group_by(Reference) %>%
+  mutate(N = sum(PA)) %>%
+  select(!c(PA)) %>%
+  distinct()
+
+SXR_filtered <- SXR_filtered_spp %>%
+  left_join(SXS_filtered_env) %>%
+  group_by(systemSeason) %>%
   add_count(name = "n_hauls") %>%
-  ungroup() %>%
+  ungroup()
+
+modelDFM <- SXR_filtered %>%
+  separate(systemSeason,
+           c("system","season"),
+           sep = "_") %>%
   mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH"))) %>%
   mutate(contYear = as.numeric(as.character(seasonYear))) %>%
   mutate(seasonYear = as.factor(seasonYear)) %>%
@@ -47,17 +110,55 @@ modelDF_winter <- FullRichness %>%
   # filter(system == "TB") %>%
   filter(season == "winter")
 
-modelDF_summer <- FullRichness %>%
-  group_by(seasonYear, system, season) %>%
-  add_count(name = "n_hauls") %>%
-  ungroup() %>%
-  mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH"))) %>%
-  mutate(contYear = as.numeric(as.character(seasonYear))) %>%
-  mutate(seasonYear = as.factor(seasonYear)) %>%
-  # mutate(n_hauls = log(n_hauls)) %>%
-  # filter(season == "summer") %>%
-  # filter(system == "TB") %>%
-  filter(season == "summer")
+modelDF <- as.data.frame(modelDFM)
+
+# modelDF_summer <- FullRichness %>%
+#   group_by(seasonYear, system, season) %>%
+#   add_count(name = "n_hauls") %>%
+#   ungroup() %>%
+#   mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH"))) %>%
+#   mutate(contYear = as.numeric(as.character(seasonYear))) %>%
+#   mutate(seasonYear = as.factor(seasonYear)) %>%
+#   # mutate(n_hauls = log(n_hauls)) %>%
+#   # filter(season == "summer") %>%
+#   # filter(system == "TB") %>%
+#   filter(season == "summer")
+
+
+# bottomVeg <- TidyBio %>%
+#   subset(select = c(Reference, BottomVegCover)) %>%
+#   group_by(Reference) %>%
+#   summarise(bvc.mean = mean(BottomVegCover, na.rm = TRUE)) %>%
+#   mutate(BottomVegCover = bvc.mean) %>%
+#   filter(!is.na(bvc.mean)) %>%
+#   subset(select = c(Reference, BottomVegCover))
+# 
+# OnlyFish <- TidyBio %>%
+#   filter(Scientificname != "No fish")
+# 
+# NoFish <- TidyBio %>%
+#   filter(Scientificname == "No fish") %>%
+#   mutate(n = 0) %>%
+#   subset(select = c(Reference, n, system, season, seasonYear, systemZone))
+# 
+# FullRichness <- OnlyFish %>%
+#   group_by(Reference) %>%
+#   count() %>%
+#   inner_join(TidyRefsList) %>%
+#   ungroup() %>%
+#   bind_rows(NoFish) %>%
+#   left_join(bottomVeg) 
+
+
+
+# GLMM:
+# Response: richness or total abundance
+# Fixed effects: estuary (four levels) and year
+# Random effect: within-estuary zone
+# Offset term for variation in number of seine hauls
+# Autoregressive term to account for serial correlation
+
+
 
 ggplot(modelDF_winter, aes(x=n)) +
   geom_histogram(binwidth=1) +
@@ -79,22 +180,6 @@ ggplot(modelDF_winter, aes(y=n,
   theme(title=element_text(size = 20)) +
   facet_grid(season~system)
 
-###### PERMANOVA ######
-# library(vegan)
-# rich_winter_spe <- modelDF_winter$n
-# rich_winter_env <- modelDF_winter %>%
-#   select(c(system, seasonYear, systemZone, n_hauls, BottomVegCover))
-# 
-# rich_winter_bray <- vegdist(rich_winter_spe)
-# rich_winter_bray2 <- rich_winter_bray^.5
-# 
-# homdisp1 = permutest(betadisper(rich_winter_bray2, rich_winter_env$system, type = "centroid"), 
-#                      pairwise = TRUE, permutations = 999, parallel = 6)
-# 
-# permanova <- adonis(rich_ ~ system + seasonYear,
-#                     data = meta, permutations=99, method = "bray")
-
-
 
 # test <-modelDF %>%
 #   subset(select = c(seasonYear))
@@ -106,10 +191,10 @@ library(lme4)
 library(MASS) # needs MASS (version 7.3-58)
 
 #DOES NOT WORK
-glmmPQL <- glmmPQL(n ~ system + seasonYear + offset(log(n_hauls)),
+glmmPQL <- glmmPQL(N ~ system + seasonYear + offset(log(n_hauls)),
                     random = ~ 1|systemZone,
                     family = poisson,
-                    correlation = corARMA(form = ~1|systemZone, p = 1, q = 1),
+                    #correlation = corARMA(form = ~1|systemZone, p = 1, q = 1),
                     data = modelDF)
 summary(glmmPQL)
 plot(glmmPQL)
@@ -134,7 +219,7 @@ plot(glmmPQL)
 testlmer <- glmer(n ~ system + seasonYear + offset(log(n_hauls))
                    + (1|systemZone),
                    family = poisson,
-                  #correlation = corAR1(form = ~1|systemZone),
+                   #correlation = corAR1(form = ~1|systemZone),
                    data = modelDF)
 summary(testlmer)
 
@@ -142,11 +227,13 @@ summary(testlmer)
 
 ##### glmmTMB ####
 library(glmmTMB)
-rmod_tmb <- glmmTMB(n~system+
+rmod_tmb <- glmmTMB(N~system+
                       seasonYear+
                       offset(log(n_hauls))+
-                      ar1(factor(seasonYear) + 1|systemZone)+
-                      (1|systemZone),
+                      #ar1(factor(seasonYear))+
+                      (1|systemZone)+
+                      (1|Temperature)+
+                      (1|BottomVegCover),
                     zi=~0,
                     family=poisson,
                     data=modelDF)
@@ -158,16 +245,21 @@ VarCorr(rmod_tmb)
 library(lme4)
 library(lmerTest)
 
-glme_rich_summer <- glmer(n~system+
+glme_rich <- glmer(N~system+
                        seasonYear+
                        offset(log(n_hauls))+
                        (1|BottomVegCover)+
                        (1|systemZone)+
+                     (1|Temperature)+
                        (1|contYear),
                      family="poisson",
-                     data=modelDF_summer,
+                     data=modelDF,
                      control=glmerControl(optimizer="bobyqa",
                                           check.conv.grad=.makeCC("warning",0.05)))
+
+summary(glme_rich)
+#ranef(glme_rich)
+
 # WHEN contYear is included:
 # boundary (singular) fit: see help('isSingular')
 # 
