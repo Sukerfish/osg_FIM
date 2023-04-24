@@ -56,13 +56,36 @@ for(i in systemSeason_list$systemSeason){
   
   df_spe <- df %>% #pull out taxa only
     subset(select = -c(systemSeason, seasonYear, Reference, systemZone, BottomVegCover, Temperature)) %>%
-    select(which(!colSums(., na.rm=TRUE) %in% 0))
+    select(which(!colSums(., na.rm=TRUE) %in% 0)) #select only taxa present in this systemSeason
   
-  df_env <- df %>% #pull out environmental variables
-    subset(select = c(systemSeason, seasonYear, BottomVegCover, Temperature)) %>%
-    mutate(contYear = as.numeric(as.character(seasonYear)))
+  df_pa <- df_spe
+  df_pa[df_pa > 0] <- 1 #convert to pa
   
-  bf <- (vegdist(df_spe))^0.5 #Bray-Curtis w/ sqrt to prevent negative eigenvalues
+  spp <- length(df_spe)
+  spx <- nrow(df_spe)
+  
+  df_pa_filtered <- df_pa %>%
+    select_if(colSums(.)>(0.05*spx))
+  
+  df_filtered <- df %>%
+    select(c(Reference, seasonYear, all_of(colnames(df_pa_filtered)))) %>%
+    rowwise() %>%
+    mutate(N = sum(across(!c(Reference:seasonYear)))) %>%
+    ungroup() %>%
+    filter(N > 0) %>%
+    select(!c(N))
+  
+  df_spe_filtered <- df %>%
+    filter(Reference %in% df_filtered$Reference) %>%
+    subset(select = -c(systemSeason, seasonYear, Reference, systemZone, BottomVegCover, Temperature)) %>%
+    select(which(!colSums(., na.rm=TRUE) %in% 0)) #select only taxa present in this systemSeason
+  
+  df_env <- data.frame(df %>% #pull out environmental variables
+                         filter(Reference %in% df_filtered$Reference) %>%
+                         subset(select = c(systemSeason, seasonYear, BottomVegCover, Temperature)) %>%
+                         mutate(contYear = as.numeric(as.character(seasonYear))))
+  
+  bf <- (vegdist(df_spe_filtered))^0.5 #Bray-Curtis w/ sqrt to reduce negative eigenvalues
   
   rda = dbrda(bf ~ Temperature + BottomVegCover,
                  data = df_env,
@@ -79,8 +102,50 @@ for(i in systemSeason_list$systemSeason){
   RDAsforAll[[i]]$scores <- scores
 }
 
-#save(RDAsforAll, file = "RDAsforAll.RData")
+#save(RDAsforAll, file = "./Outputs/RDAsforAll.RData")
 load('RDAsforAll.Rdata')
+
+
+## filter out hauls that were solely rare (<=5% presence in total samples)
+SXS_filteredList <- list()
+for(i in systemSeason_list$systemSeason){
+  print(i) #watch progress through list
+  
+  df <- SXS_full %>% #filter out systemSeason of interest
+    filter(systemSeason %in% i)
+  
+  df_spe <- df %>% #pull out taxa only
+    subset(select = -c(systemSeason, seasonYear, Reference, systemZone, BottomVegCover, Temperature)) %>%
+    select(which(!colSums(., na.rm=TRUE) %in% 0)) #select only taxa present in this systemSeason
+  
+  df_pa <- df_spe
+  df_pa[df_pa > 0] <- 1 #convert to pa
+  
+  spp <- length(df_spe)
+  spx <- nrow(df_spe)
+  
+  df_pa_filtered <- df_pa %>%
+    select_if(colSums(.)>(0.05*spx))
+  
+  df_filtered <- df %>%
+    select(c(Reference, seasonYear, all_of(colnames(df_pa_filtered)))) %>%
+    rowwise() %>%
+    mutate(n = sum(across(!c(Reference:seasonYear)))) %>%
+    ungroup() %>%
+    filter(n > 0) %>%
+    select(Reference)
+  
+  SXS_filteredList[[i]] <- df_filtered
+  
+}
+
+SXS_filtered <- bind_rows(SXS_filteredList) %>%
+  left_join(SXS_full)
+  # separate(systemSeason,
+  #          c("system","season"),
+  #          sep = "_") %>%
+  # mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH"))) %>%
+  # mutate(seasonYear = as.factor(seasonYear))
 
 plotsforAll <- list()
 #rdaVecslist <- list()
@@ -92,7 +157,7 @@ for(i in systemSeason_list$systemSeason){
   vecs <- data.frame(RDAsforAll[[i]]$env$vectors$arrows)
   #rdaVecslist[[i]] <- vecs
   middles <- data.frame(RDAsforAll[[i]]$scores$centroids)
-  plotSub <- SXS_full %>% #filter out systemSeason of interest just as in rda loop (df_env)
+  plotSub <- SXS_filtered %>% #filter out systemSeason of interest just as in rda loop (df_env)
     filter(systemSeason %in% i) %>%
     select(seasonYear) %>%
     cbind(scores_sites) %>%
@@ -191,7 +256,7 @@ fullPlot <- wrap_plots(plotsforAll,
 
 plot(fullPlot)
 
-#ggsave("./Outputs/RDAs/RDAsforAll.tiff", fullPlot, width = 18, height = 9, dpi = 600)
+#ggsave("./Outputs/RDAsforAllFiltered.tiff", fullPlot, width = 18, height = 9, dpi = 600)
 
 ######### BRUTE FORCE PLOTTING ########
 # plots$a <- plots$AP_winter +
