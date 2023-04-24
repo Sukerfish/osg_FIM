@@ -76,9 +76,10 @@ for(i in systemSeason_list$systemSeason){
     subset(select = -c(systemSeason, seasonYear, Reference, systemZone, BottomVegCover, Temperature)) %>%
     select(which(!colSums(., na.rm=TRUE) %in% 0)) #select only taxa present in this systemSeason
   
-  # df_env <- data.frame(df %>% #pull out environmental variables
-  #                        subset(select = c(systemSeason, seasonYear, BottomVegCover, Temperature)) %>%
-  #                        mutate(contYear = as.numeric(as.character(seasonYear))))
+  df_env <- data.frame(df %>% #pull out environmental variables
+                         filter(Reference %in% df_filtered$Reference) %>%
+                         subset(select = c(systemSeason, seasonYear, BottomVegCover, Temperature)) %>%
+                         mutate(contYear = as.numeric(as.character(seasonYear))))
   
   bf <- (vegdist(df_spe_filtered))^0.5 #Bray-Curtis w/ sqrt to reduce negative eigenvalues
   
@@ -99,4 +100,4 @@ PERMSforAllDF <- bind_rows(PERMSforAll, .id = "systemSeason") %>%
            sep = "_") %>%
   mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH")))
 
-save(PERMSforAllDF, './Outputs/PERMSforALLDF.Rdata')
+save(PERMSforAllDF, file = './Outputs/PERMSforALLDF.RData')
