@@ -3,47 +3,18 @@
 #### data input ######
 library(tidyverse)
 library(vegan)
-library(BiodiversityR)
+#library(BiodiversityR)
 #library(MASS)
-library(colortools)
+#library(colortools)
 library(ggrepel)
 library(RColorBrewer)
 library(egg)
 library(patchwork)
 
 load('TidyGearCode20.Rdata')
+load('SXS_filtered.Rdata')
 
-#get the biological data and associated site chars
-CleanHauls <- TidyBio %>%
-  subset(select = c(Reference, system, season, seasonYear, BottomVegCover, systemZone, Scientificname, N2))
-#filter(season == "summer" | season == "winter")
-#filter(season == "winter")
-#filter(season == "summer")
-
-#get water temp from hydrology dataset
-WaterTemp <- HydroList %>%
-  subset(select = c(Reference, Temperature))
-
-#collect everything by Reference and spread to long form
-SXS_full <- CleanHauls %>%
-  mutate(N2 = N2^.25) %>% #fourth-root transform
-  group_by(Reference) %>%
-  filter(sum(N2)>0) %>% #remove all References with 0 taxa found
-  spread(Scientificname,N2) %>%
-  ungroup() %>%
-  #subset(select = -c(Reference, season, systemZone)) %>%
-  replace(is.na(.), 0) %>% #replace all NA values with 0s, i.e. counting as true zero
-  group_by(season, system, seasonYear) %>%
-  mutate(seasonYear = as.factor(seasonYear)) %>%
-  left_join(WaterTemp) %>%
-  filter(!is.na(Temperature)) %>% #only excludes 7 sampling events from above pool
-  unite("systemSeason",
-        system:season,
-        sep = "_") %>%
-  ungroup()
-#summarise(across(everything(), ~ mean(.x, na.rm = TRUE)))
-
-waterBVC_full <- SXS_full %>%
+waterBVC_full <- SXS_filtered %>%
   select(c(Reference, systemSeason, seasonYear, Temperature, BottomVegCover)) %>%
   group_by(systemSeason, seasonYear) %>%
   mutate(meanBVC = mean(BottomVegCover),
@@ -114,3 +85,5 @@ ggplot(waterBVC_full,
         #panel.grid        = element_blank()
   ) +
   facet_grid(season ~ system)
+
+####### linear models #######
