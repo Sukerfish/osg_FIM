@@ -177,7 +177,7 @@ modelDF <- as.data.frame(modelDFM)
 
 
 
-ggplot(modelDF_winter, aes(x=n)) +
+ggplot(modelDF, aes(x=N)) +
   geom_histogram(binwidth=1) +
   theme(axis.text=element_text(size = 12)) +
   theme(axis.title=element_text(size = 16)) +
@@ -186,7 +186,7 @@ ggplot(modelDF_winter, aes(x=n)) +
   theme(title=element_text(size = 20)) +
   facet_grid(season~system)
 
-ggplot(modelDF_winter, aes(y=n,
+ggplot(modelDF, aes(y=N,
                     x = factor(seasonYear))) +
   geom_boxplot() +
   scale_x_discrete(breaks=c(2000,2005,2010,2015,2020))+
@@ -197,10 +197,34 @@ ggplot(modelDF_winter, aes(y=n,
   theme(title=element_text(size = 20)) +
   facet_grid(season~system)
 
-###### pql ####
-library(nlme)
-library(lme4)
+
+
+#GLMMPQL
 library(MASS) # needs MASS (version 7.3-58)
+
+richPQL <- glmmPQL(N ~ system * contYear,
+              random = ~ 1 | as.factor(systemZone),
+              family = "poisson", 
+              data = modelDF)
+summary(richPQL)
+
+#library(nlme)
+library(lme4)
+
+richLME4 <- glmer(N ~ system + seasonYear + offset(log(n_hauls))
+                  + (1|as.factor(modelDF$systemZone)),
+                  family = poisson,
+                  #correlation = corAR1(form = ~1|systemZone),
+                  data = modelDF)
+summary(richLME4)
+
+
+#### OLD #####
+
+###### pql ####
+# library(nlme)
+# library(lme4)
+# library(MASS) # needs MASS (version 7.3-58)
 
 #DOES NOT WORK
 glmmPQL <- glmmPQL(N ~ system + seasonYear + offset(log(n_hauls)),
@@ -228,8 +252,8 @@ glmmPQL <- glmmPQL(n ~ system + seasonYear + offset(log(n_hauls)),
 summary(glmmPQL)
 plot(glmmPQL)
 
-testlmer <- glmer(n ~ system + seasonYear + offset(log(n_hauls))
-                   + (1|systemZone),
+testlmer <- glmer(N ~ system + seasonYear + offset(log(n_hauls))
+                   + (1|as.factor(modelDF$systemZone)),
                    family = poisson,
                    #correlation = corAR1(form = ~1|systemZone),
                    data = modelDF)
