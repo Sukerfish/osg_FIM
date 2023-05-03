@@ -1,107 +1,151 @@
 # #### Import and Filter Data #####
 
 library(tidyverse)
+library(patchwork)
 
 load('TidyGearCode20.Rdata')
+load('SXS_filtered.Rdata')
 
-#get the biological data and associated site chars
-CleanHauls <- TidyBio %>%
-  subset(select = c(Reference, system, season, seasonYear, BottomVegCover, systemZone, Scientificname, N2))
-#filter(season == "summer" | season == "winter")
-#filter(season == "winter")
-#filter(season == "summer")
-
-#get water temp from hydrology dataset
-WaterTemp <- HydroList %>%
-  subset(select = c(Reference, Temperature))
-
-#collect everything by Reference and spread to long form
-SXS_full <- CleanHauls %>%
-  mutate(N2 = N2^.25) %>% #fourth-root transform
-  group_by(Reference) %>%
-  filter(sum(N2)>0) %>% #remove all References with 0 taxa found
-  spread(Scientificname,N2) %>%
-  ungroup() %>%
-  #subset(select = -c(Reference, season, systemZone)) %>%
-  replace(is.na(.), 0) %>% #replace all NA values with 0s, i.e. counting as true zero
-  group_by(season, system, seasonYear) %>%
-  mutate(seasonYear = as.factor(seasonYear)) %>%
-  left_join(WaterTemp) %>%
-  filter(!is.na(Temperature)) %>% #only excludes 7 sampling events from above pool
-  unite("systemSeason",
-        system:season,
-        sep = "_") %>%
-  ungroup()
-#summarise(across(everything(), ~ mean(.x, na.rm = TRUE)))
-
-
-##### setup for CAP loop ####
-systemSeason_list <- SXS_full %>%
-  select(systemSeason) %>%
-  distinct()
-
-SXS_filteredList <- list()
-for(i in systemSeason_list$systemSeason){
-  print(i) #watch progress through list
-  
-  df <- SXS_full %>% #filter out systemSeason of interest
-    filter(systemSeason %in% i)
-  
-  df_spe <- df %>% #pull out taxa only
-    subset(select = -c(systemSeason, seasonYear, Reference, systemZone, BottomVegCover, Temperature)) %>%
-    select(which(!colSums(., na.rm=TRUE) %in% 0)) #select only taxa present in this systemSeason
-  
-  df_pa <- df_spe
-  df_pa[df_pa > 0] <- 1 #convert to pa
-  
-  spp <- length(df_spe)
-  spx <- nrow(df_spe)
-  
-  df_pa_filtered <- df_pa %>%
-    select_if(colSums(.)>(0.05*spx))
-  
-  df_filtered <- df %>%
-    select(c(Reference, seasonYear, all_of(colnames(df_pa_filtered)))) %>%
-    rowwise() %>%
-    mutate(n = sum(across(!c(Reference:seasonYear)))) %>%
-    ungroup() %>%
-    filter(n > 0) %>%
-    select(Reference)
- 
-SXS_filteredList[[i]] <- df_filtered
-  
-}
-
-SXS_filtered <- bind_rows(SXS_filteredList) %>%
-  left_join(SXS_full)
-
-SXS_filtered_env <- SXS_filtered %>%
-  select(c(Reference, systemSeason, seasonYear, systemZone, BottomVegCover, Temperature))
-
-SXS_filtered_spp <- SXS_filtered %>%
-  select(!c(Reference, systemSeason, seasonYear, systemZone, BottomVegCover, Temperature))
+#load in base data
 
 SXR_filtered_spp <- SXS_filtered %>%
   select(!c(systemSeason, seasonYear, systemZone, BottomVegCover, Temperature)) %>%
   pivot_longer(cols = !c(Reference),
-               names_to = "taxa") %>%
-  mutate(PA = ifelse(value > 0, 1, 0)) %>%
-  select(!c(taxa, value)) %>%
-  group_by(Reference) %>%
-  mutate(N = sum(PA)) %>%
-  select(!c(PA)) %>%
-  distinct()
+               names_to = "taxa") %>% #pivot to reference and taxa only
+  mutate(PA = ifelse(value > 0, 1, 0)) %>% #convert to presence/absence
+  select(!c(taxa, value)) %>% #drop taxa and raw counts
+  group_by(Reference) %>% #group only by ref in prep
+  mutate(N = sum(PA)) %>% #sum all PA values for sample richness
+  select(!c(PA)) %>% #drop PA column
+  distinct() #keep distinct pairs of ref/richness
 
+#rejoin with environmental data
 SXR_filtered <- SXR_filtered_spp %>%
   left_join(SXS_filtered_env) %>%
   group_by(systemSeason) %>%
-  add_count(name = "n_hauls") %>%
-  ungroup()
-
-modelDFM <- SXR_filtered %>%
+  add_count(name = "n_hauls") %>% #count number of hauls per systemSeason
+  ungroup() %>%
+  group_by(systemSeason, seasonYear) %>%
+  mutate(avg_temp = mean(Temperature, na.rm = TRUE),
+            n_temp = n(),
+         upper = quantile(Temperature, 0.9),
+         lower = quantile(Temperature, 0.1),
+         sd_ann = sd(Temperature)) %>%
+  ungroup() %>%
+  group_by(systemSeason) %>%
+  mutate(avg_ltm = mean(avg_temp),
+         sd_ltm = sd(avg_temp, na.rm = TRUE),
+         upper_sd = sd(upper),
+         lower_sd = sd(lower)) %>%
+  mutate(anom_temp = avg_temp - avg_ltm,
+         se_temp = sd_ltm/sqrt(n_temp),
+         lower.ci.anom.temp = 0 - (1.96 * se_temp),
+         upper.ci.anom.temp = 0 + (1.96 * se_temp)) %>%
   separate(systemSeason,
            c("system","season"),
-           sep = "_") %>%
+           sep = "_") 
+
+filteredTemp <- SXR_filtered %>%
+  select(!c(Reference, N, systemZone, BottomVegCover, Temperature, n_hauls)) %>%
+  distinct()
+#### temperature plots #######
+lowerLimits <- ggplot(filteredTemp,
+       aes(x    = as.numeric(as.character(seasonYear)), 
+           y    = lower, 
+           #color = season
+       )) + 
+  geom_point(#size   = 2, 
+    #stroke = 0.1,
+    #pch    = 21, 
+    #colour = "black"
+  ) +
+  geom_smooth(method=lm) +
+  geom_errorbar(aes(ymin = avg_temp-se_temp, ymax = avg_temp+se_temp))+
+  labs(title = "Coldest 10% Water Temperature Over Time",
+       x     = "Year",
+       y     = "Annual 10% Coldest Water Temperature  Threshold (°C)",
+       #fill  = NULL
+  ) +
+  # scale_fill_manual(values = cbPalette1,
+  #                   labels = c(unique(as.character(df_env$seasonYear)))) +
+  theme_bw() +
+  theme(legend.text       = element_text(size=rel(0.8)),
+        legend.position   = c(0.1,0.89),
+        legend.background = element_blank(),
+        legend.key        = element_blank(),
+        #panel.grid        = element_blank()
+  ) +
+  facet_grid(season ~ system)
+
+upperLimits <- ggplot(filteredTemp,
+                      aes(x    = as.numeric(as.character(seasonYear)), 
+                          y    = upper, 
+                          #color = season
+                      )) + 
+  geom_point(#size   = 2, 
+    #stroke = 0.1,
+    #pch    = 21, 
+    #colour = "black"
+  ) +
+  geom_smooth(method=lm) +
+  geom_errorbar(aes(ymin = avg_temp-se_temp, ymax = avg_temp+se_temp))+
+  labs(title = "Warmest 10% Water Temperature Over Time",
+       x     = "Year",
+       y     = "Annual 10% Warmest Water Temperature  Threshold (°C)",
+       #fill  = NULL
+  ) +
+  # scale_fill_manual(values = cbPalette1,
+  #                   labels = c(unique(as.character(df_env$seasonYear)))) +
+  theme_bw() +
+  theme(legend.text       = element_text(size=rel(0.8)),
+        legend.position   = c(0.1,0.89),
+        legend.background = element_blank(),
+        legend.key        = element_blank(),
+        #panel.grid        = element_blank()
+  ) +
+  facet_grid(season ~ system)
+
+tempX <- upperLimits + lowerLimits
+
+sdTemp <- ggplot(data = filteredTemp,
+  # pivot_longer(filteredTemp, 
+  #              cols = !c(system, season, seasonYear), 
+  #              names_to = "metric") %>%
+  #   filter(metric %in% c("lower_sd", "upper_sd", "sd_ann")),
+                 aes(x    = as.numeric(as.character(seasonYear)), 
+                     y    = sd_ann, 
+                     #color = metric
+                 )) + 
+  geom_point(#size   = 2, 
+    #stroke = 0.1,
+    #pch    = 21, 
+    #colour = "black"
+  ) +
+  geom_smooth(method=lm) +
+  #geom_errorbar(aes(ymin = avg_temp-se_temp, ymax = avg_temp+se_temp))+
+  labs(title = "Standard Deviation Water Temperature Over Time",
+       x     = "Year",
+       y     = "SD Water Temperature (°C)",
+       #fill  = NULL
+  ) +
+  # scale_fill_manual(values = cbPalette1,
+  #                   labels = c(unique(as.character(df_env$seasonYear)))) +
+  theme_bw() +
+  theme(legend.text       = element_text(size=rel(0.8)),
+        legend.position   = c(0.1,0.89),
+        legend.background = element_blank(),
+        legend.key        = element_blank(),
+        #panel.grid        = element_blank()
+  ) +
+  facet_grid(season ~ system)
+
+
+#### modeling #####
+
+modelDFM <- SXR_filtered %>%
+  # separate(systemSeason,
+  #          c("system","season"),
+  #          sep = "_") %>%
   mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH"))) %>%
   mutate(contYear = as.numeric(as.character(seasonYear))) %>%
   mutate(seasonYear = as.factor(seasonYear)) %>%
@@ -123,33 +167,6 @@ modelDF <- as.data.frame(modelDFM)
 #   # filter(season == "summer") %>%
 #   # filter(system == "TB") %>%
 #   filter(season == "summer")
-
-
-# bottomVeg <- TidyBio %>%
-#   subset(select = c(Reference, BottomVegCover)) %>%
-#   group_by(Reference) %>%
-#   summarise(bvc.mean = mean(BottomVegCover, na.rm = TRUE)) %>%
-#   mutate(BottomVegCover = bvc.mean) %>%
-#   filter(!is.na(bvc.mean)) %>%
-#   subset(select = c(Reference, BottomVegCover))
-# 
-# OnlyFish <- TidyBio %>%
-#   filter(Scientificname != "No fish")
-# 
-# NoFish <- TidyBio %>%
-#   filter(Scientificname == "No fish") %>%
-#   mutate(n = 0) %>%
-#   subset(select = c(Reference, n, system, season, seasonYear, systemZone))
-# 
-# FullRichness <- OnlyFish %>%
-#   group_by(Reference) %>%
-#   count() %>%
-#   inner_join(TidyRefsList) %>%
-#   ungroup() %>%
-#   bind_rows(NoFish) %>%
-#   left_join(bottomVeg) 
-
-
 
 # GLMM:
 # Response: richness or total abundance
@@ -180,11 +197,6 @@ ggplot(modelDF_winter, aes(y=n,
   theme(title=element_text(size = 20)) +
   facet_grid(season~system)
 
-
-# test <-modelDF %>%
-#   subset(select = c(seasonYear))
-# df <- fct_reorder(factor(modelDF$seasonYear),test$seasonYear)
-
 ###### pql ####
 library(nlme)
 library(lme4)
@@ -194,8 +206,8 @@ library(MASS) # needs MASS (version 7.3-58)
 glmmPQL <- glmmPQL(N ~ system + seasonYear + offset(log(n_hauls)),
                     random = ~ 1|systemZone,
                     family = poisson,
-                    #correlation = corARMA(form = ~1|systemZone, p = 1, q = 1),
-                    data = modelDF)
+                    correlation = corARMA(form = ~1|systemZone, p = 1, q = 1),
+                    data = modelDFM)
 summary(glmmPQL)
 plot(glmmPQL)
 
