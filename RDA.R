@@ -432,3 +432,14 @@ plot(fullPlot)
 #                       ncol = 4)
 # 
 # plot(testing)
+
+
+RDAsigforALL <- list()
+for(i in systemSeason_list$systemSeason){
+  print(i) #watch progress through list
+  
+  RDAsigforALL[[i]] <- anova(RDAsforAll[[i]]$rda, by = "terms")
+  
+}
+
+save(RDAsigforALL, file = "./Outputs/RDAsigforALL.RData")
