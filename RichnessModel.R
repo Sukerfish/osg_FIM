@@ -199,50 +199,34 @@ ggplot(modelDF, aes(y=N,
 
 
 
-#GLMMPQL
+###### pql ####
+library(nlme)
+library(lme4)
 library(MASS) # needs MASS (version 7.3-58)
 
-richPQL <- glmmPQL(N ~ system * contYear,
-              random = ~ 1 | as.factor(systemZone),
-              family = "poisson", 
-              data = modelDF)
-summary(richPQL)
-
-#library(nlme)
-library(lme4)
-
-richLME4 <- glmer(N ~ system + seasonYear + offset(log(n_hauls))
-                  + (1|as.factor(modelDF$systemZone)),
-                  family = poisson,
-                  #correlation = corAR1(form = ~1|systemZone),
-                  data = modelDF)
-summary(richLME4)
-
-
-#### OLD #####
-
-###### pql ####
-# library(nlme)
-# library(lme4)
-# library(MASS) # needs MASS (version 7.3-58)
-
 #DOES NOT WORK
-glmmPQL <- glmmPQL(N ~ system + seasonYear + offset(log(n_hauls)),
-                    random = ~ 1|systemZone,
-                    family = poisson,
-                    correlation = corARMA(form = ~1|systemZone, p = 1, q = 1),
-                    data = modelDFM)
-summary(glmmPQL)
-plot(glmmPQL)
+# glmmPQL <- glmmPQL(N ~ system + seasonYear + offset(log(n_hauls)),
+#                     random = ~ 1|as.factor(systemZone),
+#                     family = poisson,
+#                     correlation = corARMA(form = ~1|systemZone, p = 1, q = 1),
+#                     data = modelDFM)
+# summary(glmmPQL)
+# plot(glmmPQL)
 
 #alternative cor structure ... corAR1 converges
-glmmPQL <- glmmPQL(n ~ system + seasonYear + offset(log(n_hauls)),
-                   random = ~ 1|systemZone,
+glmmPQLcorAR1 <- glmmPQL(N ~ system + contYear + offset(log(n_hauls)),
+                   random = ~ 1|as.factor(systemZone),
                    family = poisson,
-                   correlation = corAR1(form = ~1|systemZone),
+                   correlation = corAR1(form = ~1|as.factor(systemZone)),
                    data = modelDF)
-summary(glmmPQL)
-plot(glmmPQL)
+summary(glmmPQLcorAR1)
+plot(glmmPQLcorAR1)
+
+
+
+
+
+
 
 #converges without correlation
 glmmPQL <- glmmPQL(n ~ system + seasonYear + offset(log(n_hauls)),
