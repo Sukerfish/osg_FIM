@@ -156,6 +156,28 @@ modelDFM <- SXR_filtered %>%
 
 modelDF <- as.data.frame(modelDFM)
 
+abundanceModelDF <- SXS_filtered %>%
+  select(!c(systemSeason, seasonYear, BottomVegCover, systemZone, Temperature)) %>%
+  #group_by(Reference) %>%
+  rowwise() %>% #sum abundance across all taxa
+  mutate(abund = sum(across(-Reference))) %>%
+  select(c(Reference, abund))
+
+totAbModelDF <- abundanceModelDF %>%
+  left_join(SXR_filtered) %>% #merge in enviro data
+  # separate(systemSeason,
+  #          c("system","season"),
+  #          sep = "_") %>%
+  mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH"))) %>%
+  mutate(contYear = as.numeric(as.character(seasonYear))) %>%
+  mutate(seasonYear = as.factor(seasonYear)) %>%
+  # mutate(n_hauls = log(n_hauls)) %>%
+  # filter(season == "summer") %>%
+  # filter(system == "TB") %>%
+  filter(season == "winter")
+
+modelDFAb <- as.data.frame(totAbModelDF)
+
 # modelDF_summer <- FullRichness %>%
 #   group_by(seasonYear, system, season) %>%
 #   add_count(name = "n_hauls") %>%
@@ -189,7 +211,7 @@ ggplot(modelDF, aes(x=N)) +
 ggplot(modelDF, aes(y=N,
                     x = factor(seasonYear))) +
   geom_boxplot() +
-  scale_x_discrete(breaks=c(2000,2005,2010,2015,2020))+
+  scale_x_discrete(breaks=c(1995,2000,2005,2010,2015,2020))+
   theme(axis.text=element_text(size = 12)) +
   theme(axis.title=element_text(size = 16)) +
   theme(strip.text = element_text(size = 16)) +
@@ -197,7 +219,25 @@ ggplot(modelDF, aes(y=N,
   theme(title=element_text(size = 20)) +
   facet_grid(season~system)
 
+ggplot(modelDFAb, aes(x=abund)) +
+  geom_histogram(binwidth=1) +
+  theme(axis.text=element_text(size = 12)) +
+  theme(axis.title=element_text(size = 16)) +
+  theme(strip.text = element_text(size = 16)) +
+  ggtitle("Abundance per haul") +
+  theme(title=element_text(size = 20)) +
+  facet_grid(season~system)
 
+ggplot(modelDFAb, aes(y=abund,
+                    x = factor(contYear))) +
+  geom_boxplot() +
+  scale_x_discrete(breaks=c(2000,2005,2010,2015,2020))+
+  theme(axis.text=element_text(size = 12)) +
+  theme(axis.title=element_text(size = 16)) +
+  theme(strip.text = element_text(size = 16)) +
+  ggtitle("Abundance per haul over time") +
+  theme(title=element_text(size = 20)) +
+  facet_grid(season~system)
 
 ###### pql ####
 library(nlme)
@@ -213,6 +253,7 @@ library(MASS) # needs MASS (version 7.3-58)
 # summary(glmmPQL)
 # plot(glmmPQL)
 
+#richness
 #alternative cor structure ... corAR1 converges
 glmmPQLcorAR1 <- glmmPQL(N ~ system + contYear + offset(log(n_hauls)),
                    random = ~ 1|as.factor(systemZone),
@@ -223,7 +264,15 @@ summary(glmmPQLcorAR1)
 plot(glmmPQLcorAR1)
 
 
-
+#total abundance
+#alternative cor structure ... corAR1 converges
+glmmPQLcorAR1_totAb <- glmmPQL(abund ~ system + contYear + offset(log(n_hauls)),
+                         random = ~ 1|as.factor(systemZone),
+                         family = poisson,
+                         correlation = corAR1(form = ~1|as.factor(systemZone)),
+                         data = modelDFAb)
+summary(glmmPQLcorAR1_totAb)
+plot(glmmPQLcorAR1_totAb)
 
 
 
