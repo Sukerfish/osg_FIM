@@ -1,0 +1,39 @@
+---
+title: " "
+output:
+  word_document:
+    reference_docx: results_formatting.docx
+linkcolor: black
+bibliography: bibliography.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo=FALSE, message=FALSE, fig.width=7.5}
+#knitr::include_graphics()
+source("RichnessSummary.R", local = knitr::knit_global())
+plot(richPlot)
+# or sys.source("your-script.R", envir = knitr::knit_global())
+```
+
+### Results
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see http://rmarkdown.rstudio.com.
+
+In [@Miner2021] science happened
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+### Including Plots
+
+You can also embed plots, for example:
+
+```{r, echo=FALSE}
+#knitr::include_graphics("CAPsforAll.png")
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+### Literature Cited
