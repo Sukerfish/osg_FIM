@@ -39,7 +39,7 @@ RichnessSummary$system = factor(RichnessSummary$system, levels=c("AP","CK","TB",
 library(ggplot2)
 
 #Richness Plot
-ggplot(data=RichnessSummary,
+richPlot <- ggplot(data=RichnessSummary,
        aes(x=seasonYear, y=n_mean)) +
   geom_ribbon(
     aes(ymin=n_q10,
