@@ -44,21 +44,27 @@ richPlot <- ggplot(data=RichnessSummary,
   geom_ribbon(
     aes(ymin=n_q10,
         ymax=n_q90,
-        fill="10th-90th Percentile"),
+        fill="10th-90th percentile"),
     linetype=2, alpha=0.1, color="purple") +
   geom_point(
     aes(y = n_median, 
         color="median")
   ) +
-  #theme(legend.position="bottom") +
-  theme_bw() + 
-  ggtitle("Richness over time") +
-  xlab("Year") +
-  scale_x_continuous(breaks = seq(1998, 2020, 2)) +
-  ylab("Number of taxa per haul") +
   geom_line(aes(color = "mean")) +
-  facet_grid(season ~ system) +
-  theme(strip.text.x = element_text(size = 20)) +
-  theme(strip.text.y = element_text(size = 20))
+  theme_bw() + 
+  labs(
+    title = "Total richness over time",
+    x = "Year",
+    y = "Number of taxa per haul",
+  ) +
+  scale_x_continuous(breaks = seq(1998, 2020, 5)) +
+  facet_grid(season ~ system, scales = "free_x") +
+  theme(
+    legend.title = element_blank(),
+    legend.position = "bottom",
+    #strip.text.x = element_text(size = 20),
+    #strip.text.y = element_text(size = 20),
+    plot.title = element_text(face="bold"),
+    text = element_text(family="serif"))
 
 

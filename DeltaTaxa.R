@@ -6,7 +6,9 @@
 library(viridis)
 library(tidyverse)
 library(ggplot2)
+library(ggallin)
 library(writexl)
+library(egg)
 
 load('TidyGearCode20.Rdata')
 
@@ -318,12 +320,13 @@ sigSlopes_grouped <- sigSlopes %>%
   left_join(taxaList_grouped) %>%
   mutate(id_color = sign(raw_slope))
 
+#reclass syngnathids under fish
 sigSlopes_grouped$group[sigSlopes_grouped$group == "syngnathid"] <- "fish"
 
 sigSlopes_grouped$group <- as.factor(sigSlopes_grouped$group)
-sigSlopes_grouped$id_color <- as.factor(sigSlopes_grouped$id_color, levels = c("-1", "1"))
+sigSlopes_grouped$id_color <- as.factor(sigSlopes_grouped$id_color)
 
-ggplot(sigSlopes_grouped,
+sigSlopesGroups <- ggplot(sigSlopes_grouped,
        aes(y = group,
            x = raw_slope)) + 
   geom_point(aes(color = as.factor(id_color))) +
@@ -332,6 +335,7 @@ ggplot(sigSlopes_grouped,
              ncol = 2) +
   geom_errorbarh(aes(xmin=(raw_slope + (-2*stderr)), xmax=(raw_slope + (2*stderr))),
                  color = "darkgray") + #std err bars
+  scale_x_continuous(trans = pseudolog10_trans) +
   ggtitle("Change in density over time by group") + 
   theme_bw() +
   theme(legend.position = "none",
@@ -382,6 +386,8 @@ library(taxize)
 
 ######### FishBase Info #########
 #call FishBase
+Sys.setenv(FISHBASE_API="sealifebase")
+
 sigEcoFull <- ecosystem(species_list = unique(c(sigSlopes$Scientificname)))
 
 sigEco <- sigEcoFull %>%
@@ -417,9 +423,18 @@ sigEco <- sigEcoFull %>%
 
 sigSlopesEco <- sigSlopes %>%
   left_join(sigEco) %>%
-  filter(!is.na(tempLogic)) 
+  filter(!is.na(tempLogic)) %>%
+  mutate(naming = systemSeason) %>%
+  separate(naming,
+            c("system","season"),
+            sep = "_") %>%
+  mutate(title = ifelse(system == "CH", "Charlotte Harbor",
+                        ifelse(system == "TB", "Tampa Bay",
+                               ifelse(system == "AP", "Apalachicola",
+                                      "Cedar Key"))))
  
-plotsEco <- list() #initialize
+#need to plot with patchwork to keep fish lists different per plot
+plotsEco <- list() #initialize object
 #use actual values from the key list
 for (i in seasysKey$systemSeason){
   #filter by key values
@@ -436,7 +451,8 @@ for (i in seasysKey$systemSeason){
     scale_color_manual(name = "slope", #define the +/- colors
                        values = c("(0, Inf]" = "blue",
                                   "(-Inf,0]" = "red"),
-                       labels = c("pos", "neg")) +
+                       labels = c("pos", "neg"),
+                       guide = "none") +
     geom_errorbarh(aes(xmin=(raw_slope + (-2*stderr)), xmax=(raw_slope + (2*stderr))),
                    color = "darkgray") + #std err bars
     scale_shape_manual( #need to force legends to be identical (i.e. show all possibilities) to merge w/ patchwork
@@ -452,16 +468,57 @@ for (i in seasysKey$systemSeason){
       values = c(15, 16, 17, 18, 0, 1, 2), #use scale shape identities
       drop = FALSE
     ) +
-    ggtitle(i) + #dynamic title using the key value
-    theme(axis.title.y=element_blank()) +
-    coord_cartesian(xlim = c(-.2, 0.2)) +
-    geom_vline(xintercept = 0, linetype="dashed")
+    #ggtitle(i) + #dynamic title using the key value
+    scale_x_continuous(trans = pseudolog10_trans,
+                       limits = symmetric_range) +
+    #xlim(-.2, .2) +
+    #scale_x_continuous(limits = symmetric_range) +
+    geom_vline(xintercept = 0, linetype="dashed") +
+    theme_bw() +
+    labs(title = plotup$title,
+         shape = "Climatology") + #dynamic title using the formatted values
+    theme(axis.title.y=element_blank(),
+          axis.title.x = element_blank())
 }
 
 # png(file = "~/osg_FIM/Outputs/sigslopesrawSxSwithEco.png",
 #     width = 1920, height = 1080)
+# glob_lab <- "Taxa"
+# p_lab <- 
+#   ggplot() + 
+#   annotate(geom = "text", x = 1, y = 1, label = glob_lab, angle = 90) +
+#   coord_cartesian(clip = "off")+
+#   theme_void()
+# 
+# (p_lab | wrap_plots(plotsEco, ncol = 2, guides = "collect")) +
+#   plot_layout(widths = c(.1, 1))
 
-wrap_plots(plotsEco, ncol = 2, guides = "collect")
+# summerEco <- wrap_plots(plotsEco$AP_summer / plotsEco$CK_summer / plotsEco$TB_summer / plotsEco$CH_summer,
+#                         guides = "collect") &
+#   theme(plot.margin = margin(5.5, 5.5, 0, 5.5))
+# 
+# winterEco <- wrap_plots(plotsEco$AP_winter / plotsEco$CK_winter / plotsEco$TB_winter / plotsEco$CH_winter,
+#                         ncol = 1, guides = "collect") &
+#   theme(plot.margin = margin(5.5, 5.5, 0, 5.5))
+
+finalEco <- wrap_plots(plotsEco, ncol = 2, guides = "collect") &
+  labs() & theme(plot.margin = margin(5.5, 5.5, 0, 5.5))
+
+# Use the tag label as an x-axis label
+finalEco <- wrap_elements(panel = finalEco) +
+  labs(tag = "Raw slope of abundance change") +
+  theme(
+    plot.tag = element_text(size = rel(1)),
+    plot.tag.position = "bottom"
+  )
+plot(finalEco)
+
+ggsave(filename = "ecofull.png",
+       plot = finalEco,
+       device = "png",
+       path = "./",
+       width = 16,
+       height = 9)
 
 # dev.off()
 
@@ -516,96 +573,96 @@ wrap_plots(plotsEco, ncol = 2, guides = "collect")
 #   filter(test == 1) %>%
 #   filter(testslope == -1)
   #filter(col > 0 & test == 1)
-
-SigSlopes <- SlopesForAllDF %>%
-  group_by(system, season) %>%
-  filter(p.value < 0.05)
-  # filter(system == "AP") %>%
-  # filter(season == "summer")
-
-#write_xlsx(SigSlopes, "~/osg_FIM/Outputs/SigSlopes.xlsx")
-
-plotup <- YearXSpeciesZ %>%
-  group_by(system, season) %>%
-  subset(Scientificname %in% SigSlopes$Scientificname) %>%
-  left_join(SigSlopes) %>%
-  na.exclude %>%
-  mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH")))
-
-ggplot(plotup, aes(x=seasonYear, 
-                     y=avg)) + 
-  geom_line(aes(color=Scientificname)) +
-  facet_grid(season~system,
-             scales = "free_y") +
-  ggtitle("Sig Slope Linear avg abund") +
-  #theme(title=element_text(size = 20)) +
-  theme(legend.position="none")
-
-test <- SlopesForAllDF %>%
-  mutate(test = ifelse(p.value < 0.05, 1, 0)) %>%
-  mutate(testslope = ifelse(slope < 0, -1, 1)) %>%
-  filter(test == 1) %>%
-  filter(testslope == 1)
-#filter(col > 0 & test == 1)
-
-plotup <- YearXSpeciesZ %>%
-  subset(Scientificname %in% test$Scientificname) %>%
-  filter(system == "AP") %>%
-  filter(season == "winter")
-
-ggplot(plotup, aes(x=seasonYear, 
-                   y=zscore,
-                   color=Scientificname,
-                   group=Scientificname)) + 
-  ggtitle("Apalach Winter +") +
-  geom_line()
-
-
+# 
+# SigSlopes <- SlopesForAllDF %>%
+#   group_by(system, season) %>%
+#   filter(p.value < 0.05)
+#   # filter(system == "AP") %>%
+#   # filter(season == "summer")
+# 
+# #write_xlsx(SigSlopes, "~/osg_FIM/Outputs/SigSlopes.xlsx")
+# 
+# plotup <- YearXSpeciesZ %>%
+#   group_by(system, season) %>%
+#   subset(Scientificname %in% SigSlopes$Scientificname) %>%
+#   left_join(SigSlopes) %>%
+#   na.exclude %>%
+#   mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH")))
+# 
+# ggplot(plotup, aes(x=seasonYear, 
+#                      y=avg)) + 
+#   geom_line(aes(color=Scientificname)) +
+#   facet_grid(season~system,
+#              scales = "free_y") +
+#   ggtitle("Sig Slope Linear avg abund") +
+#   #theme(title=element_text(size = 20)) +
+#   theme(legend.position="none")
+# 
+# test <- SlopesForAllDF %>%
+#   mutate(test = ifelse(p.value < 0.05, 1, 0)) %>%
+#   mutate(testslope = ifelse(slope < 0, -1, 1)) %>%
+#   filter(test == 1) %>%
+#   filter(testslope == 1)
+# #filter(col > 0 & test == 1)
+# 
+# plotup <- YearXSpeciesZ %>%
+#   subset(Scientificname %in% test$Scientificname) %>%
+#   filter(system == "AP") %>%
+#   filter(season == "winter")
+# 
+# ggplot(plotup, aes(x=seasonYear, 
+#                    y=zscore,
+#                    color=Scientificname,
+#                    group=Scientificname)) + 
+#   ggtitle("Apalach Winter +") +
+#   geom_line()
 
 
 
 
 
 
-idplace<-1
-for(id in idsconstant){
-  # getting data for relevant studyID
-  data<-TS[TS$ID==id,]
-  data<- data[data$Abundance>0,]
-  groups<-data.frame(as.character(data$Species),as.numeric(data$Year))
-  data.mat<- tapply(data$Abundance,groups, FUN=sum)
-  # formating data into species by time matrix
-  data.mat[is.na(data.mat)]<-0
-  #removing species that are always absent
-  N.species<-dim(data.mat)[1] #getting number of species
-  WLEC[idplace:(idplace+N.species-1),]<-cbind(rep(id,N.species),rownames(data.mat),rep(NA,N.species),rep(NA,N.species),rep(NA,N.species),rep(NA,N.species),rep(NA,N.species),data.mat[,1],apply(data.mat,1,mean))
-  
-  ############### identifying extinctions and colonizations
-  Binary.Data <- data.mat #using previously simulated data matrix
-  Binary.Data[Binary.Data > 0] <- 1 # convert to binary
-  
-  # remove rows in which there were no absences
-  Binary.Data <- Binary.Data[which(rowSums(Binary.Data)< ncol(Binary.Data)),]
-  
-  # create data frame to hold results
-  if(!is.matrix(Binary.Data)) Binary.Data <- t(Binary.Data)# HS added
-  
-  if(dim(Binary.Data)[1]>0){
-    # loop through the data
-    for (i in 1:nrow(Binary.Data)) {
-      # Extract data for a species, conduct runs test, save output
-      z <- Binary.Data[i,]
-      runs.p <- runs.test(as.factor(z),alternative="less")
-      # Count number of colonizations and extinctions, save output
-      turnover <- N.turnovers(z)
-      WLEC[WLEC$ID==id & WLEC$Species==rownames(Binary.Data)[i],3:5]<-c(runs.p$p.value, turnover[1], turnover[2])
-    }
-  }
-  ##### Winers and Losers
-  data.mat<-t(apply(data.mat,1,scale))# scaling by subtracting mean and dividing by sd
-  Time<- unique(data$Year) #getting time vector  
-  ######### identifying species with positive (Winers) and negative (Losers) trends
-  WLEC[idplace:(idplace+N.species-1),6:7]<-t(apply(data.mat,1,get.coeff,x=Time)) # apply to each row of data
-  
-  idplace<-idplace+N.species
-}
+# Dornelas code
+# 
+# idplace<-1
+# for(id in idsconstant){
+#   # getting data for relevant studyID
+#   data<-TS[TS$ID==id,]
+#   data<- data[data$Abundance>0,]
+#   groups<-data.frame(as.character(data$Species),as.numeric(data$Year))
+#   data.mat<- tapply(data$Abundance,groups, FUN=sum)
+#   # formating data into species by time matrix
+#   data.mat[is.na(data.mat)]<-0
+#   #removing species that are always absent
+#   N.species<-dim(data.mat)[1] #getting number of species
+#   WLEC[idplace:(idplace+N.species-1),]<-cbind(rep(id,N.species),rownames(data.mat),rep(NA,N.species),rep(NA,N.species),rep(NA,N.species),rep(NA,N.species),rep(NA,N.species),data.mat[,1],apply(data.mat,1,mean))
+#   
+#   ############### identifying extinctions and colonizations
+#   Binary.Data <- data.mat #using previously simulated data matrix
+#   Binary.Data[Binary.Data > 0] <- 1 # convert to binary
+#   
+#   # remove rows in which there were no absences
+#   Binary.Data <- Binary.Data[which(rowSums(Binary.Data)< ncol(Binary.Data)),]
+#   
+#   # create data frame to hold results
+#   if(!is.matrix(Binary.Data)) Binary.Data <- t(Binary.Data)# HS added
+#   
+#   if(dim(Binary.Data)[1]>0){
+#     # loop through the data
+#     for (i in 1:nrow(Binary.Data)) {
+#       # Extract data for a species, conduct runs test, save output
+#       z <- Binary.Data[i,]
+#       runs.p <- runs.test(as.factor(z),alternative="less")
+#       # Count number of colonizations and extinctions, save output
+#       turnover <- N.turnovers(z)
+#       WLEC[WLEC$ID==id & WLEC$Species==rownames(Binary.Data)[i],3:5]<-c(runs.p$p.value, turnover[1], turnover[2])
+#     }
+#   }
+#   ##### Winers and Losers
+#   data.mat<-t(apply(data.mat,1,scale))# scaling by subtracting mean and dividing by sd
+#   Time<- unique(data$Year) #getting time vector  
+#   ######### identifying species with positive (Winers) and negative (Losers) trends
+#   WLEC[idplace:(idplace+N.species-1),6:7]<-t(apply(data.mat,1,get.coeff,x=Time)) # apply to each row of data
+#   
+#   idplace<-idplace+N.species
+# }
