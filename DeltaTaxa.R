@@ -388,7 +388,11 @@ library(taxize)
 #call FishBase
 Sys.setenv(FISHBASE_API="sealifebase")
 
-sigEcoFull <- ecosystem(species_list = unique(c(sigSlopes$Scientificname)))
+#need to call this to get things working for some reason
+ecology("gymnothorax fimbriatus")
+
+sigEcoFull <- ecosystem(species_list = unique(c(sigSlopes$Scientificname))
+                        )
 
 sigEco <- sigEcoFull %>%
   select(Species, Climate) %>%
