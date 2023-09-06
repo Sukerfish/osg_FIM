@@ -1,37 +1,53 @@
 ---
 title: " "
 output:
-  word_document:
+  bookdown::word_document2:
     reference_docx: results_formatting.docx
 linkcolor: black
 bibliography: bibliography.bib
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+library(bookdown)
+Sys.setenv(FISHBASE_API="sealifebase")
+#knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r, echo=FALSE, message=FALSE, fig.width=7.5}
-#knitr::include_graphics()
-source("RichnessSummary.R", local = knitr::knit_global())
+### Results  {-}
+
+Richness during summer for all stations was generally stable, while winter was more variable in the southern estuaries than in the northern estuaries (Figure \@ref(fig:richnessSummary)). 
+
+```{r richnessSummary, echo=FALSE, message=FALSE, fig.width=7.5, fig.cap = "An amazing plot"}
+
+source("RichnessSummary.R")
 plot(richPlot)
-# or sys.source("your-script.R", envir = knitr::knit_global())
+
 ```
 
-### Results
+However, total abundance over time was quite variable for all systems in the winter season, with summer generally rather stable.
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see http://rmarkdown.rstudio.com.
+```{r totalAbSummary, echo=FALSE, message=FALSE, fig.width=7.5, fig.cap = "Another amazing plot"}
+
+source("TotalAbundanceSummary.R")
+       #, local = knitr::knit_global())
+plot(AbSummaryPlot)
+
+```
 
 In [@Miner2021] science happened
 
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-### Including Plots
+### Including Plots  {-}
 
 You can also embed plots, for example:
 
-```{r, echo=FALSE}
-#knitr::include_graphics("CAPsforAll.png")
+```{r deltaTaxa, echo=FALSE, message=FALSE, fig.width=7.5, fig.cap = "Another amazing plot"}
+
+source("DeltaTaxa.R"
+       , local = knitr::knit_global())
+plot(finalEco)
+
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
