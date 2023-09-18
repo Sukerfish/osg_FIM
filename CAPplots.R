@@ -195,6 +195,11 @@ fullPlot <- wrap_plots(plots,
 
 plot(fullPlot)
 
+# ggsave(plot = fullPlot,
+#        filename = "./Outputs/CAPSforAll_unlabeled.png",
+#        width = 16,
+#        height = 9,
+#        dpi = 400)
 
 ######### BRUTE FORCE PLOTTING ########
 plots$a <- plots$AP_winter +
@@ -354,6 +359,12 @@ testing <- wrap_plots(plots$a,
                       ncol = 4)
 
 plot(testing)
+# 
+# ggsave(plot = testing,
+#        filename = "./Outputs/CAPSforAllCentroid_labeled.png",
+#        width = 16,
+#        height = 9)
+
 
 ### centroids ####
 for(i in systemSeason_list$systemSeason){
@@ -393,9 +404,9 @@ for(i in systemSeason_list$systemSeason){
   middles <- data.frame(CAPsforAll[[i]]$centroids)
   spp_vecs <- data.frame(CAPsforAll[[i]]$cproj) %>%
                            arrange(desc(abs(LD1))) %>%
-                           slice_head(n = 10)
+                           slice_head(n = 10) #grab only top 10 for axis 1 and plot
   sppvecs_list[[i]] <- spp_vecs
-  mult <- 2.5
+  mult <- 6
   plots[[i]] <- ggplot(middles) + 
     geom_vline(xintercept = 0,
                colour     = "grey70",
@@ -404,10 +415,10 @@ for(i in systemSeason_list$systemSeason){
                colour     = "grey70",
                size       = .25) +
     scale_x_continuous(limits       = symmetric_range((1+mult)*sppvecs_list_fixdf$LD1),
-                       breaks       = c(-3,-1.5,0,1.5,3),
+                       breaks       = c(-6,-3,0,3,6),
                        minor_breaks = NULL) +
     scale_y_continuous(limits       = symmetric_range((1+mult)*sppvecs_list_fixdf$LD2),
-                       breaks       = c(-3,-1.5,0,1.5,3),
+                       breaks       = c(-6,-3,0,3,6),
                        minor_breaks = NULL) +
     geom_point(aes(x    = axis1c, 
                    y    = axis2c, 
