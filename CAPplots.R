@@ -166,23 +166,23 @@ for(i in systemSeason_list$systemSeason){
                  color = "grey1",
                  size  = .75,
                  alpha = 0.6)+
-    geom_label_repel(data = spp_vecs,
-                     aes(x     = mult*LD1 + 0.2*cos(atan(LD2/LD1))*sign(LD1),
-                         y     = mult*LD2 + 0.2*sin(atan(LD2/LD1))*sign(LD2),
-                         label = rownames(spp_vecs),
-                         ),
-                     segment.alpha = 0,
-                     size          = 3.25,
-                     color         = "blue",
-                     fontface      = "bold",
-                     fill          = "white",
-                     alpha         = 0.7,
-                     box.padding   = .25,
-                     lineheight    = 0.4,
-                     label.size    = 0.25,
-                     nudge_x       = ifelse(spp_vecs$LD1>0,0.05,-0.05),
-                     nudge_y       = ifelse(spp_vecs$LD2>-0.02,0.05,-0.05),
-                     force         = 0.3) +
+    # geom_label_repel(data = spp_vecs,
+    #                  aes(x     = mult*LD1 + 0.2*cos(atan(LD2/LD1))*sign(LD1),
+    #                      y     = mult*LD2 + 0.2*sin(atan(LD2/LD1))*sign(LD2),
+    #                      label = rownames(spp_vecs),
+    #                      ),
+    #                  segment.alpha = 0,
+    #                  size          = 3.25,
+    #                  color         = "blue",
+    #                  fontface      = "bold",
+    #                  fill          = "white",
+    #                  alpha         = 0.7,
+    #                  box.padding   = .25,
+    #                  lineheight    = 0.4,
+    #                  label.size    = 0.25,
+    #                  nudge_x       = ifelse(spp_vecs$LD1>0,0.05,-0.05),
+    #                  nudge_y       = ifelse(spp_vecs$LD2>-0.02,0.05,-0.05),
+    #                  force         = 0.3) +
     guides(fill = guide_legend(override.aes = list(size = 2.5),
                                keyheight    = 0.15,
                                keywidth     = 0.2))
@@ -375,6 +375,16 @@ CAPsforAll[[i]]$centroids <- centroids.long(sites.long(ordiplot(CAPsforAll[[i]])
 
 
 ##### centroids with sppvec plots #######
+#need fixed range of sppvecs first
+sppvecs_list_fix <- list()
+for(i in systemSeason_list$systemSeason){
+spp_vecs <- data.frame(CAPsforAll[[i]]$cproj) %>%
+  arrange(desc(abs(LD1))) %>%
+  slice_head(n = 10)
+sppvecs_list_fix[[i]] <- spp_vecs
+}
+sppvecs_list_fixdf <- bind_rows(sppvecs_list_fix)
+
 for(i in systemSeason_list$systemSeason){
   print(i) #watch progress through list
   var_CA <- round(cap_pctvars(CAPsforAll[[i]]), 2)
@@ -385,7 +395,7 @@ for(i in systemSeason_list$systemSeason){
                            arrange(desc(abs(LD1))) %>%
                            slice_head(n = 10)
   sppvecs_list[[i]] <- spp_vecs
-  mult <- 6
+  mult <- 2.5
   plots[[i]] <- ggplot(middles) + 
     geom_vline(xintercept = 0,
                colour     = "grey70",
@@ -393,11 +403,11 @@ for(i in systemSeason_list$systemSeason){
     geom_hline(yintercept = 0,
                colour     = "grey70",
                size       = .25) +
-    scale_x_continuous(limits       = symmetric_range((1+mult)*spp_vecs$LD1),
-                       breaks       = c(-6,-3,0,3,6),
+    scale_x_continuous(limits       = symmetric_range((1+mult)*sppvecs_list_fixdf$LD1),
+                       breaks       = c(-3,-1.5,0,1.5,3),
                        minor_breaks = NULL) +
-    scale_y_continuous(limits       = symmetric_range,
-                       breaks       = c(-6,-3,0,3,6),
+    scale_y_continuous(limits       = symmetric_range((1+mult)*sppvecs_list_fixdf$LD2),
+                       breaks       = c(-3,-1.5,0,1.5,3),
                        minor_breaks = NULL) +
     geom_point(aes(x    = axis1c, 
                    y    = axis2c, 
