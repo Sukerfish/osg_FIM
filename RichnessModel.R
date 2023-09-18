@@ -50,7 +50,8 @@ SXR_filtered <- SXR_filtered_spp %>%
 filteredTemp <- SXR_filtered %>%
   select(!c(Reference, N, systemZone, BottomVegCover, Temperature, n_hauls)) %>%
   distinct() %>%
-  mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH")))
+  mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH")))%>%
+  mutate(season = str_to_title(season))
 
 #### temperature plots #######
 lowerLimits <- ggplot(filteredTemp,
@@ -125,7 +126,7 @@ total <- ggplot(longTemp,
                           #shape = season,
                           color = name
                       )) + 
-  geom_point(
+  geom_point(size = 2
   ) +
   geom_hline(aes(yintercept = avg_ltm),
              linetype = "dashed") +
@@ -137,7 +138,8 @@ total <- ggplot(longTemp,
   labs(title = "Water Temperature Extremes Over Time",
        x     = "Year",
        y     = "Annual Water Temperature (°C)",
-       color = "Percentile"
+       color = "Percentile",
+       #shape = "Season"
   ) +
   osg_theme +
   facet_grid(season~system,
