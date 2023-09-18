@@ -95,12 +95,20 @@ betaTimeDF <- bind_rows(betaTime, .id = "systemSeason") %>%
   rename(Index = name) %>%
   mutate(season = str_to_title(season))
 
+system_name <- c(
+  AP = "Apalachicola Bay",
+  CK = "Cedar Key",
+  TB = "Tampa Bay",
+  CH = "Charlotte Harbor"
+)
+
 betaTimePlot <- ggplot(data = betaTimeDF) +
   geom_line(aes(x = seasonYear,
     y = value,
     color = Index),
     linewidth = 0.7) +
-  facet_grid(system~season) +
+  facet_grid(season~system,
+             labeller = labeller(system = system_name)) +
   scale_x_continuous(breaks= seq(1998,2020,2)) +
   # scale_color_cmocean(discrete = TRUE,
   #                     name = "solar") +
@@ -111,7 +119,6 @@ betaTimePlot <- ggplot(data = betaTimeDF) +
        y = "Betadiversity index",
        color = "Component") +
   osg_theme
-
 
 # ggsave(plot = betaTimePlot,
 #        filename = "./Outputs/betaTime.png",

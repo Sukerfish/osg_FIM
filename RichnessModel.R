@@ -6,6 +6,8 @@ library(patchwork)
 load('TidyGearCode20.Rdata')
 load('SXS_filtered.Rdata')
 
+osg_theme <- readRDS('osg_theme.rds')
+
 #load in base data
 
 SXR_filtered_spp <- SXS_filtered %>%
@@ -47,7 +49,9 @@ SXR_filtered <- SXR_filtered_spp %>%
 
 filteredTemp <- SXR_filtered %>%
   select(!c(Reference, N, systemZone, BottomVegCover, Temperature, n_hauls)) %>%
-  distinct()
+  distinct() %>%
+  mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH")))
+
 #### temperature plots #######
 lowerLimits <- ggplot(filteredTemp,
        aes(x    = as.numeric(as.character(seasonYear)), 
@@ -66,15 +70,7 @@ lowerLimits <- ggplot(filteredTemp,
        y     = "Annual 10% Coldest Water Temperature  Threshold (°C)",
        #fill  = NULL
   ) +
-  # scale_fill_manual(values = cbPalette1,
-  #                   labels = c(unique(as.character(df_env$seasonYear)))) +
-  theme_bw() +
-  theme(legend.text       = element_text(size=rel(0.8)),
-        legend.position   = c(0.1,0.89),
-        legend.background = element_blank(),
-        legend.key        = element_blank(),
-        #panel.grid        = element_blank()
-  ) +
+  osg_theme +
   facet_grid(season ~ system)
 
 upperLimits <- ggplot(filteredTemp,
@@ -104,6 +100,55 @@ upperLimits <- ggplot(filteredTemp,
         #panel.grid        = element_blank()
   ) +
   facet_grid(season ~ system)
+
+longTemp <- filteredTemp %>%
+  group_by(system, seasonYear) %>%
+  pivot_longer(cols = c("lower", "upper")) %>%
+  mutate(name = factor(name, levels = c("upper", "lower")))
+
+
+capitalize <- function(string) {
+  substr(string, 1, 1) <- toupper(substr(string, 1, 1))
+  string
+}
+
+system_name <- c(
+  AP = "Apalachicola Bay",
+  CK = "Cedar Key",
+  TB = "Tampa Bay",
+  CH = "Charlotte Harbor"
+)
+#full plot
+total <- ggplot(longTemp,
+                      aes(x    = as.numeric(as.character(seasonYear)), 
+                          y    = value, 
+                          #shape = season,
+                          color = name
+                      )) + 
+  geom_point(
+  ) +
+  geom_hline(aes(yintercept = avg_ltm),
+             linetype = "dashed") +
+  geom_smooth(method=lm) +
+  geom_errorbar(aes(ymin = value-se_temp, ymax = value+se_temp))+
+  scale_x_continuous(breaks= seq(1998,2020,4)) +
+  scale_color_brewer(palette = "Set1",
+                     labels = c("upper" = "Upper 90th", "lower" = "Lower 10th")) +
+  labs(title = "Water Temperature Extremes Over Time",
+       x     = "Year",
+       y     = "Annual Water Temperature (°C)",
+       color = "Percentile"
+  ) +
+  osg_theme +
+  facet_grid(season~system,
+             labeller = labeller(.default = capitalize,
+                                 system = system_name))
+
+# ggsave(plot = total,
+#        filename = "./Outputs/tempTime.png",
+#        width = 16,
+#        height = 9)
+
 
 tempX <- upperLimits + lowerLimits
 
