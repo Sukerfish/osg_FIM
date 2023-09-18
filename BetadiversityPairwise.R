@@ -12,6 +12,8 @@ library(vegan)
 load('TidyGearCode20.Rdata')
 load('SXS_filtered.Rdata') #already 4th root transformed
 
+osg_theme <- readRDS('osg_theme.rds')
+
 #load in base data
 
 bpart <- SXS_filtered %>%
@@ -100,16 +102,16 @@ betaTimePlot <- ggplot(data = betaTimeDF) +
     linewidth = 0.7) +
   facet_grid(system~season) +
   scale_x_continuous(breaks= seq(1998,2020,2)) +
-  theme_bw() +
+  # scale_color_cmocean(discrete = TRUE,
+  #                     name = "solar") +
+  # scale_color_viridis_d(option = "viridis") +
+  scale_color_brewer(palette = "Set1") +
   labs(title = "Abundance-based dissimilarity over time",
        x = "Year",
        y = "Betadiversity index",
        color = "Component") +
-  theme(axis.text = element_text(size = 12),
-        axis.title = element_text(size = 16),
-        strip.text = element_text(size = 16),
-        title = element_text(size = 20),
-        legend.text = element_text(size = 12))
+  osg_theme
+
 
 # ggsave(plot = betaTimePlot,
 #        filename = "./Outputs/betaTime.png",
