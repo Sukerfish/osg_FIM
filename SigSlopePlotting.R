@@ -69,6 +69,7 @@ YearXSpeciesZ <- SiteXSpeciesFull %>%
   group_by(system, season, seasonYear) %>%
   mutate(zscore = ((avg - LTmean)/stdev)) %>% #calculate zscores using annual means
   ungroup() %>%
+  mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH"))) %>%
   filter(LTmean > 0) %>% #remove taxa entirely absent from each system - if LTmean = 0, taxa never observed
   filter(Scientificname != "No fish") 
 # #filter(Scientificname == "Leiostomus xanthurus") %>%
@@ -77,7 +78,14 @@ YearXSpeciesZ <- SiteXSpeciesFull %>%
 
 YearXSigSpeciesZ <- sigSlopesdf %>%
   left_join(YearXSpeciesZ) %>%
-  filter(sign(slope) == -1)
+  mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH"))) %>%
+  group_by(system, season) %>%
+  #arrange(desc(abs(slope)), .by_group = TRUE) %>%
+  #ungroup() %>%
+  #group_by(Scientificname) %>%
+  #slice_head(n = 5) %>%
+  #filter(sign(slope) == -1) %>%
+  mutate(season = str_to_title(season))
 
 system_name <- c(
   AP = "Apalachicola Bay",
@@ -94,16 +102,16 @@ sigSlopePlot <- ggplot(data = YearXSigSpeciesZ) +
             ) +
   facet_grid(season~system,
              labeller = labeller(system = system_name)) +
-  scale_x_continuous(breaks = seq(1998,2020,2)) +
+  scale_x_continuous(breaks = seq(1998,2020,4)) +
   osg_theme +
   theme(legend.position = "none")
   
   # scale_color_cmocean(discrete = TRUE,
   #                     name = "solar") +
   # scale_color_viridis_d(option = "viridis") +
-  scale_color_brewer(palette = "Set1") +
-  labs(title = "Abundance-based dissimilarity over time",
-       x = "Year",
-       y = "Betadiversity index",
-       color = "Component") +
-  osg_theme
+  # scale_color_brewer(palette = "Set1") +
+  # labs(title = "Abundance-based dissimilarity over time",
+  #      x = "Year",
+  #      y = "Betadiversity index",
+  #      color = "Component") +
+  # osg_theme
