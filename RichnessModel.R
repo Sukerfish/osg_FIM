@@ -798,11 +798,11 @@ summary(test)
 
 ##### summaries ####
 #define vars for summarizing
-vars = c("n", "BottomVegCover")
-RichnessSummary <- FullRichness %>%
-  subset(select = c(system, seasonYear, season, n, BottomVegCover)) %>%
+varst = c("N", "BottomVegCover")
+RichnessSummary <- SXR_filtered %>%
+  select(c(system, seasonYear, season, N, BottomVegCover)) %>%
   group_by(system, seasonYear, season) %>%
-  summarise(across(any_of(vars),
+  summarise(across(any_of(varst),
                    list(
                      mean = ~mean(., na.rm=TRUE),
                      median = ~median(., na.rm=TRUE),
@@ -820,21 +820,22 @@ library(cowplot)
 
 #Richness Plot
 p1 <- ggplot(data=RichnessSummary,
-       aes(x=seasonYear, y=n_mean)) +
+             aes(x=as.numeric(as.character(seasonYear)),
+                 y=N_mean)) +
   geom_ribbon(
-    aes(ymin=n_q10,
-        ymax=n_q90,
+    aes(ymin=N_q10,
+        ymax=N_q90,
         fill="10th-90th Percentile"),
     linetype=2, alpha=0.1, color="purple") +
   geom_point(
-    aes(y = n_median, 
+    aes(y = N_median, 
         color="median")
   ) +
   #theme(legend.position="bottom") +
   theme_bw() + 
   ggtitle("Richness over time") +
   xlab("Year") +
-  scale_x_continuous(breaks = seq(1998, 2020, 2)) +
+  #scale_x_continuous(breaks = seq(1998, 2020, 2)) +
   ylab("Number of taxa per haul") +
   geom_line(aes(color = "mean")) +
   facet_grid(season ~ system) +
@@ -843,7 +844,7 @@ p1 <- ggplot(data=RichnessSummary,
 
 #BottomVegCover plot
 p2 <- ggplot(data=RichnessSummary,
-       aes(x=seasonYear, y=BottomVegCover_mean)) +
+             aes(x=as.numeric(as.character(seasonYear)), y=BottomVegCover_mean)) +
   geom_ribbon(
     aes(ymin=BottomVegCover_q10,
         ymax=BottomVegCover_q90,
@@ -855,14 +856,20 @@ p2 <- ggplot(data=RichnessSummary,
   ) +
   #theme(legend.position="bottom") +
   theme_bw() + 
-  ggtitle("Seagrass coverage over time") +
+  ggtitle("SAV coverage over time") +
   xlab("Year") +
-  scale_x_continuous(breaks = seq(1998, 2020, 2)) +
-  ylab("Estimated percent seagrass coverage") +
+  #scale_x_continuous(breaks = seq(1998, 2020, 2)) +
+  ylab("Estimated percent SAV coverage") +
   geom_line(aes(color = "mean")) +
   facet_grid(season ~ system) +
   theme(strip.text.x = element_text(size = 20)) +
   theme(strip.text.y = element_text(size = 20))
 
-plot_grid(p1, p2,
-          ncol = 1)
+richGrass <- wrap_plots(p1, p2,
+          ncol = 1,
+          guides = "collect")
+
+# ggsave(plot = richGrass,
+#        filename = "./Outputs/richGrass.png",
+#        width = 16,
+#        height = 9)
