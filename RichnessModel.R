@@ -285,13 +285,50 @@ modelDFAb_winter <- as.data.frame(totAbModelDF %>%
 # library(MASS) # needs MASS (version 7.3-58)
 library(glmmTMB)
 
+sysList <- unique(totAbModelDF$system)
+
+sysGLMMS_summer <- list()
+for (i in sysList){
+  runner <- data.frame()
+  runner <- filter(modelDFAb_summer, system == i)
+  
+  glmmOut <- glmmTMB(N ~ contYear +
+                           offset(log(n_hauls)) +
+                           Temperature +
+                           BottomVegCover +
+                           ar1(seasonYear + 0|systemZone),
+                         data = runner,
+                         family = gaussian)
+  sysGLMMS_summer[[i]] <- summary(glmmOut)
+}
+
+sysGLMMS_summer$CH$coefficients
+
+sysGLMMS_winter <- list()
+for (i in sysList){
+  funner <- data.frame()
+  funner <- filter(modelDFAb_winter, system == i)
+  
+  glmmOut <- glmmTMB(N ~ contYear +
+                       offset(log(n_hauls)) +
+                       Temperature +
+                       BottomVegCover +
+                       ar1(seasonYear + 0|systemZone),
+                     data = funner,
+                     family = gaussian)
+  sysGLMMS_winter[[i]] <- summary(glmmOut)
+}
+
+#sqrt(diag(vcov(glmmOut)$cond))
+sysGLMMS_winter$AP$coefficients
+
 #richness first
 #summer
 tmbR_summer <- glmmTMB(N ~ system +
                      contYear +
                      offset(log(n_hauls)) +
                      Temperature +
-                     (1|BottomVegCover) +
+                     BottomVegCover +
                      ar1(seasonYear + 0|systemZone),
                    data = modelDFAb_summer,
                    family = gaussian)
@@ -303,7 +340,7 @@ tmbR_winter <- glmmTMB(N ~ system +
                          contYear +
                          offset(log(n_hauls)) +
                          Temperature +
-                         (1|BottomVegCover) +
+                         BottomVegCover +
                          ar1(seasonYear + 0|systemZone),
                        data = modelDFAb_winter,
                        family = gaussian)
@@ -316,7 +353,7 @@ tmbA_summer <- glmmTMB(abund ~ system +
                          contYear +
                          offset(log(n_hauls)) +
                          Temperature +
-                         (1|BottomVegCover) +
+                         BottomVegCover +
                          ar1(seasonYear + 0|systemZone),
                        data = modelDFAb_summer,
                        family = gaussian)
@@ -328,7 +365,7 @@ tmbA_winter <- glmmTMB(abund ~ system +
                          contYear +
                          offset(log(n_hauls)) +
                          Temperature +
-                         (1|BottomVegCover) +
+                         BottomVegCover +
                          ar1(seasonYear + 0|systemZone),
                        data = modelDFAb_winter,
                        family = gaussian)
