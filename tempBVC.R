@@ -12,6 +12,10 @@ library(egg)
 library(patchwork)
 library(ggpmisc) #for labeling
 library(broom) #for labeling
+library(DHARMa)
+library(gridExtra)
+library(gridGraphics)
+library(grid)
 
 load('TidyGearCode20.Rdata')
 load('SXS_filtered.Rdata')
@@ -110,17 +114,32 @@ systemSeason_list <- SXS_filtered %>%
   select(systemSeason) %>%
   distinct()
 
-## filter out hauls that were solely rare (<=5% presence in total samples)
-# linearRegs <- list()
-# for(i in systemSeason_list$systemSeason){
-#   print(i) #watch progress through list
-#   
-#   df <- data.frame()
-#   df <- SXR_filtered %>%
-#     filter(systemSeason == i)
-#   
-#   linearRegs[[i]] <- lm(meanBVC ~ as.numeric(as.character(seasonYear)), data = df)
-# }
+# run simple linear models and check Q-Q plots for diagnostics
+linearRegs <- list()
+plots <- list()
+for(i in systemSeason_list$systemSeason){
+  print(i) #watch progress through list
+
+  df <- data.frame()
+  df <- SXR_filtered %>%
+    filter(systemSeason == i)
+  
+   #run model
+   out <- lm(meanN ~ as.numeric(as.character(seasonYear)), data = df)
+  
+   #generate simulated residuals
+   linearRegs[[i]] <- simulateResiduals(fittedModel = out, plot = F)
+   p <- recordPlot() #cludgy way to convert graphics to grob
+   plot.new()
+   plotQQunif(linearRegs[[i]])
+   grid.echo()
+   a <- grid.grab() #save grob in loop 
+   plots[[i]] <- grid.arrange(a, top = paste0(i)) #label each grob with systemSeason
+   
+}
+
+#plot em up
+wrap_plots(plots, ncol = 2)
 
 BVCPlot <- ggplot(data = waterBVC_full,
        aes(x    = as.numeric(as.character(seasonYear)), 
