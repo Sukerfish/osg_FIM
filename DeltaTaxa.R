@@ -11,12 +11,14 @@ library(writexl)
 library(egg)
 
 load('TidyGearCode20.Rdata')
+load('SXS_filtered.Rdata')
 
 #### Z scored abundance ####
 
 #grab basic haul data and counts
 CleanHauls <- TidyBio %>%
-  subset(select = c(Reference, system, season, seasonYear, systemZone, Scientificname, N2))
+  subset(select = c(Reference, system, season, seasonYear, systemZone, Scientificname, N2)) %>%
+  filter(Reference %in% SXS_filtered$Reference)
 
 #full site by species matrix
 SiteXSpeciesFull <- CleanHauls %>%
@@ -132,7 +134,8 @@ N.turnovers <- function (vec=rbinom(50,1,0.5)) {
 ##### FIRST RUN WITH XFORM DATA FOR SIGNIFICANCE TEST #######
 
 SiteXSpeciesAnnual <- YearXSpeciesZ %>%
-  mutate(avgXform = avg^.5) %>% #sqrt transform to account for overly abundant taxa
+  mutate(avgXform = avg^.5) %>% #sqrt transform to account for overly abundant taxa 
+                                #fourth root xform adds 7 new instances of significantly changing taxa
   pivot_wider(id_cols = system:seasonYear,
               names_from = Scientificname,
               values_from = avgXform,
@@ -230,24 +233,32 @@ SlopesForAllDF$raw_slope <- SlopesForAllDFRaw$raw_slope
 SlopesForAllDF$raw_stderr <- SlopesForAllDFRaw$stderr
 
 ###### plot it up ######
-ggplot(SlopesForAllDF, 
-       aes(raw_slope))+
+winnersLosers <- ggplot(SlopesForAllDF, 
+       aes(x = raw_slope))+
   geom_histogram(binwidth = .01) +
-  geom_density(adjust = 10, fill="#69b3a2", color="#e9ecef", alpha=0.8) +
+  geom_density(adjust = 10, 
+               fill="#69b3a2", color="#e9ecef", alpha=0.8) +
   #geom_vline(aes(xintercept = mean), test, linetype="dashed", colour = "blue")+
   geom_vline(xintercept = 0, linetype="dashed") +
   #geom_vline(aes(xintercept = mean+siq), test, colour = "red")+
   #geom_vline(aes(xintercept = mean-siq), test, colour = "red")+
   facet_grid(season~system,
              scales = "free_y") +
-  coord_cartesian(xlim = c(-0.05, 0.05)) +
-  #xlab("Population Change") +
-  #ylab("Number of Taxa") +
+  coord_cartesian(xlim = c(-0.1, 0.1)) +
+  xlab("Raw Linear Slope") +
+  ylab("Number of Taxa") +
   theme(axis.text=element_text(size = 12)) +
   theme(axis.title=element_text(size = 16)) +
   theme(strip.text = element_text(size = 16)) +
   #ggtitle("GLM w/ no Xform") +
   theme(title=element_text(size = 20))
+
+# ggsave(filename = "winnersLosers.png",
+#        plot = winnersLosers,
+#        device = "png",
+#        path = "./",
+#        width = 16,
+#        height = 9)
 
 ##### significant slopes wrangling ######
 
@@ -343,6 +354,13 @@ sigSlopesGroups <- ggplot(sigSlopes_grouped,
         ) +
   #coord_cartesian(xlim = c(-.2, 0.2)) +
   geom_vline(xintercept = 0, linetype="dashed")
+
+# ggsave(filename = "sigGroups.png",
+#        plot = sigSlopesGroups,
+#        device = "png",
+#        path = "./",
+#        width = 16,
+#        height = 9)
 
 library(rfishbase)
 library(taxize)
