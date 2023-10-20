@@ -203,12 +203,21 @@ modelDFM <- SXR_filtered %>%
 
 modelDF <- as.data.frame(modelDFM)
 
+# abundanceModelDF <- SXS_filtered %>%
+#   select(!c(systemSeason, seasonYear, BottomVegCover, systemZone, Temperature)) %>%
+#   #group_by(Reference) %>%
+#   rowwise() %>% #sum abundance across all taxa
+#   mutate(abund = sum(across(-Reference))) %>%
+#   select(c(Reference, abund))
+
 abundanceModelDF <- SXS_filtered %>%
-  select(!c(systemSeason, seasonYear, BottomVegCover, systemZone, Temperature)) %>%
-  #group_by(Reference) %>%
-  rowwise() %>% #sum abundance across all taxa
-  mutate(abund = sum(across(-Reference))) %>%
-  select(c(Reference, abund))
+  select(!c(systemSeason, seasonYear, systemZone, BottomVegCover, Temperature)) %>%
+  pivot_longer(cols = !c(Reference),
+               names_to = "taxa") %>% #pivot to reference and taxa only
+  mutate(nRaw = value^4) %>%
+  group_by(Reference) %>%
+  summarise(abundRaw = sum(nRaw)) %>% #sum all abundance values 
+  mutate(abund = abundRaw^0.25)
 
 totAbModelDF <- abundanceModelDF %>%
   left_join(SXR_filtered) %>% #merge in enviro data
@@ -287,6 +296,8 @@ library(glmmTMB)
 
 sysList <- unique(totAbModelDF$system)
 
+linearRegs <- list()
+plots <- list()
 sysGLMMS_summer <- list()
 for (i in sysList){
   runner <- data.frame()
@@ -300,10 +311,23 @@ for (i in sysList){
                          data = runner,
                          family = gaussian)
   sysGLMMS_summer[[i]] <- summary(glmmOut)
+  
+  #generate simulated residuals
+  linearRegs[[i]] <- simulateResiduals(fittedModel = glmmOut, plot = F)
+  p <- recordPlot() #cludgy way to convert graphics to grob
+  plot.new()
+  testQuantiles(linearRegs[[i]])
+  #plotQQunif(linearRegs[[i]])
+  grid.echo()
+  a <- grid.grab() #save grob in loop 
+  plots[[i]] <- grid.arrange(a, top = paste0(i)) #label each grob with systemSeason
 }
+wrap_plots(plots, ncol = 2)
 
 sysGLMMS_summer$CH$coefficients
 
+linearRegs <- list()
+plots <- list()
 sysGLMMS_winter <- list()
 for (i in sysList){
   funner <- data.frame()
@@ -317,8 +341,19 @@ for (i in sysList){
                      data = funner,
                      family = gaussian)
   sysGLMMS_winter[[i]] <- summary(glmmOut)
+  
+  #generate simulated residuals
+  linearRegs[[i]] <- simulateResiduals(fittedModel = glmmOut, plot = F)
+  p <- recordPlot() #cludgy way to convert graphics to grob
+  plot.new()
+  testQuantiles(linearRegs[[i]])
+  #plotQQunif(linearRegs[[i]])
+  grid.echo()
+  a <- grid.grab() #save grob in loop 
+  plots[[i]] <- grid.arrange(a, top = paste0(i)) #label each grob with systemSeason
 }
 
+wrap_plots(plots, ncol = 2)
 #sqrt(diag(vcov(glmmOut)$cond))
 sysGLMMS_winter$AP$coefficients
 
@@ -332,6 +367,7 @@ tmbR_summer <- glmmTMB(N ~ system +
                      ar1(seasonYear + 0|systemZone),
                    data = modelDFAb_summer,
                    family = gaussian)
+simulateResiduals(fittedModel = tmbR_summer, plot = T)
 summary(tmbR_summer)
 #plot(tmbR_summer)
 
@@ -344,6 +380,7 @@ tmbR_winter <- glmmTMB(N ~ system +
                          ar1(seasonYear + 0|systemZone),
                        data = modelDFAb_winter,
                        family = gaussian)
+simulateResiduals(fittedModel = tmbR_winter, plot = T)
 summary(tmbR_winter)
 #plot(tmbR_winter)
 
@@ -357,6 +394,7 @@ tmbA_summer <- glmmTMB(abund ~ system +
                          ar1(seasonYear + 0|systemZone),
                        data = modelDFAb_summer,
                        family = gaussian)
+plotQQunif(simulateResiduals(fittedModel = tmbA_summer, plot = T))
 summary(tmbA_summer)
 #plot(tmbA_summer)
 
@@ -369,6 +407,7 @@ tmbA_winter <- glmmTMB(abund ~ system +
                          ar1(seasonYear + 0|systemZone),
                        data = modelDFAb_winter,
                        family = gaussian)
+simulateResiduals(fittedModel = tmbA_winter, plot = T)
 summary(tmbA_winter)
 #plot(tmbA_winter)
 
