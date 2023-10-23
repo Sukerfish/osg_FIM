@@ -43,6 +43,13 @@ SXR_filtered <- SXR_filtered_spp %>%
          se_temp = sd_ltm/sqrt(n_temp),
          lower.ci.anom.temp = 0 - (1.96 * se_temp),
          upper.ci.anom.temp = 0 + (1.96 * se_temp)) %>%
+  #zscoreing
+  mutate(bvc_ltm  = mean(BottomVegCover, na.rm = TRUE),
+         bvc_sd   = sd(BottomVegCover, na.rm = TRUE),
+         temp_ltm = mean(Temperature, na.rm = TRUE),
+         temp_sd  = sd(Temperature, na.rm = TRUE),
+         bvc_Z    = ((BottomVegCover - bvc_ltm)/bvc_sd),
+         temp_Z   = ((Temperature - temp_ltm)/temp_sd)) %>%
   separate(systemSeason,
            c("system","season"),
            sep = "_") 
@@ -293,6 +300,12 @@ modelDFAb_winter <- as.data.frame(totAbModelDF %>%
 # library(lme4)
 # library(MASS) # needs MASS (version 7.3-58)
 library(glmmTMB)
+library(DHARMa)
+library(gridExtra)
+library(gridGraphics)
+library(grid)
+library(AICcmodavg)
+library(performance)
 
 sysList <- unique(totAbModelDF$system)
 
@@ -305,18 +318,18 @@ for (i in sysList){
   
   glmmOut <- glmmTMB(N ~ contYear +
                            offset(log(n_hauls)) +
-                           Temperature +
-                           BottomVegCover +
+                           temp_Z +
+                           bvc_Z +
                            ar1(seasonYear + 0|systemZone),
                          data = runner,
                          family = gaussian)
-  sysGLMMS_summer[[i]] <- summary(glmmOut)
+  sysGLMMS_summer[[i]] <- glmmOut
   
   #generate simulated residuals
   linearRegs[[i]] <- simulateResiduals(fittedModel = glmmOut, plot = F)
   p <- recordPlot() #cludgy way to convert graphics to grob
   plot.new()
-  testQuantiles(linearRegs[[i]])
+  plotResiduals(linearRegs[[i]])
   #plotQQunif(linearRegs[[i]])
   grid.echo()
   a <- grid.grab() #save grob in loop 
@@ -324,7 +337,9 @@ for (i in sysList){
 }
 wrap_plots(plots, ncol = 2)
 
-sysGLMMS_summer$CH$coefficients
+check_model(sysGLMMS_summer$TB)
+
+summary(sysGLMMS_summer$CH)
 
 linearRegs <- list()
 plots <- list()
@@ -335,18 +350,18 @@ for (i in sysList){
   
   glmmOut <- glmmTMB(N ~ contYear +
                        offset(log(n_hauls)) +
-                       Temperature +
-                       BottomVegCover +
+                       temp_Z +
+                       bvc_Z +
                        ar1(seasonYear + 0|systemZone),
                      data = funner,
                      family = gaussian)
-  sysGLMMS_winter[[i]] <- summary(glmmOut)
+  sysGLMMS_winter[[i]] <- glmmOut
   
   #generate simulated residuals
   linearRegs[[i]] <- simulateResiduals(fittedModel = glmmOut, plot = F)
   p <- recordPlot() #cludgy way to convert graphics to grob
   plot.new()
-  testQuantiles(linearRegs[[i]])
+  plot(linearRegs[[i]])
   #plotQQunif(linearRegs[[i]])
   grid.echo()
   a <- grid.grab() #save grob in loop 
@@ -354,16 +369,83 @@ for (i in sysList){
 }
 
 wrap_plots(plots, ncol = 2)
-#sqrt(diag(vcov(glmmOut)$cond))
-sysGLMMS_winter$AP$coefficients
+summary(sysGLMMS_summer)
+check_model(sysGLMMS_winter$AP)
+
+summary(sysGLMMS_winter$CH)
+
+
+#### abundance  ####
+
+
+linearRegs <- list()
+plots <- list()
+sysGLMMS_abund_summer <- list()
+for (i in sysList){
+  runner <- data.frame()
+  runner <- filter(modelDFAb_summer, system == i)
+  
+  glmmOut <- glmmTMB(abund ~ contYear +
+                       offset(log(n_hauls)) +
+                       temp_Z +
+                       bvc_Z +
+                       ar1(seasonYear + 0|systemZone),
+                     data = runner,
+                     family = gaussian)
+  sysGLMMS_abund_summer[[i]] <- glmmOut
+  
+  #generate simulated residuals
+  linearRegs[[i]] <- simulateResiduals(fittedModel = glmmOut, plot = F)
+  p <- recordPlot() #cludgy way to convert graphics to grob
+  plot.new()
+  plotResiduals(linearRegs[[i]])
+  #plotQQunif(linearRegs[[i]])
+  grid.echo()
+  a <- grid.grab() #save grob in loop 
+  plots[[i]] <- grid.arrange(a, top = paste0(i)) #label each grob with systemSeason
+}
+wrap_plots(plots, ncol = 2)
+
+check_model(sysGLMMS_abund_summer[[i]])
+
+linearRegs <- list()
+plots <- list()
+sysGLMMS_abund_winter <- list()
+for (i in sysList){
+  runner <- data.frame()
+  runner <- filter(modelDFAb_winter, system == i)
+  
+  glmmOut <- glmmTMB(abund ~ contYear +
+                       offset(log(n_hauls)) +
+                       temp_Z +
+                       bvc_Z +
+                       ar1(seasonYear + 0|systemZone),
+                     data = runner,
+                     family = gaussian)
+  sysGLMMS_abund_winter[[i]] <- glmmOut
+  
+  #generate simulated residuals
+  linearRegs[[i]] <- simulateResiduals(fittedModel = glmmOut, plot = F)
+  p <- recordPlot() #cludgy way to convert graphics to grob
+  plot.new()
+  plotResiduals(linearRegs[[i]])
+  #plotQQunif(linearRegs[[i]])
+  grid.echo()
+  a <- grid.grab() #save grob in loop 
+  plots[[i]] <- grid.arrange(a, top = paste0(i)) #label each grob with systemSeason
+}
+wrap_plots(plots, ncol = 2)
+
+check_model(sysGLMMS_abund_winter[[i]])
+
 
 #richness first
 #summer
 tmbR_summer <- glmmTMB(N ~ system +
                      contYear +
                      offset(log(n_hauls)) +
-                     Temperature +
-                     BottomVegCover +
+                       temp_Z +
+                       bvc_Z +
                      ar1(seasonYear + 0|systemZone),
                    data = modelDFAb_summer,
                    family = gaussian)
@@ -375,8 +457,8 @@ summary(tmbR_summer)
 tmbR_winter <- glmmTMB(N ~ system +
                          contYear +
                          offset(log(n_hauls)) +
-                         Temperature +
-                         BottomVegCover +
+                         temp_Z +
+                         bvc_Z +
                          ar1(seasonYear + 0|systemZone),
                        data = modelDFAb_winter,
                        family = gaussian)
@@ -389,12 +471,12 @@ summary(tmbR_winter)
 tmbA_summer <- glmmTMB(abund ~ system +
                          contYear +
                          offset(log(n_hauls)) +
-                         Temperature +
-                         BottomVegCover +
+                         temp_Z +
+                         bvc_Z +
                          ar1(seasonYear + 0|systemZone),
                        data = modelDFAb_summer,
                        family = gaussian)
-plotQQunif(simulateResiduals(fittedModel = tmbA_summer, plot = T))
+simulateResiduals(fittedModel = tmbA_summer, plot = T)
 summary(tmbA_summer)
 #plot(tmbA_summer)
 
@@ -402,8 +484,8 @@ summary(tmbA_summer)
 tmbA_winter <- glmmTMB(abund ~ system +
                          contYear +
                          offset(log(n_hauls)) +
-                         Temperature +
-                         BottomVegCover +
+                         temp_Z +
+                         bvc_Z +
                          ar1(seasonYear + 0|systemZone),
                        data = modelDFAb_winter,
                        family = gaussian)
