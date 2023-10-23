@@ -306,6 +306,7 @@ library(gridGraphics)
 library(grid)
 library(AICcmodavg)
 library(performance)
+library(jtools)
 
 sysList <- unique(totAbModelDF$system)
 
@@ -338,6 +339,7 @@ for (i in sysList){
 wrap_plots(plots, ncol = 2)
 
 check_model(sysGLMMS_summer$TB)
+effect_plot(glmmOut, pred = contYear, interval = TRUE, partial.residuals = TRUE)
 
 summary(sysGLMMS_summer$CH)
 
@@ -450,8 +452,8 @@ tmbR_summer <- glmmTMB(N ~ system +
                    data = modelDFAb_summer,
                    family = gaussian)
 simulateResiduals(fittedModel = tmbR_summer, plot = T)
+check_model(tmbR_summer)
 summary(tmbR_summer)
-#plot(tmbR_summer)
 
 #winter
 tmbR_winter <- glmmTMB(N ~ system +
