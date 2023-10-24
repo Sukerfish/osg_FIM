@@ -2,6 +2,7 @@
 
 library(tidyverse)
 library(patchwork)
+library(lubridate)
 
 load('TidyGearCode20.Rdata')
 load('SXS_filtered.Rdata')
@@ -21,9 +22,14 @@ SXR_filtered_spp <- SXS_filtered %>%
   select(!c(PA)) %>% #drop PA column
   distinct() #keep distinct pairs of ref/richness
 
+#build month dataframe
+monthly <- HydroList %>%
+  select(Reference, month)
+
 #rejoin with environmental data
 SXR_filtered <- SXR_filtered_spp %>%
   left_join(SXS_filtered_env) %>%
+  left_join(monthly) %>%
   group_by(systemSeason) %>%
   add_count(name = "n_hauls") %>% #count number of hauls per systemSeason
   ungroup() %>%
@@ -50,6 +56,14 @@ SXR_filtered <- SXR_filtered_spp %>%
          temp_sd  = sd(Temperature, na.rm = TRUE),
          bvc_Z    = ((BottomVegCover - bvc_ltm)/bvc_sd),
          temp_Z   = ((Temperature - temp_ltm)/temp_sd)) %>%
+  #monthly
+  ungroup() %>%
+  group_by(systemSeason, month) %>%
+  mutate(avg_temp_mon = mean(Temperature, na.rm = TRUE),
+         n_temp_mon = n(),
+         upper_mon = quantile(Temperature, 0.9),
+         lower_mon = quantile(Temperature, 0.1),
+         sd_mon = sd(Temperature)) %>%
   separate(systemSeason,
            c("system","season"),
            sep = "_") 
@@ -226,23 +240,33 @@ abundanceModelDF <- SXS_filtered %>%
   summarise(abundRaw = sum(nRaw)) %>% #sum all abundance values 
   mutate(abund = abundRaw^0.25)
 
+#factor date setup with standard interval of months
+years <- c(1998:2020)
+months <- c(1:12)
+dateSetup <- data.frame(contYear = rep(years, each = 12),
+                        month = rep(months, length(years)))
+dateSetup <- dateSetup %>%
+  unite(yearMonth, c(month, contYear), sep = "/", remove = FALSE)
+
 totAbModelDF <- abundanceModelDF %>%
   left_join(SXR_filtered) %>% #merge in enviro data
   # separate(systemSeason,
   #          c("system","season"),
   #          sep = "_") %>%
-  mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH"))) %>%
   mutate(contYear = as.numeric(as.character(seasonYear))) %>%
-  mutate(seasonYear = as.factor(seasonYear))
-  # mutate(n_hauls = log(n_hauls)) %>%
-  # filter(season == "summer") %>%
-  # filter(system == "TB") %>%
-  #filter(season == "winter")
+  unite(yearMonth, c(month, contYear), sep = "/", remove = FALSE) %>%
+  mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH"))) %>%
+  mutate(seasonYear = as.factor(seasonYear)) %>%
+  mutate(yearMonth = factor(yearMonth, levels = dateSetup$yearMonth))
 
 modelDFAb_summer <- as.data.frame(totAbModelDF %>%
                                     filter(season == "summer"))
+  # unite(yearMonth, c(contYear, month), remove = FALSE) %>%
+  # mutate(yearMonth = as.factor(yearMonth))
 modelDFAb_winter <- as.data.frame(totAbModelDF %>%
                                     filter(season == "winter"))
+  # unite(yearMonth, c(contYear, month), remove = FALSE) %>%
+  # mutate(yearMonth = as.factor(yearMonth))
 
 ####plots
 # ggplot(modelDF, aes(x=N)) +
@@ -307,6 +331,7 @@ library(grid)
 library(AICcmodavg)
 library(performance)
 library(jtools)
+library(fitdistrplus)
 
 sysList <- unique(totAbModelDF$system)
 
@@ -316,16 +341,28 @@ sysGLMMS_summer <- list()
 for (i in sysList){
   runner <- data.frame()
   runner <- filter(modelDFAb_summer, system == i)
+  # # linearRegs[[i]] <- simulateResiduals(fittedModel = glmmOut, plot = F)
+  # p <- recordPlot() #cludgy way to convert graphics to grob
+  # plot.new()
+  # descdist(runner$N, discrete = FALSE)
+  # #plotQQunif(linearRegs[[i]])
+  # grid.echo()
+  # a <- grid.grab() #save grob in loop
+  # plots[[i]] <- grid.arrange(a, top = paste0(i)) #label each grob with systemSeason
   
   glmmOut <- glmmTMB(N ~ contYear +
                            offset(log(n_hauls)) +
                            temp_Z +
                            bvc_Z +
-                           ar1(seasonYear + 0|systemZone),
+                       #(1|contYear) +
+                       #(1|systemZone),
+                           ar1(yearMonth + 0|systemZone),
                          data = runner,
+                     #dispformula = ~0,
+                     #ziformula = ~1,
                          family = gaussian)
   sysGLMMS_summer[[i]] <- glmmOut
-  
+
   #generate simulated residuals
   linearRegs[[i]] <- simulateResiduals(fittedModel = glmmOut, plot = F)
   p <- recordPlot() #cludgy way to convert graphics to grob
@@ -333,12 +370,12 @@ for (i in sysList){
   plotResiduals(linearRegs[[i]])
   #plotQQunif(linearRegs[[i]])
   grid.echo()
-  a <- grid.grab() #save grob in loop 
+  a <- grid.grab() #save grob in loop
   plots[[i]] <- grid.arrange(a, top = paste0(i)) #label each grob with systemSeason
 }
 wrap_plots(plots, ncol = 2)
 
-check_model(sysGLMMS_summer$TB)
+check_model(sysGLMMS_summer$CH)
 effect_plot(glmmOut, pred = contYear, interval = TRUE, partial.residuals = TRUE)
 
 summary(sysGLMMS_summer$CH)
@@ -354,7 +391,7 @@ for (i in sysList){
                        offset(log(n_hauls)) +
                        temp_Z +
                        bvc_Z +
-                       ar1(seasonYear + 0|systemZone),
+                       ar1(yearMonth + 0|systemZone),
                      data = funner,
                      family = gaussian)
   sysGLMMS_winter[[i]] <- glmmOut
@@ -391,7 +428,7 @@ for (i in sysList){
                        offset(log(n_hauls)) +
                        temp_Z +
                        bvc_Z +
-                       ar1(seasonYear + 0|systemZone),
+                       ar1(yearMonth + 0|systemZone),
                      data = runner,
                      family = gaussian)
   sysGLMMS_abund_summer[[i]] <- glmmOut
@@ -421,7 +458,7 @@ for (i in sysList){
                        offset(log(n_hauls)) +
                        temp_Z +
                        bvc_Z +
-                       ar1(seasonYear + 0|systemZone),
+                       ar1(yearMonth + 0|systemZone),
                      data = runner,
                      family = gaussian)
   sysGLMMS_abund_winter[[i]] <- glmmOut
