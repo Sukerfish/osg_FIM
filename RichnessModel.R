@@ -58,7 +58,8 @@ SXR_filtered <- SXR_filtered_spp %>%
          year_sd  = sd(as.numeric(as.character(seasonYear)), na.rm = TRUE),
          bvc_Z    = ((BottomVegCover - bvc_ltm)/bvc_sd),
          temp_Z   = ((Temperature - temp_ltm)/temp_sd),
-         year_Z    = (as.numeric(as.character(seasonYear)) - year_ltm)/year_sd) %>%
+         year_Z    = ((as.numeric(as.character(seasonYear)) - year_ltm)/year_sd),
+         sd_t_Z   = sd(temp_Z)) %>%
   #monthly
   ungroup() %>%
   group_by(systemSeason, month) %>%
@@ -66,6 +67,8 @@ SXR_filtered <- SXR_filtered_spp %>%
          n_temp_mon = n(),
          upper_mon = quantile(Temperature, 0.9),
          lower_mon = quantile(Temperature, 0.1),
+         upper_Z  = quantile(temp_Z, 0.9),
+         lower_Z  = quantile(temp_Z, 0.1),
          sd_mon = sd(Temperature)) %>%
   separate(systemSeason,
            c("system","season"),
@@ -240,7 +243,8 @@ abundanceModelDF <- SXS_filtered %>%
                names_to = "taxa") %>% #pivot to reference and taxa only
   mutate(nRaw = value^4) %>%
   group_by(Reference) %>%
-  summarise(abundRaw = sum(nRaw)) %>% #sum all abundance values 
+  summarise(abundRaw = sum(nRaw),
+            abundAdd = sum(value)) %>% #sum all abundance values 
   mutate(abund = abundRaw^0.25)
 
 #factor date setup with explicit standard interval of months
@@ -385,12 +389,16 @@ for (i in sysList){
 }
 
 richOut <- bind_rows(outputs, .id = "systemSeason")
-dust(richOut) %>%
+pinkOut <- dust(richOut) %>%
   sprinkle(cols = c("estimate", "std.error", "statistic"), round = 3) %>%
   sprinkle(cols = "p.value", fn = quote(pvalString(value))) %>%
   sprinkle_colnames(term = "Term", p.value = "P-value")
 
-# write.csv(richOut, file = "./Outputs/richnessOut.csv",
+funOut <- as.data.frame(pinkOut) %>%
+  select(c(systemSeason, Term, "estimate")) %>%
+  pivot_wider(names_from = Term, values_from = "estimate")
+
+# write.csv(funOut, file = "./Outputs/richnessOut.csv",
 #           row.names = FALSE)
 
 #wrap_plots(plots, ncol = 2)
@@ -411,7 +419,7 @@ for (i in sysList){
   funner <- data.frame()
   funner <- filter(totAbModelDF, systemSeason == i)
   
-  glmmOut <- glmmTMB(N ~ year_Z +
+  glmmOut <- glmmTMB(abundAdd ~ year_Z +
                        offset(log(n_hauls)) +
                        temp_Z +
                        bvc_Z +
@@ -439,12 +447,16 @@ for (i in sysList){
 
 
 abundOut <- bind_rows(outputs, .id = "systemSeason")
-dust(abundOut) %>%
+blueOut <- dust(abundOut) %>%
   sprinkle(cols = c("estimate", "std.error", "statistic"), round = 3) %>%
   sprinkle(cols = "p.value", fn = quote(pvalString(value))) %>%
   sprinkle_colnames(term = "Term", p.value = "P-value")
 
-# write.csv(abundOut, file = "./Outputs/abundOut.csv",
+bigOut <- as.data.frame(blueOut) %>%
+  select(c(systemSeason, Term, "estimate")) %>%
+  pivot_wider(names_from = Term, values_from = "estimate")
+
+# write.csv(bigOut, file = "./Outputs/abundOut.csv",
 #           row.names = FALSE)
 
 #wrap_plots(plots, ncol = 2)
@@ -456,6 +468,69 @@ dust(sysGLMMS_abund$CH_winter, effects = "fixed") %>%
   sprinkle(cols = "p.value", fn = quote(pvalString(value)))
 
 #summary(sysGLMMS_abund$CH_winter)
+
+
+
+######### temperature AIC #######
+library(buildmer)
+
+temp <- totAbModelDF %>%
+  filter(season == "winter")
+
+tempList <- unique(temp$systemSeason)
+varList <- c("upper_Z", "lower_Z", "sd_t_Z")
+
+linearRegs <- list()
+plots <- list()
+abundOut <- list()
+outputs <- list()
+tempGLMMS_abund <- list()
+for (i in tempList){
+  funner <- data.frame()
+  funner <- filter(totAbModelDF, systemSeason == i)
+  
+  glmmOut <- buildglmmTMB(abundAdd ~ year_Z +
+                       offset(log(n_hauls)) +
+                       temp_Z +
+                       bvc_Z +
+                         upper_Z +
+                         lower_Z +
+                       ar1(yearMonth + 0|systemZone),
+                     data = funner,
+                     family = gaussian(),
+                     buildmerControl(crit = "AIC"))
+  tempGLMMS_abund[[i]] <- glmmOut
+  #outputs[[i]] <- broom.mixed::tidy(glmmOut, effects = "fixed")
+  
+  # abundOut[[i]] <- dust(glmmOut, effects = "fixed", caption = i) %>%
+  #   sprinkle(cols = c("estimate", "std.error", "statistic"), round = 3) %>% 
+  #   sprinkle(cols = "p.value", fn = quote(pvalString(value))) %>% 
+  #   sprinkle_colnames(term = "Term", p.value = "P-value")
+  
+  # #generate simulated residuals
+  # linearRegs[[i]] <- simulateResiduals(fittedModel = glmmOut, plot = F)
+  # p <- recordPlot() #cludgy way to convert graphics to grob
+  # plot.new()
+  # plot(linearRegs[[i]])
+  # #plotQQunif(linearRegs[[i]])
+  # grid.echo()
+  # a <- grid.grab() #save grob in loop 
+  # plots[[i]] <- grid.arrange(a, top = paste0(i)) #label each grob with systemSeason
+}
+summary(tempGLMMS_abund$TB_winter)
+
+abundOut <- bind_rows(outputs, .id = "systemSeason")
+blueOut <- dust(abundOut) %>%
+  sprinkle(cols = c("estimate", "std.error", "statistic"), round = 3) %>%
+  sprinkle(cols = "p.value", fn = quote(pvalString(value))) %>%
+  sprinkle_colnames(term = "Term", p.value = "P-value")
+
+bigOut <- as.data.frame(blueOut) %>%
+  select(c(systemSeason, Term, "estimate")) %>%
+  pivot_wider(names_from = Term, values_from = "estimate")
+
+# write.csv(bigOut, file = "./Outputs/abundOut.csv",
+#           row.names = FALSE)
 
 
 
