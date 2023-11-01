@@ -7,6 +7,7 @@ library(tidyverse)
 library(ggplot2)
 
 load('TidyGearCode20.Rdata')
+load('SXS_filtered.Rdata')
 
 #### richness ####
 OnlyFish <- TidyBio %>%
