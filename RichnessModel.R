@@ -62,7 +62,7 @@ SXR_filtered <- SXR_filtered_spp %>%
          sd_t_Z   = sd(temp_Z)) %>%
   #monthly
   ungroup() %>%
-  group_by(systemSeason, month) %>%
+  group_by(systemSeason, seasonYear, month) %>%
   mutate(avg_temp_mon = mean(Temperature, na.rm = TRUE),
          n_temp_mon = n(),
          upper_mon = quantile(Temperature, 0.9),
@@ -269,6 +269,11 @@ totAbModelDF <- abundanceModelDF %>%
   mutate(yearMonth = factor(yearMonth, levels = dateSetup$yearMonth)) %>%
   mutate(cYear = contYear - mean(contYear))
 
+abundDist <- ggplot(data = totAbModelDF) +
+  geom_histogram(aes(x = abundAdd),
+                 binwidth = 1) +
+  facet_grid(system~season)
+
 # modelDFAb_summer <- as.data.frame(totAbModelDF %>%
 #                                     filter(season == "summer"))
 #   # unite(yearMonth, c(contYear, month), remove = FALSE) %>%
@@ -360,11 +365,11 @@ for (i in sysList){
   runner <- filter(totAbModelDF, systemSeason == i)
  
   glmmOut <- glmmTMB(N ~ year_Z +
-                           offset(log(n_hauls)) +
                            temp_Z +
                            bvc_Z +
                        #(1|contYear) +
                        #(1|systemZone),
+                       offset(log(n_hauls)) +
                            ar1(yearMonth + 0|systemZone),
                          data = runner,
                      #dispformula = ~0,
@@ -419,10 +424,10 @@ for (i in sysList){
   funner <- data.frame()
   funner <- filter(totAbModelDF, systemSeason == i)
   
-  glmmOut <- glmmTMB(abundAdd ~ year_Z +
-                       offset(log(n_hauls)) +
+  glmmOut <- glmmTMB(abund ~ year_Z +
                        temp_Z +
                        bvc_Z +
+                       offset(log(n_hauls)) +
                        ar1(yearMonth + 0|systemZone),
                      data = funner,
                      family = gaussian)
@@ -478,29 +483,30 @@ temp <- totAbModelDF %>%
   filter(season == "winter")
 
 tempList <- unique(temp$systemSeason)
-varList <- c("upper_Z", "lower_Z", "sd_t_Z")
+#varList <- c("upper_Z", "lower_Z", "sd_t_Z")
 
 linearRegs <- list()
 plots <- list()
-abundOut <- list()
+tempAbundOut <- list()
 outputs <- list()
 tempGLMMS_abund <- list()
 for (i in tempList){
+  print(i)
   funner <- data.frame()
   funner <- filter(totAbModelDF, systemSeason == i)
   
-  glmmOut <- buildglmmTMB(abundAdd ~ year_Z +
-                       offset(log(n_hauls)) +
+  glmmOut <- buildglmmTMB(abund ~ year_Z +
                        temp_Z +
                        bvc_Z +
                          upper_Z +
                          lower_Z +
+                         offset(log(n_hauls)) +
                        ar1(yearMonth + 0|systemZone),
                      data = funner,
                      family = gaussian(),
                      buildmerControl(crit = "AIC"))
   tempGLMMS_abund[[i]] <- glmmOut
-  #outputs[[i]] <- broom.mixed::tidy(glmmOut, effects = "fixed")
+  tempAbundOut[[i]] <- broom.mixed::tidy(glmmOut@model, effects = "fixed")
   
   # abundOut[[i]] <- dust(glmmOut, effects = "fixed", caption = i) %>%
   #   sprinkle(cols = c("estimate", "std.error", "statistic"), round = 3) %>% 
@@ -517,20 +523,70 @@ for (i in tempList){
   # a <- grid.grab() #save grob in loop 
   # plots[[i]] <- grid.arrange(a, top = paste0(i)) #label each grob with systemSeason
 }
-summary(tempGLMMS_abund$TB_winter)
+summary(tempGLMMS_abund$CH_winter)
 
-abundOut <- bind_rows(outputs, .id = "systemSeason")
-blueOut <- dust(abundOut) %>%
+tempOut <- bind_rows(tempAbundOut, .id = "systemSeason")
+tempAOut <- dust(tempOut) %>%
   sprinkle(cols = c("estimate", "std.error", "statistic"), round = 3) %>%
   sprinkle(cols = "p.value", fn = quote(pvalString(value))) %>%
   sprinkle_colnames(term = "Term", p.value = "P-value")
 
-bigOut <- as.data.frame(blueOut) %>%
+bigAOut <- as.data.frame(tempAOut) %>%
   select(c(systemSeason, Term, "estimate")) %>%
   pivot_wider(names_from = Term, values_from = "estimate")
 
 # write.csv(bigOut, file = "./Outputs/abundOut.csv",
 #           row.names = FALSE)
+
+
+linearRegs <- list()
+plots <- list()
+tempNOut <- list()
+outputs <- list()
+tempGLMMS_abund <- list()
+for (i in tempList){
+  print(i)
+  funner <- data.frame()
+  funner <- filter(totAbModelDF, systemSeason == i)
+  
+  glmmOut <- buildglmmTMB(N ~ year_Z +
+                            temp_Z +
+                            bvc_Z +
+                            upper_Z +
+                            lower_Z +
+                            offset(log(n_hauls)) +
+                            ar1(yearMonth + 0|systemZone),
+                          data = funner,
+                          family = gaussian(),
+                          buildmerControl(crit = "AIC"))
+  tempGLMMS_abund[[i]] <- glmmOut
+  tempNOut[[i]] <- broom.mixed::tidy(glmmOut@model, effects = "fixed")
+  
+  # abundOut[[i]] <- dust(glmmOut, effects = "fixed", caption = i) %>%
+  #   sprinkle(cols = c("estimate", "std.error", "statistic"), round = 3) %>% 
+  #   sprinkle(cols = "p.value", fn = quote(pvalString(value))) %>% 
+  #   sprinkle_colnames(term = "Term", p.value = "P-value")
+  
+  # #generate simulated residuals
+  # linearRegs[[i]] <- simulateResiduals(fittedModel = glmmOut, plot = F)
+  # p <- recordPlot() #cludgy way to convert graphics to grob
+  # plot.new()
+  # plot(linearRegs[[i]])
+  # #plotQQunif(linearRegs[[i]])
+  # grid.echo()
+  # a <- grid.grab() #save grob in loop 
+  # plots[[i]] <- grid.arrange(a, top = paste0(i)) #label each grob with systemSeason
+}
+
+tempNTOut <- bind_rows(tempNOut, .id = "systemSeason")
+tempBOut <- dust(tempNTOut) %>%
+  sprinkle(cols = c("estimate", "std.error", "statistic"), round = 3) %>%
+  sprinkle(cols = "p.value", fn = quote(pvalString(value))) %>%
+  sprinkle_colnames(term = "Term", p.value = "P-value")
+
+bigBOut <- as.data.frame(tempBOut) %>%
+  select(c(systemSeason, Term, "estimate")) %>%
+  pivot_wider(names_from = Term, values_from = "estimate")
 
 
 
