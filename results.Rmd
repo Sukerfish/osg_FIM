@@ -91,7 +91,7 @@ plot(annualTemp)
 
 ```
 
-This is the abundance results when run thru AIC (\@ref(tab:aicAbund)).
+This is the abundance results when run thru AIC (Table \@ref(tab:aicAbund)).
 
 ```{r aicAbund, echo=FALSE}
 
@@ -104,7 +104,7 @@ pander(tempAEstimates,
 
 ```
 
-This is the richness results when run thru AIC (\@ref(tab:aicRich)).
+This is the richness results when run thru AIC (Table \@ref(tab:aicRich)).
 
 ```{r aicRich, echo=FALSE}
 
