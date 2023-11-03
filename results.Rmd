@@ -13,40 +13,121 @@ Sys.setenv(FISHBASE_API="sealifebase")
 #knitr::opts_chunk$set(echo = TRUE)
 ```
 
-### Results  {-}
+```{r Temp_BVC, include = FALSE}
+source("TempBVC.R")
+```
 
-Richness during summer for all stations was generally stable, while winter was more variable in the southern estuaries than in the northern estuaries (Figure \@ref(fig:richnessSummary)). 
+### Results {.unnumbered}
 
-```{r richnessSummary, echo=FALSE, message=FALSE, fig.width=7.5, fig.cap = "An amazing plot"}
+Richness during summer for all stations was generally stable, while winter was more variable in the southern estuaries than in the northern estuaries (Figure \@ref(fig:NPlot)).
 
-source("RichnessSummary.R")
-plot(richPlot)
+```{r NPlot, echo=FALSE, message=FALSE, fig.width=7.5, fig.height=5, fig.cap = "An amazing plot"}
+
+plot(NPlot)
 
 ```
 
 However, total abundance over time was quite variable for all systems in the winter season, with summer generally rather stable.
 
-```{r totalAbSummary, echo=FALSE, message=FALSE, fig.width=7.5, fig.cap = "Another amazing plot"}
+```{r AbundPlot, echo=FALSE, message=FALSE, fig.width=7.5, fig.height=5, fig.cap = "Another amazing plot"}
 
-source("TotalAbundanceSummary.R")
-       #, local = knitr::knit_global())
-plot(AbSummaryPlot)
+plot(AbundPlot)
 
 ```
 
-In [@Miner2021] science happened
+Seagrass coverage did stuff (Figure \@ref(fig:BVCPlot)).
+
+```{r BVCPlot, echo=FALSE, message=FALSE, fig.width=7.5, fig.height=5, fig.cap = "Yet another amazing plot"}
+
+plot(BVCPlot)
+
+```
+
+Temperature was interesting.
+
+```{r TempPlot, echo=FALSE, message=FALSE, fig.width=7.5, fig.height=5, fig.cap = "One more amazing plot"}
+
+plot(TempPlot)
+
+```
+
+```{r Models, include = FALSE}
+source("RichnessModel.R")
+```
+
+Is there any association between changes in abundance and changes in temperature and/or seagrass coverage? GLMMs used to determine. Formula used for all models is: `abund ~ year_Z + temp_Z +  bvc_Z + offset(log(n_hauls)) + ar1(yearMonth + 0|systemZone)` where abund is ... z is ...
+
+Here's what the abundance model output looks like for each system and season combination in Table \@ref(tab:abundModels)
+
+```{r abundModels, echo=FALSE}
+
+emphasize.strong.cells(which(abundPvalues < 0.05, arr.ind = TRUE))
+pander(abundEstimates,
+             caption = "(\\#tab:abundModels) The first table.")
+
+# knitr::kable(test,
+#              caption = "The first table.")
+
+```
+
+And this is for richness models as in Table \@ref(tab:richModels)
+
+```{r richModels, echo=FALSE}
+
+emphasize.strong.cells(which(richPvalues < 0.05, arr.ind = TRUE))
+pander(richEstimates,
+             caption = "(\\#tab:richModels) The second table.")
+
+# knitr::kable(test,
+#              caption = "The first table.")
+
+```
+
+Looking closer at temp, specifically as in [@Miner2021], the upper and lower 10th percentiles of temp are sometimes changing. Mostly in winter, though not significant using linear model alone (Figure \@ref(fig:upperLower)).
+
+```{r upperLower, echo=FALSE, message=FALSE, fig.width=7.5, fig.height=5, fig.cap = "Still another amazing plot"}
+
+plot(annualTemp)
+
+```
+
+This is the abundance results when run thru AIC (\@ref(tab:aicAbund)).
+
+```{r aicAbund, echo=FALSE}
+
+emphasize.strong.cells(which(tempAPvalues < 0.05, arr.ind = TRUE))
+pander(tempAEstimates,
+             caption = "(\\#tab:aicAbund) The second table.")
+
+# knitr::kable(test,
+#              caption = "The first table.")
+
+```
+
+This is the richness results when run thru AIC (\@ref(tab:aicRich)).
+
+```{r aicRich, echo=FALSE}
+
+emphasize.strong.cells(which(tempNPvalues < 0.05, arr.ind = TRUE))
+pander(tempNEstimates,
+             caption = "(\\#tab:aicRich) The second table.")
+
+# knitr::kable(test,
+#              caption = "The first table.")
+
+```
 
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-### Including Plots  {-}
+### Including Plots {.unnumbered}
 
 You can also embed plots, for example:
 
 ```{r deltaTaxa, echo=FALSE, message=FALSE, fig.width=7.5, fig.cap = "Another amazing plot"}
 
-source("DeltaTaxa.R"
-       , local = knitr::knit_global())
-plot(finalEco)
+# source("DeltaTaxa.R"
+#        , local = knitr::knit_global())
+# plot(finalEco)
 
 ```
 
