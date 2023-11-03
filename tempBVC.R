@@ -126,10 +126,10 @@ BVCPlot <- ggplot(data = waterBVC_full,
     #pch    = 21, 
     #colour = "black"
   ) +
-  geom_ribbon(
-    aes(ymin=q10BVC,
-        ymax=q90BVC),
-    linetype=2, alpha=0.1, color="black") +
+  # geom_ribbon(
+  #   aes(ymin=q10BVC,
+  #       ymax=q90BVC),
+  #   linetype=2, alpha=0.1, color="black") +
   geom_smooth(method="lm", se = FALSE) +
   geom_errorbar(aes(ymin = meanBVC-seBVC, ymax = meanBVC+seBVC))+
   labs(title = "Annual Bottom Vegetation Coverage Over Time",
@@ -148,9 +148,9 @@ BVCPlot <- ggplot(data = waterBVC_full,
   ) +
   stat_fit_glance(method = 'lm',
                   method.args = list(formula = y ~ x),  geom = 'text', 
-                  aes(label = paste("p-value = ", signif(..p.value.., digits = 4), 
-                                    "\n R-squared = ", signif(..r.squared.., digits = 3), sep = "")),
-                  label.x = 2004, label.y = 85, size = 4) +
+                  aes(label = paste("p-value = ", signif(after_stat(p.value), digits = 3), 
+                                    "\n R-squared = ", signif(after_stat(r.squared), digits = 2), sep = "")),
+                  label.x = 2005, label.y = 85, size = 3) +
   facet_grid(season ~ system)
 
 # ggsave(plot = BVCPlot,
@@ -168,10 +168,10 @@ TempPlot <- ggplot(waterBVC_full,
     #pch    = 21, 
     #colour = "black"
   ) +
-  geom_ribbon(
-    aes(ymin=q10Temp,
-        ymax=q90Temp),
-    linetype=2, alpha=0.1, color="black") +
+  # geom_ribbon(
+  #   aes(ymin=q10Temp,
+  #       ymax=q90Temp),
+  #   linetype=2, alpha=0.1, color="black") +
   geom_smooth(method = "lm", se = FALSE) +
   geom_errorbar(aes(ymin = meanTemp-seTemp, ymax = meanTemp+seTemp))+
   labs(title = "Annual Water Temperature Over Time",
@@ -190,9 +190,9 @@ TempPlot <- ggplot(waterBVC_full,
   ) +
   stat_fit_glance(method = 'lm',
                   method.args = list(formula = y ~ x),  geom = 'text', 
-                  aes(label = paste("p-value = ", signif(..p.value.., digits = 4), 
-                                    "\n R-squared = ", signif(..r.squared.., digits = 3), sep = "")),
-                  label.x = 2004, label.y = 25, size = 4) +
+                  aes(label = paste("p-value = ", signif(after_stat(p.value), digits = 3), 
+                                    "\n R-squared = ", signif(after_stat(r.squared), digits = 2), sep = "")),
+                  label.x = 2005, label.y = 25, size = 3) +
   facet_grid(season ~ system)
 
 # ggsave(plot = TempPlot,
@@ -232,9 +232,9 @@ NPlot <- ggplot(SXR_filtered,
   ) +
   stat_fit_glance(method = 'lm',
                   method.args = list(formula = y ~ x),  geom = 'text', 
-                  aes(label = paste("p-value = ", signif(..p.value.., digits = 4), 
-                                    "\n R-squared = ", signif(..r.squared.., digits = 3), sep = "")),
-                  label.x = 2004, label.y = 12, size = 4) +
+                  aes(label = paste("p-value = ", signif(after_stat(p.value), digits = 3), 
+                                    "\n R-squared = ", signif(after_stat(r.squared), digits = 2), sep = "")),
+                  label.x = 2005, label.y = 4, size = 3) +
   facet_grid(season ~ system)
 
 # ggsave(plot = NPlot,
@@ -274,9 +274,9 @@ AbundPlot <- ggplot(SXAb,
   ) +
   stat_fit_glance(method = 'lm',
                   method.args = list(formula = y ~ x),  geom = 'text', 
-                  aes(label = paste("p-value = ", signif(..p.value.., digits = 4), 
-                                    "\n R-squared = ", signif(..r.squared.., digits = 3), sep = "")),
-                  label.x = 2004, label.y = 1500, size = 4) +
+                  aes(label = paste("p-value = ", signif(after_stat(p.value), digits = 3), 
+                                    "\n R-squared = ", signif(after_stat(r.squared), digits = 2), sep = "")),
+                  label.x = 2005, label.y = 1500, size = 3) +
   facet_grid(season ~ system)
 
 # ggsave(plot = AbundPlot,
