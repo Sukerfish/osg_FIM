@@ -150,7 +150,7 @@ BVCPlot <- ggplot(data = waterBVC_full,
                   method.args = list(formula = y ~ x),  geom = 'text', 
                   aes(label = paste("p-value = ", signif(after_stat(p.value), digits = 3), 
                                     "\n R-squared = ", signif(after_stat(r.squared), digits = 2), sep = "")),
-                  label.x = 2005, label.y = 85, size = 3) +
+                  label.x = 2005, label.y = 20, size = 3) +
   facet_grid(season ~ system)
 
 # ggsave(plot = BVCPlot,
