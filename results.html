@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.450">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Effects of Climate Change on Estuarine Fish Assemblages</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="results_files/libs/clipboard/clipboard.min.js"></script>
+<script src="results_files/libs/quarto-html/quarto.js"></script>
+<script src="results_files/libs/quarto-html/popper.min.js"></script>
+<script src="results_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="results_files/libs/quarto-html/anchor.min.js"></script>
+<link href="results_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="results_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="results_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="results_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="results_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Effects of Climate Change on Estuarine Fish Assemblages</h1>
+</div>
+
+
+<div class="quarto-title-meta-author">
+  <div class="quarto-title-meta-heading">Author</div>
+  <div class="quarto-title-meta-heading">Affiliation</div>
+  
+    <div class="quarto-title-meta-contents">
+    <p class="author">Garrett Miller <a href="https://orcid.org/0009-0007-6253-2554" class="quarto-title-author-orcid"> <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA2ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo1N0NEMjA4MDI1MjA2ODExOTk0QzkzNTEzRjZEQTg1NyIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDozM0NDOEJGNEZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDozM0NDOEJGM0ZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M1IE1hY2ludG9zaCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkZDN0YxMTc0MDcyMDY4MTE5NUZFRDc5MUM2MUUwNEREIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjU3Q0QyMDgwMjUyMDY4MTE5OTRDOTM1MTNGNkRBODU3Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+84NovQAAAR1JREFUeNpiZEADy85ZJgCpeCB2QJM6AMQLo4yOL0AWZETSqACk1gOxAQN+cAGIA4EGPQBxmJA0nwdpjjQ8xqArmczw5tMHXAaALDgP1QMxAGqzAAPxQACqh4ER6uf5MBlkm0X4EGayMfMw/Pr7Bd2gRBZogMFBrv01hisv5jLsv9nLAPIOMnjy8RDDyYctyAbFM2EJbRQw+aAWw/LzVgx7b+cwCHKqMhjJFCBLOzAR6+lXX84xnHjYyqAo5IUizkRCwIENQQckGSDGY4TVgAPEaraQr2a4/24bSuoExcJCfAEJihXkWDj3ZAKy9EJGaEo8T0QSxkjSwORsCAuDQCD+QILmD1A9kECEZgxDaEZhICIzGcIyEyOl2RkgwAAhkmC+eAm0TAAAAABJRU5ErkJggg=="></a></p>
+  </div>
+    <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            The University of South Florida
+          </p>
+      </div>
+    </div>
+
+<div class="quarto-title-meta">
+
+      
+  
+    
+  </div>
+  
+<div>
+  <div class="abstract">
+    <div class="abstract-title">Abstract</div>
+    This is a test abstract
+  </div>
+</div>
+
+</header>
+
+<section id="methods" class="level1 unnumbered">
+<h1 class="unnumbered">Methods</h1>
+<section id="data-collection" class="level2">
+<h2 class="anchored" data-anchor-id="data-collection"><strong>Data collection</strong></h2>
+<p>This study used data collected by the Florida Fish and Wildlife Research Institute’s (FWRI) Fisheries Independent Monitoring (FIM) program. The program follows a monthly stratified random sampling design in estuaries across Florida, including four in the eastern Gulf of Mexico (from north to south: Apalachicola Bay, Cedar Key, Tampa Bay, and Charlotte Harbor; <a href="#fig-FIMsystems">Figure&nbsp;1</a>). Apalachicola Bay is a shallow, semi-enclosed estuary located on the northern coast of the GOM in the panhandle of Florida, USA and is within the Northern Gulf of Mexico ecoregion <span class="citation" data-cites="spalding2007">(<a href="#ref-spalding2007" role="doc-biblioref">Spalding et al. 2007</a>)</span>. Cedar Key is located within the Suwannee River open estuary system and is also in the Northern Gulf of Mexico ecoregion. Tampa Bay is Florida’s largest open water estuary and lies within the Floridian ecoregion <span class="citation" data-cites="spalding2007">(<a href="#ref-spalding2007" role="doc-biblioref">Spalding et al. 2007</a>)</span>. Charlotte Harbor, a drowned river estuary system, is within the Floridian ecoregion (FWRI 2017). All systems are dominated by seagrass vegetation in shallow waters, except for Apalachicola Bay, where seagrass is less than 7% of bottom coverage (FWRI 2017). However, sampling gear was partly determined by habitat, where all seagrass at particular depths were sampled with the same gear type across estuaries (see also below, FWRI 2017). Finally, marsh grasses and oyster beds are dominant along shorelines in Apalachicola Bay and Cedar Key, while mangroves dominate in Charlotte Harbor, and Tampa Bay is characterized by a mix of marsh grasses, oyster beds, and mangroves (FWRI 2017).</p>
+<div id="fig-FIMsystems" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="conceptFigs/FIMsystems.png" class="img-fluid figure-img"></p>
+<figcaption class="figure-caption">Figure&nbsp;1: Locations of all estuaries in this study.</figcaption>
+</figure>
+</div>
+<p>Within each estuary, sampling was divided into zones (subdivided into 1-nm<sup>2</sup> grids) based on geographic, habitat, and depth criteria (FWRI 2017). These criteria defined which of three different types of gear were used to collect organisms. For this study, only the 21.3-m seine net will be considered, because it was used the longest and most consistently throughout the study period. Specifically, this gear targeted young-of-year and juvenile fishes in shallow habitats (≤1.8-m deep). For every net deployment, all vertebrates and select commercially important invertebrates were counted and identified to the lowest practical taxonomic level (typically species). This study used all available seine data from 1998 to 2017. Further, each seine haul was categorized by season, with summer defined as June-September and winter as December-March, following <span class="citation" data-cites="schrandt2020">(<a href="#ref-schrandt2020" role="doc-biblioref">Schrandt and MacDonald 2020</a>)</span>. Due to the similarity in appearance, and thus difficulty for <em>in situ</em> species-level identification, certain taxa were aggregated at the genus level to reduce potential effects of misidentification <a href="#tbl-diffID">Table&nbsp;1</a>. Finally, using a YSI sonde, several parameters, including water temperature, were recorded at the surface of the water and at the bottom during each sampling event.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="tbl-diffID" class="anchored">
+<table class="table table-sm table-striped small">
+<caption>Table&nbsp;1: Difficult to ID taxa</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Genus</th>
+<th style="text-align: left;">Species</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Anchoa spp.</td>
+<td style="text-align: left;">A. cayorum</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: left;">A. cubana</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"></td>
+<td style="text-align: left;">A. hepsetus</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: left;">A. lamprotaenia</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"></td>
+<td style="text-align: left;">A. lyolepis</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: left;">A. mitchilli</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Eucinostomus spp.</td>
+<td style="text-align: left;">E. argenteus</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: left;">E. gula</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"></td>
+<td style="text-align: left;">E. harengulus</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: left;">E. havana</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"></td>
+<td style="text-align: left;">E. jonesii</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: left;">E. lefroyi</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"></td>
+<td style="text-align: left;">E. melanopterus</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="results" class="level1 unnumbered">
+<h1 class="unnumbered">Results</h1>
+<p>In total, 17492 sampling events occurred where at least one taxa was caught and counted during summer or winter across all four estuaries. For seven sampling events, temperature data was unavailable and thus excluded from the analyses. Further, hauls that were comprised solely of rare species (taxa found in ≤5% of all samples for that system and season) were removed from the analyses which reduced samples down to 17254. Overall, 299 taxa in the dataset were recorded, spanning more than 20 years of collections. Richness was significantly changing (negatively) only in winter in Tampa Bay (<a href="#fig-NPlot">Figure&nbsp;2</a>). However, the variability in winter (maximum SD 4.6) was consistently higher for each estuary than in the summer (maximum SD 2.314).</p>
+<div class="cell" data-fig.heigh="5">
+<div class="cell-output-display">
+<div id="fig-NPlot" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="results_files/figure-html/fig-NPlot-1.png" class="img-fluid figure-img" width="720"></p>
+<figcaption class="figure-caption">Figure&nbsp;2: An amazing richness plot.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>However, total abundance over time was quite variable for all systems in the winter season, with summer generally rather stable (<a href="#fig-AbundPlot">Figure&nbsp;3</a>).</p>
+<div class="cell" data-fig.heigh="5">
+<div class="cell-output-display">
+<div id="fig-AbundPlot" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="results_files/figure-html/fig-AbundPlot-1.png" class="img-fluid figure-img" width="720"></p>
+<figcaption class="figure-caption">Figure&nbsp;3: An amazing abundance plot.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Seagrass coverage did stuff (<a href="#fig-BVCPlot">Figure&nbsp;4</a>).</p>
+<div class="cell" data-fig.heigh="5">
+<div class="cell-output-display">
+<div id="fig-BVCPlot" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="results_files/figure-html/fig-BVCPlot-1.png" class="img-fluid figure-img" width="720"></p>
+<figcaption class="figure-caption">Figure&nbsp;4: Yet another amazing plot</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Temperature was interesting (<a href="#fig-TempPlot">Figure&nbsp;5</a>).</p>
+<div class="cell" data-fig.heigh="5">
+<div class="cell-output-display">
+<div id="fig-TempPlot" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="results_files/figure-html/fig-TempPlot-1.png" class="img-fluid figure-img" width="720"></p>
+<figcaption class="figure-caption">Figure&nbsp;5: One more amazing plot</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Is there any association between changes in abundance and changes in temperature and/or seagrass coverage? GLMMs used to determine. Formula used for all models is: <code>abund ~ year_Z + temp_Z +  bvc_Z + offset(log(n_hauls)) + ar1(yearMonth + 0|systemZone)</code> where abund is … z is …</p>
+<p>Here’s what the abundance model output looks like for each system and season combination in <a href="#tbl-abundModels">Table&nbsp;2</a>.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="tbl-abundModels" class="anchored">
+<table class="table table-sm table-striped small">
+<caption>Table&nbsp;2: The first table.</caption>
+<colgroup>
+<col style="width: 20%">
+<col style="width: 19%">
+<col style="width: 18%">
+<col style="width: 16%">
+<col style="width: 16%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">systemSeason</th>
+<th style="text-align: center;">(Intercept)</th>
+<th style="text-align: center;">year_Z</th>
+<th style="text-align: center;">temp_Z</th>
+<th style="text-align: center;">bvc_Z</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">AP_winter</td>
+<td style="text-align: center;"><strong>-2.137</strong></td>
+<td style="text-align: center;">0.067</td>
+<td style="text-align: center;"><strong>0.764</strong></td>
+<td style="text-align: center;"><strong>0.404</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">AP_summer</td>
+<td style="text-align: center;"><strong>2.109</strong></td>
+<td style="text-align: center;">0.01</td>
+<td style="text-align: center;"><strong>0.273</strong></td>
+<td style="text-align: center;"><strong>1.376</strong></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">CH_winter</td>
+<td style="text-align: center;"><strong>-0.617</strong></td>
+<td style="text-align: center;"><strong>-0.356</strong></td>
+<td style="text-align: center;"><strong>0.318</strong></td>
+<td style="text-align: center;"><strong>0.858</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">CH_summer</td>
+<td style="text-align: center;"><strong>0.864</strong></td>
+<td style="text-align: center;"><strong>-0.301</strong></td>
+<td style="text-align: center;">0.073</td>
+<td style="text-align: center;"><strong>1.531</strong></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">CK_winter</td>
+<td style="text-align: center;"><strong>-3.326</strong></td>
+<td style="text-align: center;">0.075</td>
+<td style="text-align: center;"><strong>0.394</strong></td>
+<td style="text-align: center;">-0.038</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">CK_summer</td>
+<td style="text-align: center;"><strong>0.928</strong></td>
+<td style="text-align: center;">-0.194</td>
+<td style="text-align: center;">0.087</td>
+<td style="text-align: center;"><strong>0.524</strong></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">TB_winter</td>
+<td style="text-align: center;"><strong>-2.215</strong></td>
+<td style="text-align: center;">0.075</td>
+<td style="text-align: center;"><strong>0.503</strong></td>
+<td style="text-align: center;"><strong>1.04</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">TB_summer</td>
+<td style="text-align: center;"><strong>0.401</strong></td>
+<td style="text-align: center;">-0.063</td>
+<td style="text-align: center;">0.033</td>
+<td style="text-align: center;"><strong>2.125</strong></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<p>And this is for richness models as in <a href="#tbl-richModels">Table&nbsp;3</a>.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="tbl-richModels" class="anchored">
+<table class="table table-sm table-striped small">
+<caption>Table&nbsp;3: The second table.</caption>
+<colgroup>
+<col style="width: 20%">
+<col style="width: 19%">
+<col style="width: 18%">
+<col style="width: 16%">
+<col style="width: 18%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">systemSeason</th>
+<th style="text-align: center;">(Intercept)</th>
+<th style="text-align: center;">year_Z</th>
+<th style="text-align: center;">temp_Z</th>
+<th style="text-align: center;">bvc_Z</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">AP_winter</td>
+<td style="text-align: center;"><strong>-4.324</strong></td>
+<td style="text-align: center;"><strong>-0.315</strong></td>
+<td style="text-align: center;"><strong>0.374</strong></td>
+<td style="text-align: center;">0.022</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">AP_summer</td>
+<td style="text-align: center;"><strong>-4.044</strong></td>
+<td style="text-align: center;">0.087</td>
+<td style="text-align: center;">0.03</td>
+<td style="text-align: center;"><strong>0.44</strong></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">CH_winter</td>
+<td style="text-align: center;"><strong>-4.728</strong></td>
+<td style="text-align: center;"><strong>-0.119</strong></td>
+<td style="text-align: center;"><strong>0.302</strong></td>
+<td style="text-align: center;"><strong>0.346</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">CH_summer</td>
+<td style="text-align: center;"><strong>-4.092</strong></td>
+<td style="text-align: center;">-0.023</td>
+<td style="text-align: center;">0.003</td>
+<td style="text-align: center;"><strong>0.378</strong></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">CK_winter</td>
+<td style="text-align: center;"><strong>-4.852</strong></td>
+<td style="text-align: center;">-0.073</td>
+<td style="text-align: center;"><strong>0.133</strong></td>
+<td style="text-align: center;"><strong>-0.073</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">CK_summer</td>
+<td style="text-align: center;"><strong>-4.263</strong></td>
+<td style="text-align: center;">-0.026</td>
+<td style="text-align: center;">0.033</td>
+<td style="text-align: center;">0.037</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">TB_winter</td>
+<td style="text-align: center;"><strong>-5.06</strong></td>
+<td style="text-align: center;">-0.013</td>
+<td style="text-align: center;"><strong>0.215</strong></td>
+<td style="text-align: center;"><strong>0.374</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">TB_summer</td>
+<td style="text-align: center;"><strong>-4.327</strong></td>
+<td style="text-align: center;"><strong>0.107</strong></td>
+<td style="text-align: center;">-0.035</td>
+<td style="text-align: center;"><strong>0.598</strong></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<p>Looking closer at temp, specifically as in <span class="citation" data-cites="miner2021">(<a href="#ref-miner2021" role="doc-biblioref">Miner et al. 2021</a>)</span>, the upper and lower 10th percentiles of temp are sometimes changing. Mostly in winter, though not significant using linear model alone (<a href="#fig-upperLower">Figure&nbsp;6</a>).</p>
+<div class="cell" data-fig.heigh="5">
+<div class="cell-output-display">
+<div id="fig-upperLower" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="results_files/figure-html/fig-upperLower-1.png" class="img-fluid figure-img" width="720"></p>
+<figcaption class="figure-caption">Figure&nbsp;6: Still another amazing plot</figcaption>
+</figure>
+</div>
+</div>
+</div>
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-miner2021" class="csl-entry" role="listitem">
+Miner, C. Melissa, Jennifer L. Burnaford, Karah Ammann, Benjamin H. Becker, Steven C. Fradkin, Stacey Ostermann-Kelm, Jayson R. Smith, Stephen G. Whitaker, and Peter T. Raimondi. 2021. <span>“Latitudinal Variation in Long<span>-</span>Term Stability of North American Rocky Intertidal Communities.”</span> <em>Journal of Animal Ecology</em> 90 (9): 2077–93. <a href="https://doi.org/10.1111/1365-2656.13504">https://doi.org/10.1111/1365-2656.13504</a>.
+</div>
+<div id="ref-schrandt2020" class="csl-entry" role="listitem">
+Schrandt, Meagan N., and Timothy C. MacDonald. 2020. <span>“Long-Term Stability of the Faunal Community of a Subtropical Estuary: Evaluating Disturbances in the Context of Interannual Variability.”</span> <em>Estuaries and Coasts</em> 43 (2): 347–59. <a href="https://doi.org/10.1007/s12237-019-00684-1">https://doi.org/10.1007/s12237-019-00684-1</a>.
+</div>
+<div id="ref-spalding2007" class="csl-entry" role="listitem">
+Spalding, Mark D., Helen E. Fox, Gerald R. Allen, Nick Davidson, Zach A. Ferdaña, Max Finlayson, Benjamin S. Halpern, et al. 2007. <span>“Marine Ecoregions of the World: A Bioregionalization of Coastal and Shelf Areas.”</span> <em>BioScience</em> 57 (7): 573–83. <a href="https://doi.org/10.1641/b570707">https://doi.org/10.1641/b570707</a>.
+</div>
+</div></section></div></main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
