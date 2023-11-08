@@ -3,6 +3,7 @@
 library(tidyverse)
 library(patchwork)
 library(lubridate)
+library(ggpmisc)
 
 load('TidyGearCode20.Rdata')
 load('SXS_filtered.Rdata')
@@ -168,6 +169,38 @@ system_name <- c(
   TB = "Tampa Bay",
   CH = "Charlotte Harbor"
 )
+
+#temperature itself plot
+fullTemp <- ggplot(HydroList,
+                   aes(x    = as.Date(Sampling_Date), 
+                       y    = Temperature, 
+                       #shape = season,
+                       #color = name
+                   )) + 
+  geom_point(
+  ) +
+  # geom_hline(aes(yintercept = avg_ltm),
+  #            linetype = "dashed") +
+  geom_smooth(method=lm, se=FALSE) +
+  # geom_errorbar(aes(ymin = value-se_temp, ymax = value+se_temp))+
+  #scale_x_continuous(breaks= seq(1998,2020,4)) +
+  scale_color_brewer(palette = "Set1",
+                     labels = c("upper" = "Upper 90th", "lower" = "Lower 10th")) +
+  labs(title = "Water Temperature Over Time",
+       x     = "Year",
+       y     = "Water Temperature (°C)",
+       color = "Percentile",
+       #shape = "Season"
+  ) +
+  stat_fit_glance(method = 'lm',
+                  method.args = list(formula = y ~ x),  geom = 'text',
+                  aes(label = paste("p-value = ", signif(after_stat(p.value), digits = 3),
+                                    "\n R-squared = ", signif(after_stat(r.squared), digits = 2), sep = "")),
+                  label.x = as.Date("2005-1-1"), size = 3) +
+  theme_bw() +
+  theme(legend.position="bottom") +
+  facet_grid(season~system)
+
 #full plot
 annualTemp <- ggplot(longTemp,
                       aes(x    = as.numeric(as.character(seasonYear)), 
@@ -521,128 +554,128 @@ richPvalues <- as.data.frame(blueOut) %>%
 
 # write.csv(blueOut, file = "./Outputs/abundOut.csv",
 #           row.names = FALSE)
-
-
-######### temperature AIC #######
-library(buildmer)
-
-#per above and a priori hypothesis, work with winter only
-temp <- totAbModelDF %>%
-  filter(season == "winter")
-
-tempList <- unique(temp$systemSeason)
-#varList <- c("upper_Z", "lower_Z", "sd_t_Z")
-
-linearRegs <- list()
-plots <- list()
-tempAbundOut <- list()
-outputs <- list()
-tempGLMMS_abund <- list()
-for (i in tempList){
-  print(i)
-  funner <- data.frame()
-  funner <- filter(totAbModelDF, systemSeason == i)
-
-  glmmOut <- buildglmmTMB(abund ~ year_Z +
-                       temp_Z +
-                       bvc_Z +
-                         upper_Z +
-                         lower_Z +
-                         offset(log(n_hauls)) +
-                       ar1(yearMonth + 0|systemZone),
-                     data = funner,
-                     family = gaussian(),
-                     buildmerControl(crit = "AIC"))
-  tempGLMMS_abund[[i]] <- glmmOut
-  tempAbundOut[[i]] <- broom.mixed::tidy(glmmOut@model, effects = "fixed")
-
-  # abundOut[[i]] <- dust(glmmOut, effects = "fixed", caption = i) %>%
-  #   sprinkle(cols = c("estimate", "std.error", "statistic"), round = 3) %>%
-  #   sprinkle(cols = "p.value", fn = quote(pvalString(value))) %>%
-  #   sprinkle_colnames(term = "Term", p.value = "P-value")
-
-  # #generate simulated residuals
-  # linearRegs[[i]] <- simulateResiduals(fittedModel = glmmOut, plot = F)
-  # p <- recordPlot() #cludgy way to convert graphics to grob
-  # plot.new()
-  # plot(linearRegs[[i]])
-  # #plotQQunif(linearRegs[[i]])
-  # grid.echo()
-  # a <- grid.grab() #save grob in loop
-  # plots[[i]] <- grid.arrange(a, top = paste0(i)) #label each grob with systemSeason
-}
-#summary(tempGLMMS_abund$CH_winter)
-
-tempOut <- bind_rows(tempAbundOut, .id = "systemSeason")
-tempAOut <- dust(tempOut) %>%
-  sprinkle(cols = c("estimate", "std.error", "statistic"), round = 3) %>%
-  sprinkle(cols = "p.value", fn = quote(pvalString(value))) %>%
-  sprinkle_colnames(term = "Term", p.value = "P-value")
-
-tempAEstimates <- as.data.frame(tempAOut) %>%
-  select(c(systemSeason, Term, "estimate")) %>%
-  pivot_wider(names_from = Term, values_from = "estimate")
-
-tempAPvalues <- as.data.frame(tempAOut) %>%
-  select(c(systemSeason, Term, "P-value")) %>%
-  pivot_wider(names_from = Term, values_from = "P-value")
-
-# write.csv(bigOut, file = "./Outputs/abundOut.csv",
-#           row.names = FALSE)
-
-
-linearRegs <- list()
-plots <- list()
-tempNOut <- list()
-outputs <- list()
-tempGLMMS_rich <- list()
-for (i in tempList){
-  print(i)
-  funner <- data.frame()
-  funner <- filter(totAbModelDF, systemSeason == i)
-
-  glmmOut <- buildglmmTMB(N ~ year_Z +
-                            temp_Z +
-                            bvc_Z +
-                            upper_Z +
-                            lower_Z +
-                            offset(log(n_hauls)) +
-                            ar1(yearMonth + 0|systemZone),
-                          data = funner,
-                          family = gaussian(),
-                          buildmerControl(crit = "AIC"))
-  tempGLMMS_rich[[i]] <- glmmOut
-  tempNOut[[i]] <- broom.mixed::tidy(glmmOut@model, effects = "fixed")
-
-  # abundOut[[i]] <- dust(glmmOut, effects = "fixed", caption = i) %>%
-  #   sprinkle(cols = c("estimate", "std.error", "statistic"), round = 3) %>%
-  #   sprinkle(cols = "p.value", fn = quote(pvalString(value))) %>%
-  #   sprinkle_colnames(term = "Term", p.value = "P-value")
-
-  # #generate simulated residuals
-  # linearRegs[[i]] <- simulateResiduals(fittedModel = glmmOut, plot = F)
-  # p <- recordPlot() #cludgy way to convert graphics to grob
-  # plot.new()
-  # plot(linearRegs[[i]])
-  # #plotQQunif(linearRegs[[i]])
-  # grid.echo()
-  # a <- grid.grab() #save grob in loop
-  # plots[[i]] <- grid.arrange(a, top = paste0(i)) #label each grob with systemSeason
-}
-
-tempNTOut <- bind_rows(tempNOut, .id = "systemSeason")
-tempBOut <- dust(tempNTOut) %>%
-  sprinkle(cols = c("estimate", "std.error", "statistic"), round = 3) %>%
-  sprinkle(cols = "p.value", fn = quote(pvalString(value))) %>%
-  sprinkle_colnames(term = "Term", p.value = "P-value")
-
-tempNEstimates <- as.data.frame(tempBOut) %>%
-  select(c(systemSeason, Term, "estimate")) %>%
-  pivot_wider(names_from = Term, values_from = "estimate")
-
-tempNPvalues <- as.data.frame(tempBOut) %>%
-  select(c(systemSeason, Term, "P-value")) %>%
-  pivot_wider(names_from = Term, values_from = "P-value")
+# 
+# 
+# ######### temperature AIC #######
+# library(buildmer)
+# 
+# #per above and a priori hypothesis, work with winter only
+# temp <- totAbModelDF %>%
+#   filter(season == "winter")
+# 
+# tempList <- unique(temp$systemSeason)
+# #varList <- c("upper_Z", "lower_Z", "sd_t_Z")
+# 
+# linearRegs <- list()
+# plots <- list()
+# tempAbundOut <- list()
+# outputs <- list()
+# tempGLMMS_abund <- list()
+# for (i in tempList){
+#   print(i)
+#   funner <- data.frame()
+#   funner <- filter(totAbModelDF, systemSeason == i)
+# 
+#   glmmOut <- buildglmmTMB(abund ~ year_Z +
+#                        temp_Z +
+#                        bvc_Z +
+#                          upper_Z +
+#                          lower_Z +
+#                          offset(log(n_hauls)) +
+#                        ar1(yearMonth + 0|systemZone),
+#                      data = funner,
+#                      family = gaussian(),
+#                      buildmerControl(crit = "AIC"))
+#   tempGLMMS_abund[[i]] <- glmmOut
+#   tempAbundOut[[i]] <- broom.mixed::tidy(glmmOut@model, effects = "fixed")
+# 
+#   # abundOut[[i]] <- dust(glmmOut, effects = "fixed", caption = i) %>%
+#   #   sprinkle(cols = c("estimate", "std.error", "statistic"), round = 3) %>%
+#   #   sprinkle(cols = "p.value", fn = quote(pvalString(value))) %>%
+#   #   sprinkle_colnames(term = "Term", p.value = "P-value")
+# 
+#   # #generate simulated residuals
+#   # linearRegs[[i]] <- simulateResiduals(fittedModel = glmmOut, plot = F)
+#   # p <- recordPlot() #cludgy way to convert graphics to grob
+#   # plot.new()
+#   # plot(linearRegs[[i]])
+#   # #plotQQunif(linearRegs[[i]])
+#   # grid.echo()
+#   # a <- grid.grab() #save grob in loop
+#   # plots[[i]] <- grid.arrange(a, top = paste0(i)) #label each grob with systemSeason
+# }
+# #summary(tempGLMMS_abund$CH_winter)
+# 
+# tempOut <- bind_rows(tempAbundOut, .id = "systemSeason")
+# tempAOut <- dust(tempOut) %>%
+#   sprinkle(cols = c("estimate", "std.error", "statistic"), round = 3) %>%
+#   sprinkle(cols = "p.value", fn = quote(pvalString(value))) %>%
+#   sprinkle_colnames(term = "Term", p.value = "P-value")
+# 
+# tempAEstimates <- as.data.frame(tempAOut) %>%
+#   select(c(systemSeason, Term, "estimate")) %>%
+#   pivot_wider(names_from = Term, values_from = "estimate")
+# 
+# tempAPvalues <- as.data.frame(tempAOut) %>%
+#   select(c(systemSeason, Term, "P-value")) %>%
+#   pivot_wider(names_from = Term, values_from = "P-value")
+# 
+# # write.csv(bigOut, file = "./Outputs/abundOut.csv",
+# #           row.names = FALSE)
+# 
+# 
+# linearRegs <- list()
+# plots <- list()
+# tempNOut <- list()
+# outputs <- list()
+# tempGLMMS_rich <- list()
+# for (i in tempList){
+#   print(i)
+#   funner <- data.frame()
+#   funner <- filter(totAbModelDF, systemSeason == i)
+# 
+#   glmmOut <- buildglmmTMB(N ~ year_Z +
+#                             temp_Z +
+#                             bvc_Z +
+#                             upper_Z +
+#                             lower_Z +
+#                             offset(log(n_hauls)) +
+#                             ar1(yearMonth + 0|systemZone),
+#                           data = funner,
+#                           family = gaussian(),
+#                           buildmerControl(crit = "AIC"))
+#   tempGLMMS_rich[[i]] <- glmmOut
+#   tempNOut[[i]] <- broom.mixed::tidy(glmmOut@model, effects = "fixed")
+# 
+#   # abundOut[[i]] <- dust(glmmOut, effects = "fixed", caption = i) %>%
+#   #   sprinkle(cols = c("estimate", "std.error", "statistic"), round = 3) %>%
+#   #   sprinkle(cols = "p.value", fn = quote(pvalString(value))) %>%
+#   #   sprinkle_colnames(term = "Term", p.value = "P-value")
+# 
+#   # #generate simulated residuals
+#   # linearRegs[[i]] <- simulateResiduals(fittedModel = glmmOut, plot = F)
+#   # p <- recordPlot() #cludgy way to convert graphics to grob
+#   # plot.new()
+#   # plot(linearRegs[[i]])
+#   # #plotQQunif(linearRegs[[i]])
+#   # grid.echo()
+#   # a <- grid.grab() #save grob in loop
+#   # plots[[i]] <- grid.arrange(a, top = paste0(i)) #label each grob with systemSeason
+# }
+# 
+# tempNTOut <- bind_rows(tempNOut, .id = "systemSeason")
+# tempBOut <- dust(tempNTOut) %>%
+#   sprinkle(cols = c("estimate", "std.error", "statistic"), round = 3) %>%
+#   sprinkle(cols = "p.value", fn = quote(pvalString(value))) %>%
+#   sprinkle_colnames(term = "Term", p.value = "P-value")
+# 
+# tempNEstimates <- as.data.frame(tempBOut) %>%
+#   select(c(systemSeason, Term, "estimate")) %>%
+#   pivot_wider(names_from = Term, values_from = "estimate")
+# 
+# tempNPvalues <- as.data.frame(tempBOut) %>%
+#   select(c(systemSeason, Term, "P-value")) %>%
+#   pivot_wider(names_from = Term, values_from = "P-value")
 
 
 
