@@ -10,6 +10,7 @@ library(ggrepel)
 library(patchwork)
 
 load('TidyGearCode20.Rdata')
+load('SXS_filtered.Rdata')
 
 #get the biological data and associated site chars
 CleanHauls <- TidyBio %>%
@@ -42,8 +43,58 @@ SXS_full <- CleanHauls %>%
 #summarise(across(everything(), ~ mean(.x, na.rm = TRUE)))
 
 
+#build month dataframe
+monthly <- HydroList %>%
+  select(Reference, month)
+
+#rejoin with environmental data
+SXS_run_env <- SXS_filtered_env %>%
+  #left_join(SXS_filtered_env) %>%
+  left_join(monthly) %>%
+  group_by(systemSeason) %>%
+  add_count(name = "n_hauls") %>% #count number of hauls per systemSeason
+  ungroup() %>%
+  group_by(systemSeason, seasonYear) %>%
+  mutate(avg_temp = mean(Temperature, na.rm = TRUE),
+         n_temp = n(),
+         upper = quantile(Temperature, 0.9),
+         lower = quantile(Temperature, 0.1),
+         sd_ann = sd(Temperature)) %>%
+  ungroup() %>%
+  group_by(systemSeason) %>%
+  mutate(avg_ltm = mean(avg_temp),
+         sd_ltm = sd(avg_temp, na.rm = TRUE),
+         upper_sd = sd(upper),
+         lower_sd = sd(lower)) %>%
+  mutate(anom_temp = avg_temp - avg_ltm,
+         se_temp = sd_ltm/sqrt(n_temp),
+         lower.ci.anom.temp = 0 - (1.96 * se_temp),
+         upper.ci.anom.temp = 0 + (1.96 * se_temp)) %>%
+  #zscoreing
+  mutate(bvc_ltm  = mean(BottomVegCover, na.rm = TRUE),
+         bvc_sd   = sd(BottomVegCover, na.rm = TRUE),
+         temp_ltm = mean(Temperature, na.rm = TRUE),
+         temp_sd  = sd(Temperature, na.rm = TRUE),
+         year_ltm = mean(as.numeric(as.character(seasonYear)), na.rm = TRUE),
+         year_sd  = sd(as.numeric(as.character(seasonYear)), na.rm = TRUE),
+         bvc_Z    = ((BottomVegCover - bvc_ltm)/bvc_sd),
+         temp_Z   = ((Temperature - temp_ltm)/temp_sd),
+         year_Z    = ((as.numeric(as.character(seasonYear)) - year_ltm)/year_sd),
+         sd_t_Z   = sd(temp_Z)) %>%
+  #monthly
+  ungroup() %>%
+  group_by(systemSeason, seasonYear, month) %>%
+  mutate(avg_temp_mon = mean(Temperature, na.rm = TRUE),
+         n_temp_mon = n(),
+         upper_mon = quantile(Temperature, 0.9),
+         lower_mon = quantile(Temperature, 0.1),
+         upper_Z  = quantile(temp_Z, 0.9),
+         lower_Z  = quantile(temp_Z, 0.1),
+         sd_mon = sd(Temperature),
+         se_mon = sd_mon/sqrt(n_temp_mon))
+
 ##### setup for PERMANOVA loop ####
-systemSeason_list <- SXS_full %>%
+systemSeason_list <- SXS_filtered %>%
   select(systemSeason) %>%
   distinct()
 
@@ -51,43 +102,43 @@ RDAsforAll <- list()
 for(i in systemSeason_list$systemSeason){
   print(i) #watch progress through list
   
-  df <- SXS_full %>% #filter out systemSeason of interest
+  df <- SXS_filtered %>% #filter out systemSeason of interest
     filter(systemSeason %in% i)
   
-  df_spe <- df %>% #pull out taxa only
+  # df_spe <- df %>% #pull out taxa only
+  #   subset(select = -c(systemSeason, seasonYear, Reference, systemZone, BottomVegCover, Temperature)) %>%
+  #   select(which(!colSums(., na.rm=TRUE) %in% 0)) #select only taxa present in this systemSeason
+  # 
+  # df_pa <- df_spe
+  # df_pa[df_pa > 0] <- 1 #convert to pa
+  # 
+  # spp <- length(df_spe)
+  # spx <- nrow(df_spe)
+  # 
+  # df_pa_filtered <- df_pa %>%
+  #   select_if(colSums(.)>(0.05*spx))
+  # 
+  # df_filtered <- df %>%
+  #   select(c(Reference, seasonYear, all_of(colnames(df_pa_filtered)))) %>%
+  #   rowwise() %>%
+  #   mutate(N = sum(across(!c(Reference:seasonYear)))) %>%
+  #   ungroup() %>%
+  #   filter(N > 0) %>%
+  #   select(!c(N))
+  
+  df_spe_filtered <- SXS_filtered %>%
+    filter(Reference %in% df$Reference) %>%
     subset(select = -c(systemSeason, seasonYear, Reference, systemZone, BottomVegCover, Temperature)) %>%
     select(which(!colSums(., na.rm=TRUE) %in% 0)) #select only taxa present in this systemSeason
   
-  df_pa <- df_spe
-  df_pa[df_pa > 0] <- 1 #convert to pa
-  
-  spp <- length(df_spe)
-  spx <- nrow(df_spe)
-  
-  df_pa_filtered <- df_pa %>%
-    select_if(colSums(.)>(0.05*spx))
-  
-  df_filtered <- df %>%
-    select(c(Reference, seasonYear, all_of(colnames(df_pa_filtered)))) %>%
-    rowwise() %>%
-    mutate(N = sum(across(!c(Reference:seasonYear)))) %>%
-    ungroup() %>%
-    filter(N > 0) %>%
-    select(!c(N))
-  
-  df_spe_filtered <- df %>%
-    filter(Reference %in% df_filtered$Reference) %>%
-    subset(select = -c(systemSeason, seasonYear, Reference, systemZone, BottomVegCover, Temperature)) %>%
-    select(which(!colSums(., na.rm=TRUE) %in% 0)) #select only taxa present in this systemSeason
-  
-  df_env <- data.frame(df %>% #pull out environmental variables
-                         filter(Reference %in% df_filtered$Reference) %>%
-                         subset(select = c(systemSeason, seasonYear, BottomVegCover, Temperature)) %>%
+  df_env <- data.frame(SXS_run_env %>% #pull out environmental variables
+                         filter(Reference %in% df$Reference) %>%
+                         subset(select = c(systemSeason, seasonYear, bvc_Z, temp_Z)) %>%
                          mutate(contYear = as.numeric(as.character(seasonYear))))
   
   bf <- (vegdist(df_spe_filtered))^0.5 #Bray-Curtis w/ sqrt to reduce negative eigenvalues
   
-  rda = dbrda(bf ~ Temperature + BottomVegCover,
+  rda = dbrda(bf ~ temp_Z + bvc_Z,
                  data = df_env,
                  #strata = df_env$seasonYear,
                  #add = "lingoes",
@@ -102,50 +153,9 @@ for(i in systemSeason_list$systemSeason){
   RDAsforAll[[i]]$scores <- scores
 }
 
-#save(RDAsforAll, file = "./Outputs/RDAsforAll.RData")
+RDAsforAll_Z <- RDAsforAll
+#save(RDAsforAll_Z, file = "./Outputs/RDAsforAll_Z.RData")
 load('RDAsforAll.Rdata')
-
-
-## filter out hauls that were solely rare (<=5% presence in total samples)
-SXS_filteredList <- list()
-for(i in systemSeason_list$systemSeason){
-  print(i) #watch progress through list
-  
-  df <- SXS_full %>% #filter out systemSeason of interest
-    filter(systemSeason %in% i)
-  
-  df_spe <- df %>% #pull out taxa only
-    subset(select = -c(systemSeason, seasonYear, Reference, systemZone, BottomVegCover, Temperature)) %>%
-    select(which(!colSums(., na.rm=TRUE) %in% 0)) #select only taxa present in this systemSeason
-  
-  df_pa <- df_spe
-  df_pa[df_pa > 0] <- 1 #convert to pa
-  
-  spp <- length(df_spe)
-  spx <- nrow(df_spe)
-  
-  df_pa_filtered <- df_pa %>%
-    select_if(colSums(.)>(0.05*spx))
-  
-  df_filtered <- df %>%
-    select(c(Reference, seasonYear, all_of(colnames(df_pa_filtered)))) %>%
-    rowwise() %>%
-    mutate(n = sum(across(!c(Reference:seasonYear)))) %>%
-    ungroup() %>%
-    filter(n > 0) %>%
-    select(Reference)
-  
-  SXS_filteredList[[i]] <- df_filtered
-  
-}
-
-SXS_filtered <- bind_rows(SXS_filteredList) %>%
-  left_join(SXS_full)
-  # separate(systemSeason,
-  #          c("system","season"),
-  #          sep = "_") %>%
-  # mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH"))) %>%
-  # mutate(seasonYear = as.factor(seasonYear))
 
 plotsforAll <- list()
 #rdaVecslist <- list()
