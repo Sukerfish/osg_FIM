@@ -79,7 +79,7 @@ SXR_filtered <- SXR_filtered_spp %>%
 filteredTemp <- SXR_filtered %>%
   dplyr::select(!c(Reference, N, systemZone, BottomVegCover, Temperature, n_hauls)) %>%
   #distinct() %>%
-  mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH")))%>%
+  mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH"))) %>%
   mutate(season = str_to_title(season))
 
 ##### temperature plots #######
@@ -170,8 +170,11 @@ system_name <- c(
   CH = "Charlotte Harbor"
 )
 
+HydroPlot <- HydroList %>%
+  mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH")))
+
 #temperature itself plot
-fullTemp <- ggplot(HydroList,
+fullTemp <- ggplot(HydroPlot,
                    aes(x    = as.Date(Sampling_Date), 
                        y    = Temperature, 
                        #shape = season,
