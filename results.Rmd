@@ -14,7 +14,7 @@ Sys.setenv(FISHBASE_API="sealifebase")
 ```
 
 ```{r Temp_BVC, include = FALSE}
-source("TempBVC.R")
+source("tempBVC.R")
 ```
 
 ### Results {.unnumbered}
@@ -117,9 +117,41 @@ pander(tempNEstimates,
 
 ```
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+Now for some multivariate exploration to determine which taxa are underlying these environmental changes. First, NMDS for each season.
 
-### Including Plots {.unnumbered}
+Then PERMANOVA. Let's see PERMANOVA stuff (Table \@ref(tab:PERMANOVAs)).
+
+```{r PERMANOVAs, echo=FALSE}
+
+
+load('./Outputs/PERMSforALLDF.RData')
+
+emphasize.strong.cells(which(PERMSforAllDF < 0.05, arr.ind = TRUE))
+pander(PERMSforAllDF,
+             caption = "(\\#tab:PERMANOVAs) The third table.")
+
+# knitr::kable(test,
+#              caption = "The first table.")
+
+```
+
+We know the environmental factors are significant, but in what direction do they drive group separation?
+RDAs are the answer.
+Here they are.
+
+```{r RDAs, echo=FALSE}
+
+
+load('./Outputs/RDAsigforAll.RData')
+
+# emphasize.strong.cells(which(RD < 0.05, arr.ind = TRUE))
+# pander(PERMSforAllDF,
+#              caption = "(\\#tab:PERMANOVAs) The third table.")
+
+# knitr::kable(test,
+#              caption = "The first table.")
+
+```
 
 You can also embed plots, for example:
 
@@ -133,4 +165,9 @@ You can also embed plots, for example:
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
 
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+### Including Plots {.unnumbered}
+
 ### Literature Cited
+
