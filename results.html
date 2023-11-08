@@ -100,8 +100,8 @@ div.csl-indent {
 
 <section id="methods" class="level1 unnumbered">
 <h1 class="unnumbered">Methods</h1>
-<section id="data-collection" class="level2">
-<h2 class="anchored" data-anchor-id="data-collection"><strong>Data collection</strong></h2>
+<section id="data-collection" class="level3">
+<h3 class="anchored" data-anchor-id="data-collection">Data collection</h3>
 <p>This study used data collected by the Florida Fish and Wildlife Research Institute’s (FWRI) Fisheries Independent Monitoring (FIM) program. The program follows a monthly stratified random sampling design in estuaries across Florida, including four in the eastern Gulf of Mexico (from north to south: Apalachicola Bay, Cedar Key, Tampa Bay, and Charlotte Harbor; <a href="#fig-FIMsystems">Figure&nbsp;1</a>). Apalachicola Bay is a shallow, semi-enclosed estuary located on the northern coast of the GOM in the panhandle of Florida, USA and is within the Northern Gulf of Mexico ecoregion <span class="citation" data-cites="spalding2007">(<a href="#ref-spalding2007" role="doc-biblioref">Spalding et al. 2007</a>)</span>. Cedar Key is located within the Suwannee River open estuary system and is also in the Northern Gulf of Mexico ecoregion. Tampa Bay is Florida’s largest open water estuary and lies within the Floridian ecoregion <span class="citation" data-cites="spalding2007">(<a href="#ref-spalding2007" role="doc-biblioref">Spalding et al. 2007</a>)</span>. Charlotte Harbor, a drowned river estuary system, is within the Floridian ecoregion (FWRI 2017). All systems are dominated by seagrass vegetation in shallow waters, except for Apalachicola Bay, where seagrass is less than 7% of bottom coverage (FWRI 2017). However, sampling gear was partly determined by habitat, where all seagrass at particular depths were sampled with the same gear type across estuaries (see also below, FWRI 2017). Finally, marsh grasses and oyster beds are dominant along shorelines in Apalachicola Bay and Cedar Key, while mangroves dominate in Charlotte Harbor, and Tampa Bay is characterized by a mix of marsh grasses, oyster beds, and mangroves (FWRI 2017).</p>
 <div id="fig-FIMsystems" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
@@ -109,7 +109,7 @@ div.csl-indent {
 <figcaption class="figure-caption">Figure&nbsp;1: Locations of all estuaries in this study.</figcaption>
 </figure>
 </div>
-<p>Within each estuary, sampling was divided into zones (subdivided into 1-nm<sup>2</sup> grids) based on geographic, habitat, and depth criteria (FWRI 2017). These criteria defined which of three different types of gear were used to collect organisms. For this study, only the 21.3-m seine net will be considered, because it was used the longest and most consistently throughout the study period. Specifically, this gear targeted young-of-year and juvenile fishes in shallow habitats (≤1.8-m deep). For every net deployment, all vertebrates and select commercially important invertebrates were counted and identified to the lowest practical taxonomic level (typically species). This study used all available seine data from 1998 to 2017. Further, each seine haul was categorized by season, with summer defined as June-September and winter as December-March, following <span class="citation" data-cites="schrandt2020">(<a href="#ref-schrandt2020" role="doc-biblioref">Schrandt and MacDonald 2020</a>)</span>. Due to the similarity in appearance, and thus difficulty for <em>in situ</em> species-level identification, certain taxa were aggregated at the genus level to reduce potential effects of misidentification <a href="#tbl-diffID">Table&nbsp;1</a>. Finally, using a YSI sonde, several parameters, including water temperature, were recorded at the surface of the water and at the bottom during each sampling event.</p>
+<p>Within each estuary, sampling was divided into zones (subdivided into 1-nm<sup>2</sup> grids) based on geographic, habitat, and depth criteria (FWRI 2017). These criteria defined which of three different types of gear were used to collect organisms. For this study, only the 21.3-m seine net were considered, because it was used the longest and most consistently throughout the study period. Specifically, this gear targeted young-of-year and juvenile fishes in shallow habitats (≤1.8-m deep). For every net deployment, all vertebrates and select commercially important invertebrates were counted and identified to the lowest practical taxonomic level (typically species). This study used all available seine data from 1998 to 2020. Further, each seine haul was categorized by season, with summer defined as June-September and winter as December-March, following <span class="citation" data-cites="schrandt2020">(<a href="#ref-schrandt2020" role="doc-biblioref">Schrandt and MacDonald 2020</a>)</span>. Due to the similarity in appearance, and thus difficulty for <em>in situ</em> species-level identification, certain taxa were aggregated at the genus level to reduce potential effects of misidentification <a href="#tbl-diffID">Table&nbsp;1</a>. Finally, using a YSI sonde, several parameters, including water temperature, were recorded at the surface of the water and at the bottom during each sampling event.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="tbl-diffID" class="anchored">
@@ -180,10 +180,17 @@ div.csl-indent {
 </div>
 </div>
 </section>
+<section id="data-analyses" class="level3">
+<h3 class="anchored" data-anchor-id="data-analyses">Data Analyses</h3>
+<p>Some numbers were crunched. Used GLMMs. NMDS. PERMANOVA. RDA. CAP. Lots of linear models.</p>
+</section>
 </section>
 <section id="results" class="level1 unnumbered">
 <h1 class="unnumbered">Results</h1>
-<p>In total, 17492 sampling events occurred where at least one taxa was caught and counted during summer or winter across all four estuaries. For seven sampling events, temperature data was unavailable and thus excluded from the analyses. Further, hauls that were comprised solely of rare species (taxa found in ≤5% of all samples for that system and season) were removed from the analyses which reduced samples down to 17254. Overall, 299 taxa in the dataset were recorded, spanning more than 20 years of collections. Richness was significantly changing (negatively) only in winter in Tampa Bay (<a href="#fig-NPlot">Figure&nbsp;2</a>). However, the variability in winter (maximum SD 4.6) was consistently higher for each estuary than in the summer (maximum SD 2.314).</p>
+<section id="overview" class="level3">
+<h3 class="anchored" data-anchor-id="overview">Overview</h3>
+<p>In total, 17492 sampling events occurred where at least one taxa was caught and counted during summer or winter across all four estuaries. For seven sampling events, temperature data was unavailable and thus excluded from the analyses. Further, hauls that were comprised solely of rare species (taxa found in ≤5% of all samples for that system and season) were removed from the analyses which reduced samples down to 17254. Overall, 299 taxa in the dataset were recorded, spanning 22 years of collections.</p>
+<p>Total richness was significantly changing (positively) only in winter in Tampa Bay (<a href="#fig-NPlot">Figure&nbsp;2</a>). However, the total richness in winter (average richness 5.589) was consistently lower for each estuary than in the summer (average richness 8.794).</p>
 <div class="cell" data-fig.heigh="5">
 <div class="cell-output-display">
 <div id="fig-NPlot" class="quarto-figure quarto-figure-center anchored">
@@ -194,7 +201,7 @@ div.csl-indent {
 </div>
 </div>
 </div>
-<p>However, total abundance over time was quite variable for all systems in the winter season, with summer generally rather stable (<a href="#fig-AbundPlot">Figure&nbsp;3</a>).</p>
+<p>Similarly, total abundance was generally lower for all systems in the winter season (average total abundance 270.515), with summer generally higher (average total abundance 390.681) (<a href="#fig-AbundPlot">Figure&nbsp;3</a>). Apalachicola Bay (in winter) and Tampa Bay (in summer) both have significant changes in total abundance over time, though AP is changing negatively and TB is changing positively.</p>
 <div class="cell" data-fig.heigh="5">
 <div class="cell-output-display">
 <div id="fig-AbundPlot" class="quarto-figure quarto-figure-center anchored">
@@ -205,7 +212,7 @@ div.csl-indent {
 </div>
 </div>
 </div>
-<p>Seagrass coverage did stuff (<a href="#fig-BVCPlot">Figure&nbsp;4</a>).</p>
+<p>Seagrass coverage over time significantly changed in Cedar Key summer (negatively), Tampa Bay winter (positively), and in both seasons in Charlotte Harbor (positively) (<a href="#fig-BVCPlot">Figure&nbsp;4</a>).</p>
 <div class="cell" data-fig.heigh="5">
 <div class="cell-output-display">
 <div id="fig-BVCPlot" class="quarto-figure quarto-figure-center anchored">
@@ -216,16 +223,29 @@ div.csl-indent {
 </div>
 </div>
 </div>
-<p>Temperature was interesting (<a href="#fig-TempPlot">Figure&nbsp;5</a>).</p>
-<div class="cell" data-fig.heigh="5">
-<div class="cell-output-display">
-<div id="fig-TempPlot" class="quarto-figure quarto-figure-center anchored">
+<p>Temperature increased significantly through time for all estuaries in the winter and for AP and TB in the summer (<a href="#fig-TempPlot">Figure&nbsp;5</a>).</p>
+<div id="fig-TempPlot" class="cell quarto-layout-panel" data-fig.heigh="5">
 <figure class="figure">
-<p><img src="results_files/figure-html/fig-TempPlot-1.png" class="img-fluid figure-img" width="720"></p>
-<figcaption class="figure-caption">Figure&nbsp;5: One more amazing plot</figcaption>
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="cell-output-display quarto-layout-cell quarto-layout-cell-subref" style="flex-basis: 50.0%;justify-content: center;">
+<div id="fig-TempPlot-1" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="results_files/figure-html/fig-TempPlot-1.png" class="img-fluid figure-img" data-ref-parent="fig-TempPlot" width="720"></p>
+<figcaption class="figure-caption">(a) One more amazing plot</figcaption>
 </figure>
 </div>
 </div>
+<div class="cell-output-display quarto-layout-cell quarto-layout-cell-subref" style="flex-basis: 50.0%;justify-content: center;">
+<div id="fig-TempPlot-2" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="results_files/figure-html/fig-TempPlot-2.png" class="img-fluid figure-img" data-ref-parent="fig-TempPlot" width="720"></p>
+<figcaption class="figure-caption">(b) Annually plotted</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p></p><figcaption class="figure-caption">Figure&nbsp;5: Charts</figcaption><p></p>
+</figure>
 </div>
 <p>Is there any association between changes in abundance and changes in temperature and/or seagrass coverage? GLMMs used to determine. Formula used for all models is: <code>abund ~ year_Z + temp_Z +  bvc_Z + offset(log(n_hauls)) + ar1(yearMonth + 0|systemZone)</code> where abund is … z is …</p>
 <p>Here’s what the abundance model output looks like for each system and season combination in <a href="#tbl-abundModels">Table&nbsp;2</a>.</p>
@@ -408,6 +428,7 @@ div.csl-indent {
 </div>
 </div>
 
+</section>
 </section>
 
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
