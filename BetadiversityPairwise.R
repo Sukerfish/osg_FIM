@@ -93,7 +93,8 @@ betaTimeDF <- bind_rows(betaTime, .id = "systemSeason") %>%
   select(!c(yr)) %>%
   pivot_longer(cols = c("Overall", "Balanced", "Gradient")) %>% #prep for large plot
   rename(Index = name) %>%
-  mutate(season = str_to_title(season))
+  mutate(season = str_to_title(season)) %>%
+  filter(value > 0) #filter index value to clip off initialization year at 0
 
 system_name <- c(
   AP = "Apalachicola Bay",
@@ -107,9 +108,8 @@ betaTimePlot <- ggplot(data = betaTimeDF) +
     y = value,
     color = Index),
     linewidth = 0.7) +
-  facet_grid(season~system,
-             labeller = labeller(system = system_name)) +
-  scale_x_continuous(breaks= seq(1998,2020,2)) +
+  facet_grid(season~system) +
+  # scale_x_continuous(breaks= seq(1998,2020,5)) +
   # scale_color_cmocean(discrete = TRUE,
   #                     name = "solar") +
   # scale_color_viridis_d(option = "viridis") +
@@ -118,7 +118,8 @@ betaTimePlot <- ggplot(data = betaTimeDF) +
        x = "Year",
        y = "Betadiversity index",
        color = "Component") +
-  osg_theme
+  theme_bw() +
+  theme(legend.position="bottom")
 
 # ggsave(plot = betaTimePlot,
 #        filename = "./Outputs/betaTime.png",
