@@ -45,7 +45,7 @@ This study used data collected by the Florida Fish and Wildlife Research Institu
 
 ![Locations of all estuaries in this study.](conceptFigs/FIMsystems.png){#fig-FIMsystems}
 
-Within each estuary, sampling was divided into zones (subdivided into 1-nm^2^ grids) based on geographic, habitat, and depth criteria (FWRI 2017). These criteria defined which of three different types of gear were used to collect organisms. For this study, only the 21.3-m seine net were considered, because it was used the longest and most consistently throughout the study period. Specifically, this gear targeted young-of-year and juvenile fishes in shallow habitats (≤1.8-m deep). For every net deployment, all vertebrates and select commercially important invertebrates were counted and identified to the lowest practical taxonomic level (typically species). This study used all available seine data from 1998 to 2020. Further, each seine haul was categorized by season, with summer defined as June-September and winter as December-March, following [@schrandt2020]. Due to the similarity in appearance, and thus difficulty for *in situ* species-level identification, certain taxa were aggregated at the genus level to reduce potential effects of misidentification @tbl-diffID. Finally, using a YSI sonde, several parameters, including water temperature, were recorded at the surface of the water and at the bottom during each sampling event. 
+Within each estuary, sampling was divided into zones (subdivided into 1-nm^2^ grids) based on geographic, habitat, and depth criteria (FWRI 2017). These criteria defined which of three different types of gear were used to collect organisms. For this study, only the 21.3-m seine net were considered, because it was used the longest and most consistently throughout the study period. Specifically, this gear targeted young-of-year and juvenile fishes in shallow habitats (≤1.8-m deep). For every net deployment, all vertebrates and select commercially important invertebrates were counted and identified to the lowest practical taxonomic level (typically species). This study used all available seine data from 1998 to 2020. Further, each seine haul was categorized by season, with summer defined as June-September and winter as December-March, following [@schrandt2020]. Due to the similarity in appearance, and thus difficulty for *in situ* species-level identification, certain taxa were aggregated at the genus level to reduce potential effects of misidentification @tbl-diffID. Finally, using a YSI sonde, several parameters, including water temperature, were recorded at the surface of the water and at the bottom during each sampling event.
 
 ```{r}
 #| label: tbl-diffID
@@ -54,10 +54,22 @@ Within each estuary, sampling was divided into zones (subdivided into 1-nm^2^ gr
 #| tbl-cap: "Difficult to ID taxa"
 knitr::kable(read.csv(file = "conceptFigs/diffIDTaxa.csv"))
 ```
+
 ### Data Analyses
-Some numbers were crunched. Used GLMMs. NMDS. PERMANOVA. RDA. CAP. Lots of linear models.
+
+```{r}
+#| label: Models
+#| include: FALSE
+#| warning: FALSE
+source("RichnessModel.R")
+```
+
+To address my first question, I modeled richness and abundance per haul across all estuaries for both the summer and winter seasons using Generalized Linear Mixed Models (GLMMs). For each seine haul, I calculated the richness as the number of taxa present and total abundance as the sum of all individuals counted. In all calculations, total abundance was fourth-root transformed to reduce the effects of overly-abundant taxa, given total abundance ranged from a maximum of `r max(totAbModelDF$abundRaw)` to `r min(totAbModelDF$abundRaw)`. For each model, the response in the GLMM included either the richness or transformed abundance of each haul, with estuary (four levels) as a fixed effect and year as a random effect. To account for serial autocorrelation, an ar1 covariance matrix was used in each model calculated from month of sampling event and within-estuary zone. Given that species richness is strongly affected by sampling effort [@mittelbach2019], I included an offset term to account for variation in the number of seine hauls.
+
+To examine other things some numbers were crunched. Used GLMMs. NMDS. PERMANOVA. RDA. CAP. Lots of linear models.
 
 # Results {.unnumbered}
+
 ### Overview
 
 ```{r}
@@ -77,6 +89,15 @@ In total, 17492 sampling events occurred where at least one taxa was caught and 
 Total richness was significantly changing (positively) only in winter in Tampa Bay (@fig-NPlot). However, the total richness in winter (average richness `r round(mean(winterStats$meanN),3)`) was consistently lower for each estuary than in the summer (average richness `r round(mean(summerStats$meanN),3)`).
 
 ```{r}
+#| label: tbl-fullRichModels
+#| echo: FALSE
+#| message: FALSE
+#| tbl-cap: "Richness GLMM"
+emphasize.strong.cells(which(richFullPvalues < 0.05, arr.ind = TRUE))
+pander(richFullEstimates)
+```
+
+```{r}
 #| label: fig-NPlot
 #| echo: FALSE
 #| message: FALSE
@@ -87,6 +108,15 @@ plot(NPlot)
 ```
 
 Similarly, total abundance was generally lower for all systems in the winter season (average total abundance `r round(mean(winterAbStats$meanAb),3)`), with summer generally higher (average total abundance `r round(mean(summerAbStats$meanAb),3)`) (@fig-AbundPlot). Apalachicola Bay (in winter) and Tampa Bay (in summer) both have significant changes in total abundance over time, though AP is changing negatively and TB is changing positively.
+
+```{r}
+#| label: tbl-fullAbundModels
+#| echo: FALSE
+#| message: FALSE
+#| tbl-cap: "Abundance GLMM"
+emphasize.strong.cells(which(abundFullPvalues < 0.05, arr.ind = TRUE))
+pander(abundFullEstimates)
+```
 
 ```{r}
 #| label: fig-AbundPlot
@@ -110,10 +140,6 @@ Seagrass coverage over time significantly changed in Cedar Key summer (negativel
 plot(BVCPlot)
 ```
 
-```{r Models, include = FALSE}
-source("RichnessModel.R")
-```
-
 Temperature increased significantly through time for all estuaries in the winter and for AP and TB in the summer (@fig-TempPlot).
 
 ```{r}
@@ -131,7 +157,6 @@ Temperature increased significantly through time for all estuaries in the winter
 plot(fullTemp)
 plot(TempPlot)
 ```
-
 
 Is there any association between changes in abundance and changes in temperature and/or seagrass coverage? GLMMs used to determine. Formula used for all models is: `abund ~ year_Z + temp_Z +  bvc_Z + offset(log(n_hauls)) + ar1(yearMonth + 0|systemZone)` where abund is ... z is ...
 
@@ -167,4 +192,20 @@ Looking closer at temp, specifically as in [@miner2021], the upper and lower 10t
 #| fig.heigh: 5
 #| fig-cap: "Still another amazing plot"
 plot(annualTemp)
+```
+
+```{r BetaDiversity, include = FALSE}
+source("BetadiversityPairwise.R")
+```
+
+The betadiversity stuff is interesting (@fig-betadiversity).
+
+```{r}
+#| label: fig-betadiversity
+#| echo: FALSE
+#| message: FALSE
+#| fig.width: 7.5
+#| fig.heigh: 5
+#| fig-cap: "Betadiversity amazing plot"
+plot(betaTimePlot)
 ```

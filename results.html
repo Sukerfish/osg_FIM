@@ -182,7 +182,8 @@ div.csl-indent {
 </section>
 <section id="data-analyses" class="level3">
 <h3 class="anchored" data-anchor-id="data-analyses">Data Analyses</h3>
-<p>Some numbers were crunched. Used GLMMs. NMDS. PERMANOVA. RDA. CAP. Lots of linear models.</p>
+<p>To address my first question, I modeled richness and abundance per haul across all estuaries for both the summer and winter seasons using Generalized Linear Mixed Models (GLMMs). For each seine haul, I calculated the richness as the number of taxa present and total abundance as the sum of all individuals counted. In all calculations, total abundance was fourth-root transformed to reduce the effects of overly-abundant taxa, given total abundance ranged from a maximum of 1.04502^{5} to 1. For each model, the response in the GLMM included either the richness or transformed abundance of each haul, with estuary (four levels) as a fixed effect and year as a random effect. To account for serial autocorrelation, an ar1 covariance matrix was used in each model calculated from month of sampling event and within-estuary zone. Given that species richness is strongly affected by sampling effort <span class="citation" data-cites="mittelbach2019">(<a href="#ref-mittelbach2019" role="doc-biblioref">Mittelbach and McGill 2019</a>)</span>, I included an offset term to account for variation in the number of seine hauls.</p>
+<p>To examine other things some numbers were crunched. Used GLMMs. NMDS. PERMANOVA. RDA. CAP. Lots of linear models.</p>
 </section>
 </section>
 <section id="results" class="level1 unnumbered">
@@ -191,6 +192,51 @@ div.csl-indent {
 <h3 class="anchored" data-anchor-id="overview">Overview</h3>
 <p>In total, 17492 sampling events occurred where at least one taxa was caught and counted during summer or winter across all four estuaries. For seven sampling events, temperature data was unavailable and thus excluded from the analyses. Further, hauls that were comprised solely of rare species (taxa found in ≤5% of all samples for that system and season) were removed from the analyses which reduced samples down to 17254. Overall, 299 taxa in the dataset were recorded, spanning 22 years of collections.</p>
 <p>Total richness was significantly changing (positively) only in winter in Tampa Bay (<a href="#fig-NPlot">Figure&nbsp;2</a>). However, the total richness in winter (average richness 5.589) was consistently lower for each estuary than in the summer (average richness 8.794).</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="tbl-fullRichModels" class="anchored">
+<table class="table table-sm table-striped small">
+<caption>Table&nbsp;2: Richness GLMM</caption>
+<colgroup>
+<col style="width: 12%">
+<col style="width: 19%">
+<col style="width: 12%">
+<col style="width: 18%">
+<col style="width: 15%">
+<col style="width: 18%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">season</th>
+<th style="text-align: center;">(Intercept)</th>
+<th style="text-align: center;">year_Z</th>
+<th style="text-align: center;">systemCK</th>
+<th style="text-align: center;">systemTB</th>
+<th style="text-align: center;">systemCH</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">summer</td>
+<td style="text-align: center;"><strong>2.185</strong></td>
+<td style="text-align: center;">-0.097</td>
+<td style="text-align: center;"><strong>-1.246</strong></td>
+<td style="text-align: center;"><strong>-1.7</strong></td>
+<td style="text-align: center;"><strong>-1.285</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">winter</td>
+<td style="text-align: center;"><strong>-2.136</strong></td>
+<td style="text-align: center;">-0.014</td>
+<td style="text-align: center;"><strong>-1.191</strong></td>
+<td style="text-align: center;">-0.082</td>
+<td style="text-align: center;"><strong>1.556</strong></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
 <div class="cell" data-fig.heigh="5">
 <div class="cell-output-display">
 <div id="fig-NPlot" class="quarto-figure quarto-figure-center anchored">
@@ -202,6 +248,51 @@ div.csl-indent {
 </div>
 </div>
 <p>Similarly, total abundance was generally lower for all systems in the winter season (average total abundance 270.515), with summer generally higher (average total abundance 390.681) (<a href="#fig-AbundPlot">Figure&nbsp;3</a>). Apalachicola Bay (in winter) and Tampa Bay (in summer) both have significant changes in total abundance over time, though AP is changing negatively and TB is changing positively.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="tbl-fullAbundModels" class="anchored">
+<table class="table table-sm table-striped small">
+<caption>Table&nbsp;3: Abundance GLMM</caption>
+<colgroup>
+<col style="width: 12%">
+<col style="width: 19%">
+<col style="width: 12%">
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 18%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">season</th>
+<th style="text-align: center;">(Intercept)</th>
+<th style="text-align: center;">year_Z</th>
+<th style="text-align: center;">systemCK</th>
+<th style="text-align: center;">systemTB</th>
+<th style="text-align: center;">systemCH</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">summer</td>
+<td style="text-align: center;"><strong>-4.061</strong></td>
+<td style="text-align: center;">0.064</td>
+<td style="text-align: center;">-0.232</td>
+<td style="text-align: center;">-0.22</td>
+<td style="text-align: center;">-0.006</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">winter</td>
+<td style="text-align: center;"><strong>-4.324</strong></td>
+<td style="text-align: center;">-0.05</td>
+<td style="text-align: center;"><strong>-0.532</strong></td>
+<td style="text-align: center;"><strong>-0.731</strong></td>
+<td style="text-align: center;"><strong>-0.393</strong></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
 <div class="cell" data-fig.heigh="5">
 <div class="cell-output-display">
 <div id="fig-AbundPlot" class="quarto-figure quarto-figure-center anchored">
@@ -248,12 +339,12 @@ div.csl-indent {
 </figure>
 </div>
 <p>Is there any association between changes in abundance and changes in temperature and/or seagrass coverage? GLMMs used to determine. Formula used for all models is: <code>abund ~ year_Z + temp_Z +  bvc_Z + offset(log(n_hauls)) + ar1(yearMonth + 0|systemZone)</code> where abund is … z is …</p>
-<p>Here’s what the abundance model output looks like for each system and season combination in <a href="#tbl-abundModels">Table&nbsp;2</a>.</p>
+<p>Here’s what the abundance model output looks like for each system and season combination in <a href="#tbl-abundModels">Table&nbsp;4</a>.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="tbl-abundModels" class="anchored">
 <table class="table table-sm table-striped small">
-<caption>Table&nbsp;2: The first table.</caption>
+<caption>Table&nbsp;4: The first table.</caption>
 <colgroup>
 <col style="width: 20%">
 <col style="width: 19%">
@@ -332,12 +423,12 @@ div.csl-indent {
 </div>
 </div>
 </div>
-<p>And this is for richness models as in <a href="#tbl-richModels">Table&nbsp;3</a>.</p>
+<p>And this is for richness models as in <a href="#tbl-richModels">Table&nbsp;5</a>.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="tbl-richModels" class="anchored">
 <table class="table table-sm table-striped small">
-<caption>Table&nbsp;3: The second table.</caption>
+<caption>Table&nbsp;5: The second table.</caption>
 <colgroup>
 <col style="width: 20%">
 <col style="width: 19%">
@@ -427,6 +518,17 @@ div.csl-indent {
 </div>
 </div>
 </div>
+<p>The betadiversity stuff is interesting (<a href="#fig-betadiversity">Figure&nbsp;7</a>).</p>
+<div class="cell" data-fig.heigh="5">
+<div class="cell-output-display">
+<div id="fig-betadiversity" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="results_files/figure-html/fig-betadiversity-1.png" class="img-fluid figure-img" width="720"></p>
+<figcaption class="figure-caption">Figure&nbsp;7: Betadiversity amazing plot</figcaption>
+</figure>
+</div>
+</div>
+</div>
 
 </section>
 </section>
@@ -434,6 +536,9 @@ div.csl-indent {
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
 <div id="ref-miner2021" class="csl-entry" role="listitem">
 Miner, C. Melissa, Jennifer L. Burnaford, Karah Ammann, Benjamin H. Becker, Steven C. Fradkin, Stacey Ostermann-Kelm, Jayson R. Smith, Stephen G. Whitaker, and Peter T. Raimondi. 2021. <span>“Latitudinal Variation in Long<span>-</span>Term Stability of North American Rocky Intertidal Communities.”</span> <em>Journal of Animal Ecology</em> 90 (9): 2077–93. <a href="https://doi.org/10.1111/1365-2656.13504">https://doi.org/10.1111/1365-2656.13504</a>.
+</div>
+<div id="ref-mittelbach2019" class="csl-entry" role="listitem">
+Mittelbach, Gary G., and Brian J. McGill. 2019. <em>Community Ecology</em>. Oxford University Press. <a href="https://doi.org/10.1093/oso/9780198835851.001.0001">https://doi.org/10.1093/oso/9780198835851.001.0001</a>.
 </div>
 <div id="ref-schrandt2020" class="csl-entry" role="listitem">
 Schrandt, Meagan N., and Timothy C. MacDonald. 2020. <span>“Long-Term Stability of the Faunal Community of a Subtropical Estuary: Evaluating Disturbances in the Context of Interannual Variability.”</span> <em>Estuaries and Coasts</em> 43 (2): 347–59. <a href="https://doi.org/10.1007/s12237-019-00684-1">https://doi.org/10.1007/s12237-019-00684-1</a>.
