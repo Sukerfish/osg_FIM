@@ -441,6 +441,90 @@ library(broom.mixed)
 library(pixiedust)
 library(pander)
 
+#sysList <- unique(totAbModelDF$systemSeason)
+seaList <- sort(unique(totAbModelDF$season))
+
+#### richness ####
+linearRegs <- list()
+plots <- list()
+richFullOut <- list()
+outputs <- list()
+GLMMS_richness <- list()
+for (i in seaList){
+  runner <- data.frame()
+  runner <- filter(totAbModelDF, season == i)
+  
+  glmmOut <- glmmTMB(N ~ year_Z +
+                       system +
+                       #bvc_Z +
+                       #(1|contYear) +
+                       #(1|systemZone),
+                       offset(log(n_hauls)) +
+                       ar1(yearMonth + 0|systemZone),
+                     data = runner,
+                     #dispformula = ~0,
+                     #ziformula = ~1,
+                     family = gaussian)
+  GLMMS_richness[[i]] <- glmmOut
+  richFullOut[[i]] <- broom.mixed::tidy(glmmOut, effects = "fixed")
+
+}
+
+richModOut <- bind_rows(richFullOut, .id = "season")
+orangeOut <- dust(richModOut) %>%
+  sprinkle(cols = c("estimate", "std.error", "statistic"), round = 3) %>%
+  sprinkle(cols = "p.value", fn = quote(pvalString(value))) %>%
+  sprinkle_colnames(term = "Term", p.value = "P-value")
+
+richFullEstimates <- as.data.frame(orangeOut) %>%
+  select(c(season, Term, "estimate")) %>%
+  pivot_wider(names_from = Term, values_from = "estimate")
+
+richFullPvalues <- as.data.frame(orangeOut) %>%
+  select(c(season, Term, "P-value")) %>%
+  pivot_wider(names_from = Term, values_from = "P-value")
+
+#### abundance ####
+linearRegs <- list()
+plots <- list()
+abundFullOut <- list()
+outputs <- list()
+GLMMS_abundance <- list()
+for (i in seaList){
+  runner <- data.frame()
+  runner <- filter(totAbModelDF, season == i)
+  
+  glmmOut <- glmmTMB(abund ~ year_Z +
+                       system +
+                       #bvc_Z +
+                       #(1|contYear) +
+                       #(1|systemZone),
+                       offset(log(n_hauls)) +
+                       ar1(yearMonth + 0|systemZone),
+                     data = runner,
+                     #dispformula = ~0,
+                     #ziformula = ~1,
+                     family = gaussian)
+  GLMMS_abundance[[i]] <- glmmOut
+  abundFullOut[[i]] <- broom.mixed::tidy(glmmOut, effects = "fixed")
+  
+}
+
+abundModOut <- bind_rows(abundFullOut, .id = "season")
+yellowOut <- dust(abundModOut) %>%
+  sprinkle(cols = c("estimate", "std.error", "statistic"), round = 3) %>%
+  sprinkle(cols = "p.value", fn = quote(pvalString(value))) %>%
+  sprinkle_colnames(term = "Term", p.value = "P-value")
+
+abundFullEstimates <- as.data.frame(yellowOut) %>%
+  select(c(season, Term, "estimate")) %>%
+  pivot_wider(names_from = Term, values_from = "estimate")
+
+abundFullPvalues <- as.data.frame(yellowOut) %>%
+  select(c(season, Term, "P-value")) %>%
+  pivot_wider(names_from = Term, values_from = "P-value")
+
+
 sysList <- unique(totAbModelDF$systemSeason)
 
 #### richness ####
