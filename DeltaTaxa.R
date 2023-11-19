@@ -18,13 +18,14 @@ load('SXS_filtered.Rdata')
 #grab basic haul data and counts
 CleanHauls <- TidyBio %>%
   subset(select = c(Reference, system, season, seasonYear, systemZone, Scientificname, N2)) %>%
-  filter(Reference %in% SXS_filtered$Reference)
+  filter(Reference %in% SXS_filtered$Reference) %>%
+  mutate(N2xform = N2^0.25) #4th root transform
 
 #full site by species matrix
 SiteXSpeciesFull <- CleanHauls %>%
   pivot_wider(id_cols = Reference:systemZone,
               names_from = Scientificname,
-              values_from = N2,
+              values_from = N2xform,
               values_fill = 0) %>% #replace all NA values with 0s, i.e. counting as true zero
   ungroup()
 
@@ -134,7 +135,8 @@ N.turnovers <- function (vec=rbinom(50,1,0.5)) {
 ##### FIRST RUN WITH XFORM DATA FOR SIGNIFICANCE TEST #######
 
 SiteXSpeciesAnnual <- YearXSpeciesZ %>%
-  mutate(avgXform = avg^.5) %>% #sqrt transform to account for overly abundant taxa 
+  mutate(avgXform = avg) %>% #already xformed
+  #sqrt transform to account for overly abundant taxa 
                                 #fourth root xform adds 7 new instances of significantly changing taxa
   pivot_wider(id_cols = system:seasonYear,
               names_from = Scientificname,
@@ -182,8 +184,53 @@ SlopesForAllDF <- bind_rows(SlopesForAll, .id = "systemSeason") %>%
 
 ###### RERUN WITH RAW AB FOR TRUE SLOPE VALUE (in separate DFs) ######
 
-SiteXSpeciesAnnualRaw <- YearXSpeciesZ %>%
-  #mutate(avgXform = avg^.5) %>% #sqrt transform to account for overly abundant taxa
+#full site by species matrix
+SiteXSpeciesFullRaw <- CleanHauls %>%
+  pivot_wider(id_cols = Reference:systemZone,
+              names_from = Scientificname,
+              values_from = N2,
+              values_fill = 0) %>% #replace all NA values with 0s, i.e. counting as true zero
+  ungroup()
+
+#collapse full site x species matrix to long term means
+LTxSpeciesMeansRaw <- SiteXSpeciesFullRaw %>%
+  subset(select = -c(Reference, systemZone, seasonYear)) %>%
+  group_by(system, season) %>%
+  summarise(across(everything(), ~ mean(.x, na.rm = TRUE)))
+
+#make matching standard deviation matrix to long term means
+LTxSpeciesStdevRaw <- SiteXSpeciesFullRaw %>%
+  subset(select = -c(Reference, systemZone, seasonYear)) %>%
+  group_by(system, season) %>%
+  summarise(across(everything(), ~ sd(.x, na.rm = TRUE)))
+
+#Z score conversion process
+YearXSpeciesZRaw <- SiteXSpeciesFullRaw %>%
+  subset(select = -c(Reference, systemZone)) %>%
+  group_by(system, season, seasonYear) %>%
+  summarise(across(everything(), ~ mean(.x, na.rm = TRUE))) %>% #collapse to annual means 
+  ungroup() %>%
+  pivot_longer(cols = !c(system:seasonYear),
+               names_to = "Scientificname",
+               values_to = "avg") %>%
+  #expand back out to long form for leftjoins with LT mean and LT stdev
+  ungroup() %>%
+  left_join(pivot_longer(data = LTxSpeciesMeansRaw, #LT mean column added
+                         cols = !c(system:season),
+                         names_to = "Scientificname",
+                         values_to = "LTmean")) %>%
+  left_join(pivot_longer(data = LTxSpeciesStdevRaw, #LT stdev column added
+                         cols = !c(system:season),
+                         names_to = "Scientificname",
+                         values_to = "stdev")) %>%
+  group_by(system, season, seasonYear) %>%
+  mutate(zscore = ((avg - LTmean)/stdev)) %>% #calculate zscores using annual means
+  ungroup() %>%
+  filter(LTmean > 0) %>% #remove taxa entirely absent from each system - if LTmean = 0, taxa never observed
+  filter(Scientificname != "No fish") 
+
+SiteXSpeciesAnnualRaw <- YearXSpeciesZRaw %>%
+  #mutate(avg = avg^4) %>% #sqrt transform to account for overly abundant taxa
   pivot_wider(id_cols = system:seasonYear,
               names_from = Scientificname,
               values_from = avg,
@@ -234,24 +281,22 @@ SlopesForAllDF$raw_stderr <- SlopesForAllDFRaw$stderr
 
 ###### plot it up ######
 winnersLosers <- ggplot(SlopesForAllDF, 
-       aes(x = raw_slope))+
+       aes(x = slope))+
   geom_histogram(binwidth = .01) +
   geom_density(adjust = 10, 
                fill="#69b3a2", color="#e9ecef", alpha=0.8) +
+  #scale_x_continuous(trans=scales::pseudo_log_trans(base = 10)) +
+  scale_y_continuous(trans = "sqrt") + 
   #geom_vline(aes(xintercept = mean), test, linetype="dashed", colour = "blue")+
   geom_vline(xintercept = 0, linetype="dashed") +
   #geom_vline(aes(xintercept = mean+siq), test, colour = "red")+
   #geom_vline(aes(xintercept = mean-siq), test, colour = "red")+
   facet_grid(season~system,
              scales = "free_y") +
-  coord_cartesian(xlim = c(-0.1, 0.1)) +
-  xlab("Raw Linear Slope") +
+  coord_cartesian(xlim = c(-0.05, 0.05)) +
+  xlab("Linear Slope") +
   ylab("Number of Taxa") +
-  theme(axis.text=element_text(size = 12)) +
-  theme(axis.title=element_text(size = 16)) +
-  theme(strip.text = element_text(size = 16)) +
-  #ggtitle("GLM w/ no Xform") +
-  theme(title=element_text(size = 20))
+  theme_bw()
 
 # ggsave(filename = "winnersLosers.png",
 #        plot = winnersLosers,
@@ -321,10 +366,6 @@ sigSummary <- YearXSpeciesZ %>%
 #make several uniquely ordered plots and bind them...
 library(patchwork)
 
-#get unique list for the loop
-seasysKey <- sigSlopes %>%
- distinct(systemSeason)
-
 taxaList_grouped <- read.csv("./Outputs/taxaList_grouped.csv")
 
 sigSlopes_grouped <- sigSlopes %>%
@@ -354,6 +395,37 @@ sigSlopesGroups <- ggplot(sigSlopes_grouped,
         ) +
   #coord_cartesian(xlim = c(-.2, 0.2)) +
   geom_vline(xintercept = 0, linetype="dashed")
+
+#get unique list for the loop
+seasysKey <- unique(sigSlopes$systemSeason)
+
+sigPlots <- list()
+for (i in seasysKey){
+  print(i)
+  gf <- sigSlopes_grouped %>%
+    filter(systemSeason == i)
+  
+  sigPlots[[i]] <- ggplot(gf,
+         aes(y = reorder(Scientificname, raw_slope),
+             x = raw_slope)) + 
+    geom_point(aes(color = as.factor(id_color))) +
+    scale_color_manual(values = c("red","blue")) +
+    facet_wrap(~ systemSeason,
+               ncol = 2) +
+    geom_errorbarh(aes(xmin=(raw_slope + (-2*stderr)), xmax=(raw_slope + (2*stderr))),
+                   color = "darkgray") + #std err bars
+    scale_x_continuous(trans = pseudolog10_trans) +
+    #ggtitle("Change in density over time by group") + 
+    theme_bw() +
+    theme(legend.position = "none",
+          axis.title.y = element_blank(),
+          axis.title.x = element_blank()
+    ) +
+    coord_cartesian(xlim = c(-.2, 0.2)) +
+    geom_vline(xintercept = 0, linetype="dashed")
+}
+
+sigSlopesAll <- wrap_plots(sigPlots, ncol = 4)
 
 # ggsave(filename = "sigGroups.png",
 #        plot = sigSlopesGroups,
@@ -458,7 +530,7 @@ sigSlopesEco <- sigSlopes %>%
 #need to plot with patchwork to keep fish lists different per plot
 plotsEco <- list() #initialize object
 #use actual values from the key list
-for (i in seasysKey$systemSeason){
+for (i in seasysKey){
   #filter by key values
   plotup <- sigSlopesEco %>%
     filter(systemSeason == i)
