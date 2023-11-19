@@ -76,9 +76,9 @@ knitr::kable(read.csv(file = "conceptFigs/diffIDTaxa.csv"))
 source("RichnessModel.R")
 ```
 
-To address my first question, I modeled richness and abundance per haul across all estuaries for both the summer and winter seasons using Generalized Linear Mixed Models (GLMMs). For each seine haul, I calculated the richness as the number of taxa present and total abundance as the sum of all individuals counted. In all calculations, total abundance was fourth-root transformed to reduce the effects of overly-abundant taxa, given total abundance ranged from a maximum of `r max(totAbModelDF$abundRaw)` to `r min(totAbModelDF$abundRaw)`. For each model, the response in the GLMM included either the richness or transformed abundance of each haul, with estuary (four levels) as a fixed effect and year as a random effect. To account for serial autocorrelation, an ar1 covariance matrix was used in each model calculated from month of sampling event and within-estuary zone. Given that species richness is strongly affected by sampling effort [@Mittelbach2019], I included an offset term to account for variation in the number of seine hauls.
+To address if the richness and abundance of eGOM estuarine fish assemblages has changed over a 20-year period, I modeled richness and abundance per haul across all estuaries for both the summer and winter seasons using Generalized Linear Mixed Models (GLMMs). Given the well-documented seasonal differences in estuarine systems (see[@Hagan2003; @Strydom2015; @Schrandt2020]), in this and all subsequent analyses, summer and winter are treated entirely separately. For each seine haul, I calculated the richness as the number of taxa present and total abundance as the sum of all individuals counted. In all calculations, total abundance was fourth-root transformed to reduce the effects of overly-abundant taxa, given total abundance ranged from a maximum of `r max(totAbModelDF$abundRaw)` to `r min(totAbModelDF$abundRaw)`. For each model, the response in the GLMM included either the richness or transformed abundance of each haul, with estuary (four levels) as a fixed effect and year as a random effect. To account for serial autocorrelation, an `ar1` covariance matrix was used in each model calculated from month of sampling event and within-estuary zone. Given that species richness is strongly affected by sampling effort [@Mittelbach2019], I included an offset term to account for variation in the number of seine hauls. Further, I used Permutational Multivariate Analaysis of Variance (PERMANOVA) to examine the interaction between estuary and time, as a means to determine if there are different magnitudes and directions of temporal change among estuaries and thus if each estuary should be treated separately.
 
-To examine other things some numbers were crunched. Used GLMMs. NMDS. PERMANOVA. RDA. CAP. Lots of linear models.
+To explore whether the composition and abundance has changed over the same time period and if it may be related to water temperature, I used several techniques. First, I examined the turnover and nestedness of each system through time using the R package `betapart`. Then, I ran additional GLMM models for each estuary, but included random terms for Z-scored water temperature and Z-scored percent bottom vegetation coverage (BVC). In all cases, the same `ar1` covariance structure was used as before as well as an offset term for sampling effort. To help visualize the differences among estuaries, I used Non-metric Multidimensional Scaling (NMDS) to plot the average annual abundance of each taxa in each season in multivariate space. Since this is not a routine for hypothesis testing, I used Distance-based Redundancy Analysis (dbRDA) to explore the magnitude and direction of effect of water temperature and BVC in multivariate space. Finally, to explore the *a priori* hypothesis of a possible "directional" change (see concept fig) in species space over time, I used Canonical Analysis of Principal Coordinates (CAP) models for each estuary and season. Following [@Dornelas2019], I further examined individual taxa for change over time. Within each estuary and season, I ran a linear model on the transformed abundance of each taxa independently and tested for significance. This was used to determine both the magnitude and direction of change at the species level, thus describing the distribution of "winners and losers" across each estuarine system.
 
 # Results {.unnumbered}
 
@@ -99,7 +99,7 @@ summerAbStats <- filter(SXAb, season == "summer")
 
 In total, 17492 sampling events occurred where at least one taxa was caught and counted during summer or winter across all four estuaries. For seven sampling events, temperature data was unavailable and thus excluded from the analyses. Further, hauls that were comprised solely of rare species (taxa found in ≤5% of all samples for that system and season) were removed from the analyses which reduced samples down to `r nrow(SXS_filtered)`. Overall, `r ncol(SXS_filtered_spp)` taxa in the dataset were recorded, spanning `r max(as.numeric(as.character(waterBVC_full$seasonYear)))-min(as.numeric(as.character(waterBVC_full$seasonYear)))` years of collections.
 
-Total richness was significantly changing (positively) only in winter in Tampa Bay ([@fig-NPlot]). However, the total richness in winter (average richness `r round(mean(winterStats$meanN),3)`) was consistently lower for each estuary than in the summer (average richness `r round(mean(summerStats$meanN),3)`).
+Total richness was significantly changing (positively) only in winter in Tampa Bay ([@fig-NPlot]). However, the total richness in winter (average richness `r round(mean(winterStats$meanN),3)`) was consistently lower for each estuary than in the summer (average richness `r round(mean(summerStats$meanN),3)`). In addition, richness
 
 ```{r}
 #| label: tbl-fullRichModels
@@ -117,7 +117,7 @@ pander(richFullEstimates)
 #| fig-width: 7.5
 #| fig-height: 5
 #| fig-cap: "An amazing richness plot."
-plot(NPlot)
+plot(NPlot_ann)
 ```
 
 Similarly, total abundance was generally lower for all systems in the winter season (average total abundance `r round(mean(winterAbStats$meanAb),3)`), with summer generally higher (average total abundance `r round(mean(summerAbStats$meanAb),3)`) ([@fig-AbundPlot]). Apalachicola Bay (in winter) and Tampa Bay (in summer) both have significant changes in total abundance over time, though AP is changing negatively and TB is changing positively.
@@ -138,7 +138,7 @@ pander(abundFullEstimates)
 #| fig-width: 7.5
 #| fig-height: 5
 #| fig-cap: "An amazing abundance plot."
-plot(AbundPlot)
+plot(AbundPlot_ann)
 ```
 
 Seagrass coverage over time significantly changed in Cedar Key summer (negatively), Tampa Bay winter (positively), and in both seasons in Charlotte Harbor (positively) ([@fig-BVCPlot]).
@@ -634,8 +634,41 @@ plot(centroidCAP)
 
 Now, which taxa are actually changing? Initial look using CAP ([@fig-centroidCAP]). Centroids of each year with red being older and blue being more recent. Most seem to have no discernible patterns, except for Cedar Key summer, where there appears to be a "pre" and "post" era. Because of this, we went back and performed a post-analysis PERMANOVA on this year and season to look closer.
 
-So, how does this compare to others? Like Dornelas, we examined which taxa were the winners and losers. Generally, the number of taxa changing significantly is fairly well balanced between summer and winter. Exception to this is Tampa Bay winter *only* had significant positively changing taxa.
+So, how does this compare to others? Like Dornelas, we examined which taxa were the winners and losers. Generally, the number of taxa changing significantly is fairly well balanced between summer and winter. Exception to this is Tampa Bay winter *only* had significant positively changing taxa ([@fig-winnersLosers]).
 
-Then we look at the groups of each taxa.
+```{r}
+#| label: DeltaTaxa
+#| include: FALSE
+#| message: FALSE
+#| cache: TRUE
+source("DeltaTaxa.R")
+```
+
+```{r}
+#| label: fig-winnersLosers
+#| echo: FALSE
+#| message: FALSE
+#| warning: FALSE
+#| fig-width: 7.5
+#| fig-height: 5
+#| fig-cap: "Winners losers plot"
+
+winnersLosers
+```
+
+Then we look at the groups of each taxa. 
+\blandscape
+```{r}
+#| label: fig-sigSlopes
+#| echo: FALSE
+#| message: FALSE
+#| warning: FALSE
+#| fig-width: 9
+#| fig-height: 7.5
+#| fig-cap: "Sig slopes plot"
+
+sigSlopesAll
+```
+\elandscape
 
 Finally the climatology of the taxa.

@@ -189,8 +189,8 @@ div.csl-indent {
 </section>
 <section id="data-analyses" class="level3">
 <h3 class="anchored" data-anchor-id="data-analyses">Data Analyses</h3>
-<p>To address my first question, I modeled richness and abundance per haul across all estuaries for both the summer and winter seasons using Generalized Linear Mixed Models (GLMMs). For each seine haul, I calculated the richness as the number of taxa present and total abundance as the sum of all individuals counted. In all calculations, total abundance was fourth-root transformed to reduce the effects of overly-abundant taxa, given total abundance ranged from a maximum of 1.04502^{5} to 1. For each model, the response in the GLMM included either the richness or transformed abundance of each haul, with estuary (four levels) as a fixed effect and year as a random effect. To account for serial autocorrelation, an ar1 covariance matrix was used in each model calculated from month of sampling event and within-estuary zone. Given that species richness is strongly affected by sampling effort <span class="citation" data-cites="Mittelbach2019">(<a href="#ref-Mittelbach2019" role="doc-biblioref">Mittelbach and McGill 2019</a>)</span>, I included an offset term to account for variation in the number of seine hauls.</p>
-<p>To examine other things some numbers were crunched. Used GLMMs. NMDS. PERMANOVA. RDA. CAP. Lots of linear models.</p>
+<p>To address if the richness and abundance of eGOM estuarine fish assemblages has changed over a 20-year period, I modeled richness and abundance per haul across all estuaries for both the summer and winter seasons using Generalized Linear Mixed Models (GLMMs). Given the well-documented seasonal differences in estuarine systems (see<span class="citation" data-cites="Hagan2003 Strydom2015 Schrandt2020">(<a href="#ref-Hagan2003" role="doc-biblioref">Hagan and Able 2003</a>; <a href="#ref-Strydom2015" role="doc-biblioref">Strydom 2015</a>; <a href="#ref-Schrandt2020" role="doc-biblioref">Schrandt and MacDonald 2020</a>)</span>), in this and all subsequent analyses, summer and winter are treated entirely separately. For each seine haul, I calculated the richness as the number of taxa present and total abundance as the sum of all individuals counted. In all calculations, total abundance was fourth-root transformed to reduce the effects of overly-abundant taxa, given total abundance ranged from a maximum of 1.04502^{5} to 1. For each model, the response in the GLMM included either the richness or transformed abundance of each haul, with estuary (four levels) as a fixed effect and year as a random effect. To account for serial autocorrelation, an <code>ar1</code> covariance matrix was used in each model calculated from month of sampling event and within-estuary zone. Given that species richness is strongly affected by sampling effort <span class="citation" data-cites="Mittelbach2019">(<a href="#ref-Mittelbach2019" role="doc-biblioref">Mittelbach and McGill 2019</a>)</span>, I included an offset term to account for variation in the number of seine hauls. Further, I used Permutational Multivariate Analaysis of Variance (PERMANOVA) to examine the interaction between estuary and time, as a means to determine if there are different magnitudes and directions of temporal change among estuaries and thus if each estuary should be treated separately.</p>
+<p>To explore whether the composition and abundance has changed over the same time period and if it may be related to water temperature, I used several techniques. First, I examined the turnover and nestedness of each system through time using the R package <code>betapart</code>. Then, I ran additional GLMM models for each estuary, but included random terms for Z-scored water temperature and Z-scored percent bottom vegetation coverage (BVC). In all cases, the same <code>ar1</code> covariance structure was used as before as well as an offset term for sampling effort. To help visualize the differences among estuaries, I used Non-metric Multidimensional Scaling (NMDS) to plot the average annual abundance of each taxa in each season in multivariate space. Since this is not a routine for hypothesis testing, I used Distance-based Redundancy Analysis (dbRDA) to explore the magnitude and direction of effect of water temperature and BVC in multivariate space. Finally, to explore the <em>a priori</em> hypothesis of a possible “directional” change (see concept fig) in species space over time, I used Canonical Analysis of Principal Coordinates (CAP) models for each estuary and season. Following <span class="citation" data-cites="Dornelas2019">(<a href="#ref-Dornelas2019" role="doc-biblioref">Dornelas et al. 2019</a>)</span>, I further examined individual taxa for change over time. Within each estuary and season, I ran a linear model on the transformed abundance of each taxa independently and tested for significance. This was used to determine both the magnitude and direction of change at the species level, thus describing the distribution of “winners and losers” across each estuarine system.</p>
 </section>
 </section>
 <section id="results" class="level1 unnumbered">
@@ -198,7 +198,7 @@ div.csl-indent {
 <section id="overview" class="level3">
 <h3 class="anchored" data-anchor-id="overview">Overview</h3>
 <p>In total, 17492 sampling events occurred where at least one taxa was caught and counted during summer or winter across all four estuaries. For seven sampling events, temperature data was unavailable and thus excluded from the analyses. Further, hauls that were comprised solely of rare species (taxa found in ≤5% of all samples for that system and season) were removed from the analyses which reduced samples down to 17254. Overall, 299 taxa in the dataset were recorded, spanning 22 years of collections.</p>
-<p>Total richness was significantly changing (positively) only in winter in Tampa Bay (<a href="#fig-NPlot">Figure&nbsp;2</a>). However, the total richness in winter (average richness 5.589) was consistently lower for each estuary than in the summer (average richness 8.794).</p>
+<p>Total richness was significantly changing (positively) only in winter in Tampa Bay (<a href="#fig-NPlot">Figure&nbsp;2</a>). However, the total richness in winter (average richness 5.589) was consistently lower for each estuary than in the summer (average richness 8.794). In addition, richness</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="tbl-fullRichModels" class="anchored">
@@ -724,8 +724,28 @@ div.csl-indent {
 </div>
 </div>
 <p>Now, which taxa are actually changing? Initial look using CAP (<a href="#fig-centroidCAP">Figure&nbsp;10</a>). Centroids of each year with red being older and blue being more recent. Most seem to have no discernible patterns, except for Cedar Key summer, where there appears to be a “pre” and “post” era. Because of this, we went back and performed a post-analysis PERMANOVA on this year and season to look closer.</p>
-<p>So, how does this compare to others? Like Dornelas, we examined which taxa were the winners and losers. Generally, the number of taxa changing significantly is fairly well balanced between summer and winter. Exception to this is Tampa Bay winter <em>only</em>&nbsp;had significant positively changing taxa.</p>
-<p>Then we look at the groups of each taxa.</p>
+<p>So, how does this compare to others? Like Dornelas, we examined which taxa were the winners and losers. Generally, the number of taxa changing significantly is fairly well balanced between summer and winter. Exception to this is Tampa Bay winter <em>only</em>&nbsp;had significant positively changing taxa (<a href="#fig-winnersLosers">Figure&nbsp;11</a>).</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-winnersLosers" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="results_files/figure-html/fig-winnersLosers-1.png" class="img-fluid figure-img" width="720"></p>
+<figcaption class="figure-caption">Figure&nbsp;11: Winners losers plot</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Then we look at the groups of each taxa. </p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-sigSlopes" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="results_files/figure-html/fig-sigSlopes-1.png" class="img-fluid figure-img" width="864"></p>
+<figcaption class="figure-caption">Figure&nbsp;12: Sig slopes plot</figcaption>
+</figure>
+</div>
+</div>
+</div>
 <p>Finally the climatology of the taxa.</p>
 
 </section>
