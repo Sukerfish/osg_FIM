@@ -361,7 +361,7 @@ sigSummary <- YearXSpeciesZ %>%
   mutate(pos_percent = posCount/count) %>%
   mutate(neg_percent = negCount/count)
 
-#write_xlsx(sigSummary, "~/osg_FIM/Outputs/sigSummary.xlsx")
+#write_xlsx(sigSlopes, "~/osg_FIM/Outputs/sigSlopes_SXS.xlsx")
 
 #make several uniquely ordered plots and bind them...
 library(patchwork)
@@ -425,7 +425,7 @@ for (i in seasysKey){
     geom_vline(xintercept = 0, linetype="dashed")
 }
 
-sigSlopesAll <- wrap_plots(sigPlots, ncol = 4)
+sigSlopesAll <- wrap_plots(sigPlots, ncol = 2)
 
 # ggsave(filename = "sigGroups.png",
 #        plot = sigSlopesGroups,
@@ -605,7 +605,7 @@ finalEco <- wrap_elements(panel = finalEco) +
     plot.tag = element_text(size = rel(1)),
     plot.tag.position = "bottom"
   )
-plot(finalEco)
+#plot(finalEco)
 
 # ggsave(filename = "ecofull.png",
 #        plot = finalEco,
