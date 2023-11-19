@@ -155,7 +155,7 @@ for(i in systemSeason_list$systemSeason){
 
 RDAsforAll_Z <- RDAsforAll
 #save(RDAsforAll_Z, file = "./Outputs/RDAsforAll_Z.RData")
-load('RDAsforAll.Rdata')
+#load('RDAsforAll.Rdata')
 
 plotsforAll <- list()
 #rdaVecslist <- list()
@@ -261,10 +261,10 @@ for(i in systemSeason_list$systemSeason){
   
 }
 
-fullPlot <- wrap_plots(plotsforAll,
+fullRDAPlot <- wrap_plots(plotsforAll,
                       ncol = 4)
 
-plot(fullPlot)
+plot(fullRDAPlot)
 
 #ggsave("./Outputs/RDAsforAllFiltered.tiff", fullPlot, width = 18, height = 9, dpi = 600)
 
@@ -444,12 +444,12 @@ plot(fullPlot)
 # plot(testing)
 
 
-RDAsigforALL <- list()
-for(i in systemSeason_list$systemSeason){
-  print(i) #watch progress through list
-  
-  RDAsigforALL[[i]] <- anova(RDAsforAll[[i]]$rda, by = "terms")
-  
-}
+# RDAsigforALL <- list()
+# for(i in systemSeason_list$systemSeason){
+#   print(i) #watch progress through list
+#   
+#   RDAsigforALL[[i]] <- anova(RDAsforAll[[i]]$rda, by = "terms")
+#   
+# }
 
-save(RDAsigforALL, file = "./Outputs/RDAsigforALL.RData")
+#save(RDAsigforALL, file = "./Outputs/RDAsigforALL.RData")
