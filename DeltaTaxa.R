@@ -607,12 +607,12 @@ finalEco <- wrap_elements(panel = finalEco) +
   )
 plot(finalEco)
 
-ggsave(filename = "ecofull.png",
-       plot = finalEco,
-       device = "png",
-       path = "./",
-       width = 16,
-       height = 9)
+# ggsave(filename = "ecofull.png",
+#        plot = finalEco,
+#        device = "png",
+#        path = "./",
+#        width = 16,
+#        height = 9)
 
 # dev.off()
 
