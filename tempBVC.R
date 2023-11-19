@@ -111,6 +111,88 @@ SXR_filtered <- SXR_filtered_spp %>%
            remove = FALSE) %>%
   mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH")))
 
+#rejoin with environmental data
+SXF_filtered <- SXR_filtered_spp %>%
+  left_join(SXS_filtered_env) %>%
+  left_join(monthly) %>%
+  group_by(systemSeason) %>%
+  add_count(name = "n_hauls") %>% #count number of hauls per systemSeason
+  ungroup() %>%
+  group_by(systemSeason, seasonYear) %>%
+  mutate(avg_temp = mean(Temperature, na.rm = TRUE),
+         n_temp = n(),
+         upper = quantile(Temperature, 0.9),
+         lower = quantile(Temperature, 0.1),
+         sd_ann = sd(Temperature)) %>%
+  ungroup() %>%
+  group_by(systemSeason) %>%
+  mutate(avg_ltm = mean(avg_temp),
+         sd_ltm = sd(avg_temp, na.rm = TRUE),
+         upper_sd = sd(upper),
+         lower_sd = sd(lower)) %>%
+  mutate(anom_temp = avg_temp - avg_ltm,
+         se_temp = sd_ltm/sqrt(n_temp),
+         lower.ci.anom.temp = 0 - (1.96 * se_temp),
+         upper.ci.anom.temp = 0 + (1.96 * se_temp)) %>%
+  #zscoreing
+  mutate(bvc_ltm  = mean(BottomVegCover, na.rm = TRUE),
+         bvc_sd   = sd(BottomVegCover, na.rm = TRUE),
+         temp_ltm = mean(Temperature, na.rm = TRUE),
+         temp_sd  = sd(Temperature, na.rm = TRUE),
+         year_ltm = mean(as.numeric(as.character(seasonYear)), na.rm = TRUE),
+         year_sd  = sd(as.numeric(as.character(seasonYear)), na.rm = TRUE),
+         bvc_Z    = ((BottomVegCover - bvc_ltm)/bvc_sd),
+         temp_Z   = ((Temperature - temp_ltm)/temp_sd),
+         year_Z    = ((as.numeric(as.character(seasonYear)) - year_ltm)/year_sd),
+         sd_t_Z   = sd(temp_Z)) %>%
+  #monthly
+  ungroup() %>%
+  group_by(systemSeason, seasonYear, month) %>%
+  mutate(avg_temp_mon = mean(Temperature, na.rm = TRUE),
+         n_temp_mon = n(),
+         upper_mon = quantile(Temperature, 0.9),
+         lower_mon = quantile(Temperature, 0.1),
+         upper_Z  = quantile(temp_Z, 0.9),
+         lower_Z  = quantile(temp_Z, 0.1),
+         sd_mon = sd(Temperature),
+         se_mon = sd_mon/sqrt(n_temp_mon)) %>%
+  separate(systemSeason,
+           c("system","season"),
+           sep = "_") 
+
+abundanceModelDF <- SXS_filtered %>%
+  dplyr::select(!c(systemSeason, seasonYear, systemZone, BottomVegCover, Temperature)) %>%
+  pivot_longer(cols = !c(Reference),
+               names_to = "taxa") %>% #pivot to reference and taxa only
+  mutate(nRaw = value^4) %>%
+  group_by(Reference) %>%
+  summarise(abundRaw = sum(nRaw),
+            abundAdd = sum(value)) %>% #sum all abundance values 
+  mutate(abund = abundRaw^0.25)
+
+#factor date setup with explicit standard interval of months
+years <- c(1998:2020)
+months <- c(1:12)
+dateSetup <- data.frame(contYear = rep(years, each = 12),
+                        month = rep(months, length(years)))
+dateSetup <- dateSetup %>%
+  unite(yearMonth, c(month, contYear), sep = "/", remove = FALSE) %>%
+  mutate(dateMonth = as.Date(paste(month, "01", contYear, sep="/"), format="%m/%d/%Y"))
+
+totAbModelDF <- abundanceModelDF %>%
+  left_join(SXF_filtered) %>% #merge in enviro data
+  # separate(systemSeason,
+  #          c("system","season"),
+  #          sep = "_") %>%
+  mutate(contYear = as.numeric(as.character(seasonYear))) %>%
+  unite(yearMonth, c(month, contYear), sep = "/", remove = FALSE) %>%
+  unite(systemSeason, c(system, season), sep = "_", remove = FALSE) %>%
+  mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH"))) %>%
+  mutate(seasonYear = as.factor(seasonYear)) %>%
+  #declare factor levels in prep for ar1 covariance
+  mutate(yearMonth = factor(yearMonth, levels = dateSetup$yearMonth)) %>%
+  mutate(cYear = contYear - mean(contYear))
+
 systemSeason_list <- SXS_filtered %>%
   select(systemSeason) %>%
   distinct()
@@ -200,7 +282,44 @@ TempPlot <- ggplot(waterBVC_full,
 #        width = 16,
 #        height = 9)
 
-NPlot <- ggplot(SXR_filtered,
+NPlot <- ggplot(totAbModelDF,
+                    aes(x    = as.numeric(as.character(seasonYear)), 
+                        y    = N, 
+                        #color = season
+                    )) + 
+  geom_point(#size   = 2, 
+    #stroke = 0.1,
+    #pch    = 21, 
+    #colour = "black"
+  ) +
+  # geom_ribbon(
+  #   aes(ymin=q10Temp,
+  #       ymax=q90Temp),
+  #   linetype=2, alpha=0.1, color="black") +
+  #geom_smooth(method = "lm", se = FALSE) +
+  #geom_errorbar(aes(ymin = meanN-seN, ymax = meanN+seN))+
+  labs(title = "Annual Richness Over Time",
+       x     = "Year",
+       y     = "Mean Annual Richness per Haul",
+       #fill  = NULL
+  ) +
+  # scale_fill_manual(values = cbPalette1,
+  #                   labels = c(unique(as.character(df_env$seasonYear)))) +
+  theme_bw() +
+  theme(legend.text       = element_text(size=rel(0.8)),
+        legend.position   = c(0.1,0.89),
+        legend.background = element_blank(),
+        legend.key        = element_blank(),
+        #panel.grid        = element_blank()
+  ) +
+  # stat_fit_glance(method = 'lm',
+  #                 method.args = list(formula = y ~ x),  geom = 'text', 
+  #                 aes(label = paste("p-value = ", signif(after_stat(p.value), digits = 3), 
+  #                                   "\n R-squared = ", signif(after_stat(r.squared), digits = 2), sep = "")),
+  #                 label.x = 2005, label.y = 4, size = 3) +
+  facet_grid(season ~ system)
+
+NPlot_ann <- ggplot(SXR_filtered,
                 aes(x    = as.numeric(as.character(seasonYear)), 
                     y    = meanN, 
                     #color = season
@@ -214,7 +333,7 @@ NPlot <- ggplot(SXR_filtered,
   #   aes(ymin=q10Temp,
   #       ymax=q90Temp),
   #   linetype=2, alpha=0.1, color="black") +
-  geom_smooth(method = "lm", se = FALSE) +
+  # geom_smooth(method = "lm", se = FALSE) +
   geom_errorbar(aes(ymin = meanN-seN, ymax = meanN+seN))+
   labs(title = "Annual Richness Over Time",
        x     = "Year",
@@ -230,11 +349,11 @@ NPlot <- ggplot(SXR_filtered,
         legend.key        = element_blank(),
         #panel.grid        = element_blank()
   ) +
-  stat_fit_glance(method = 'lm',
-                  method.args = list(formula = y ~ x),  geom = 'text', 
-                  aes(label = paste("p-value = ", signif(after_stat(p.value), digits = 3), 
-                                    "\n R-squared = ", signif(after_stat(r.squared), digits = 2), sep = "")),
-                  label.x = 2005, label.y = 4, size = 3) +
+  # stat_fit_glance(method = 'lm',
+  #                 method.args = list(formula = y ~ x),  geom = 'text', 
+  #                 aes(label = paste("p-value = ", signif(after_stat(p.value), digits = 3), 
+  #                                   "\n R-squared = ", signif(after_stat(r.squared), digits = 2), sep = "")),
+  #                 label.x = 2005, label.y = 4, size = 3) +
   facet_grid(season ~ system)
 
 # ggsave(plot = NPlot,
@@ -242,7 +361,7 @@ NPlot <- ggplot(SXR_filtered,
 #        width = 16,
 #        height = 9)
 
-AbundPlot <- ggplot(SXAb,
+AbundPlot_ann <- ggplot(SXAb,
                     aes(x    = as.numeric(as.character(seasonYear)), 
                         y    = meanAb, 
                         #color = season
@@ -256,7 +375,7 @@ AbundPlot <- ggplot(SXAb,
   #   aes(ymin=q10Temp,
   #       ymax=q90Temp),
   #   linetype=2, alpha=0.1, color="black") +
-  geom_smooth(method = "lm", se = FALSE) +
+  # geom_smooth(method = "lm", se = FALSE) +
   geom_errorbar(aes(ymin = meanAb-seAb, ymax = meanAb+seAb))+
   labs(title = "Annual Abundance Over Time",
        x     = "Year",
@@ -272,11 +391,11 @@ AbundPlot <- ggplot(SXAb,
         legend.key        = element_blank(),
         #panel.grid        = element_blank()
   ) +
-  stat_fit_glance(method = 'lm',
-                  method.args = list(formula = y ~ x),  geom = 'text', 
-                  aes(label = paste("p-value = ", signif(after_stat(p.value), digits = 3), 
-                                    "\n R-squared = ", signif(after_stat(r.squared), digits = 2), sep = "")),
-                  label.x = 2005, label.y = 1500, size = 3) +
+  # stat_fit_glance(method = 'lm',
+  #                 method.args = list(formula = y ~ x),  geom = 'text', 
+  #                 aes(label = paste("p-value = ", signif(after_stat(p.value), digits = 3), 
+  #                                   "\n R-squared = ", signif(after_stat(r.squared), digits = 2), sep = "")),
+  #                 label.x = 2005, label.y = 1500, size = 3) +
   facet_grid(season ~ system)
 
 # ggsave(plot = AbundPlot,
