@@ -19,7 +19,7 @@ library(tidyverse)
 library(patchwork)
 library(lubridate)
 library(vegan)
-#library(BiodiversityR)
+library(BiodiversityR)
 #library(MASS)
 #library(colortools)
 library(ggrepel)
@@ -114,8 +114,8 @@ pander(richFullEstimates)
 #| label: fig-NPlot
 #| echo: FALSE
 #| message: FALSE
-#| fig.width: 7.5
-#| fig.heigh: 5
+#| fig-width: 7.5
+#| fig-height: 5
 #| fig-cap: "An amazing richness plot."
 plot(NPlot)
 ```
@@ -135,8 +135,8 @@ pander(abundFullEstimates)
 #| label: fig-AbundPlot
 #| echo: FALSE
 #| message: FALSE
-#| fig.width: 7.5
-#| fig.heigh: 5
+#| fig-width: 7.5
+#| fig-height: 5
 #| fig-cap: "An amazing abundance plot."
 plot(AbundPlot)
 ```
@@ -147,8 +147,8 @@ Seagrass coverage over time significantly changed in Cedar Key summer (negativel
 #| label: fig-BVCPlot
 #| echo: FALSE
 #| message: FALSE
-#| fig.width: 7.5
-#| fig.heigh: 5
+#| fig-width: 7.5
+#| fig-height: 5
 #| fig-cap: "Yet another amazing plot"
 plot(BVCPlot)
 ```
@@ -161,8 +161,8 @@ Temperature increased significantly through time for all estuaries in the winter
 #| echo: FALSE
 #| message: FALSE
 #| warning: FALSE
-#| fig.width: 7.5
-#| fig.heigh: 5
+#| fig-width: 7.5
+#| fig-height: 5
 #| fig-cap: "Charts"
 #| fig-subcap: 
 #|   - "One more amazing plot"
@@ -201,8 +201,8 @@ Looking closer at temp, specifically as in [@Miner2021], the upper and lower 10t
 #| label: fig-upperLower
 #| echo: FALSE
 #| message: FALSE
-#| fig.width: 7.5
-#| fig.heigh: 5
+#| fig-width: 7.5
+#| fig-height: 5
 #| fig-cap: "Still another amazing plot"
 plot(annualTemp)
 ```
@@ -220,8 +220,8 @@ The betadiversity stuff is interesting ([@fig-betadiversity]).
 #| label: fig-betadiversity
 #| echo: FALSE
 #| message: FALSE
-#| fig.width: 7.5
-#| fig.heigh: 5
+#| fig-width: 7.5
+#| fig-height: 5
 #| fig-cap: "Betadiversity amazing plot"
 plot(betaTimePlot)
 ```
@@ -233,28 +233,22 @@ plot(betaTimePlot)
 source("NMDS_annual.R")
 ```
 
-NMDS plots are cool (\[@fig-NMDS_winter\]).
+NMDS plots are cool ([@fig-NMDS_all]).
 
 ```{r}
-#| label: fig-NMDS_winter
+#| label: fig-NMDS_all
+#| layout-nrow: 2
 #| echo: FALSE
 #| message: FALSE
-#| fig.width: 7.5
-#| fig.heigh: 5
-#| fig-cap: "NMDS amazing plot"
-plot(winterNMDS)
-```
-
-And they're warm ([@fig-NMDS_summer]).
-
-```{r}
-#| label: fig-NMDS_summer
-#| echo: FALSE
-#| message: FALSE
-#| fig.width: 7.5
-#| fig.heigh: 5
-#| fig-cap: "NMDS amazing summer plot"
+#| warning: FALSE
+#| fig-width: 7.5
+#| fig-height: 5
+#| fig-cap: "NMDS plots"
+#| fig-subcap: 
+#|   - "summer"
+#|   - "winter"
 plot(summerNMDS)
+plot(winterNMDS)
 ```
 
 ```{r}
@@ -281,4 +275,367 @@ emphasize.strong.cells(which(summerfAbundPERM < 0.05, arr.ind = TRUE))
 pander(summerfAbundPERM)
 ```
 
-Next up... PERMANOVA! The best is this one [@tbl-fullPERMANOVAwinter].
+Next up... PERMANOVA! The best is this one [@tbl-fullPERMANOVAwinter]. Estuary \* year significant in the initial test. Thus, needed to separate and run each estuary separately.
+
+After PERMANOVA, needed to look at environmental factors. RDA used for this. SAV and temperature significant in all years and seasons ([@fig-RDAforAll]).
+
+```{r}
+#| label: RDA
+#| include: FALSE
+load("./Outputs/RDAsforAll_Z.RData")
+load('SXS_filtered.Rdata')
+RDAsforAll <- RDAsforAll_Z
+
+systemSeason_list <- SXS_filtered %>%
+  select(systemSeason) %>%
+  distinct()
+
+plotsforAll <- list()
+#rdaVecslist <- list()
+for(i in systemSeason_list$systemSeason){
+ print(i)
+  mult <- 1
+  mult_vec <- 1
+  scores_sites <- data.frame(RDAsforAll[[i]]$scores$sites)
+  vecs <- data.frame(RDAsforAll[[i]]$env$vectors$arrows)
+  #rdaVecslist[[i]] <- vecs
+  middles <- data.frame(RDAsforAll[[i]]$scores$centroids)
+  plotSub <- SXS_filtered %>% #filter out systemSeason of interest just as in rda loop (df_env)
+    filter(systemSeason %in% i) %>%
+    select(seasonYear) %>%
+    cbind(scores_sites) %>%
+    group_by(seasonYear) %>%
+    summarise(across(everything(), ~ mean(.x, na.rm = TRUE)))
+  # grps <- data.frame(rownames(middles) %>%
+  #   str_remove_all("seasonYear")) %>%
+  #   rename(seasonYear = rownames.middles......str_remove_all..seasonYear..)
+  
+  plotsforAll[[i]] <- ggplot(plotSub) +
+    geom_vline(xintercept = 0,
+               colour     = "grey70",
+               size       = 1) +
+    geom_hline(yintercept = 0,
+               colour     = "grey70",
+               size       = 1) +
+    scale_x_continuous(limits       = symmetric_range,
+                       breaks       = c(-6,-1,0,1,6),
+                       minor_breaks = NULL) +
+    scale_y_continuous(limits       = symmetric_range,
+                       breaks       = c(-6,-1,0,1,6),
+                       minor_breaks = NULL) +
+    labs(title = i, 
+         x     = paste("CA1 (", round(100*RDAsforAll[[i]]$rda$CCA$eig[1]/RDAsforAll[[i]]$rda$tot.chi,2), "%)", sep = ""),
+         y     = paste("CA1 (", round(100*RDAsforAll[[i]]$rda$CCA$eig[2]/RDAsforAll[[i]]$rda$tot.chi,2), "%)", sep = ""))+
+    scale_color_manual(values = c("blue","darkgreen"),
+                       guide  = guide_none()) +
+    # geom_point(data = scores_sites,
+    #            aes(x = mult*dbRDA1,
+    #                y = mult*dbRDA2,
+    #            ),
+    #            size   = 1,
+    #            stroke = 0.1,
+    #            pch    = 21,
+    #            colour = "black") +
+    geom_point(aes(x = mult*dbRDA1,
+                   y = mult*dbRDA2,
+                   fill = as.numeric(as.character(seasonYear))),
+               size   = 4,
+               stroke = 0.1,
+               pch    = 21,
+               colour = "black") +
+    scale_fill_gradient(
+      low = "red",
+      high = "blue",
+      space = "Lab",
+      na.value = "grey50",
+      guide = "colourbar",
+      aesthetics = "fill"
+    ) +
+    theme_bw() +
+    theme(legend.text       = element_text(size=rel(0.8)),
+          legend.position   = c(0.055,0.89),
+          legend.background = element_blank(),
+          legend.key        = element_blank(),
+          panel.grid        = element_blank()) +
+    geom_segment(data = vecs,
+                 aes(x     = 0, 
+                     xend  = mult_vec*dbRDA1, 
+                     y     = 0, 
+                     yend  = mult_vec*dbRDA2, 
+                     #color = "blue"
+                       ),
+                 arrow = arrow(length = unit(.1,"inches")),
+                 size  = 1,
+                 alpha = 0.6) +
+    geom_label_repel(data = vecs,
+                     aes(x      = mult_vec*dbRDA1,
+                         y      = mult_vec*dbRDA2,
+                         label  = rownames(vecs),
+                         #colour = "blue",
+                         #size   = "blue"
+                           ),
+                     force         = 0.1,
+                     alpha         = 0.8,
+                     fontface      = "bold",
+                     label.padding = 0.25,
+                     box.padding   = 0.1,
+                     fill          ="white",
+                     label.r       = 0.25,
+                     label.size    = 0.25,
+                     segment.alpha =0,
+                     nudge_x       = ifelse(vecs$dbRDA1>0,0.1,-0.1),
+                     nudge_y       = ifelse(vecs$dbRDA2>0,0.2,-0.2)) +
+    scale_size_manual(values = c(2.5,3.5),
+                      guide  = guide_none()) +
+    guides(fill = guide_legend(override.aes = list(size = 2.5),
+                               keyheight    = 0.15,
+                               keywidth     = 0.2,
+                               title = "Year"))
+  
+}
+
+fullRDAPlot <- wrap_plots(plotsforAll,
+                      ncol = 4)
+```
+
+```{r}
+#| label: fig-RDAforAll
+#| echo: FALSE
+#| message: FALSE
+#| fig-width: 7.5
+#| fig-height: 5
+#| fig-cap: "RDA amazing plot"
+
+plot(fullRDAPlot)
+```
+
+Look at all these RDAs! ([@fig-RDAforAll])
+
+```{r}
+#| label: CAP_processing
+#| include: FALSE
+load("./Outputs/CAPsforAll_Z.RData")
+
+#source https://github.com/jonpeake/forage-fish-public-code/blob/main/ForageFigures_CODE.R
+cap_pctvars <- function(cap_out){
+  # A function that takes the output of the CAPdiscrim function and 
+  # produces the percent of among-group variability explained by each
+  # canonical axis.
+  #
+  # Inputs: 
+  # cap_out = 'CAPDiscrim' function list output
+  # 
+  # Output: 
+  # pct_var = A numerical array with dimensions 1 x p, where p is the
+  #           number of canonical axes, corresponding to the percent
+  #           of among-group variability explained by each axis.
+  #         
+  
+  # Extract eigenvalues from manova sublist
+  eig     <- cap_out[["manova"]][["Eigenvalues"]]
+  
+  # Convert eigenvalues to analog of canonical variability
+  vars    <- eig*cap_out$tot*(cap_out$varm/100)/(eig+1)
+  
+  # Calculate percent of variability explained by each axis
+  pct_var <- t(100*vars/sum(vars))
+  
+  # Trim rows not corresponding to canonical axes
+  pct_var <- pct_var[1:ncol(cap_out$x),]
+  return(pct_var)
+}
+
+load('TidyGearCode20.Rdata')
+load('SXS_filtered.Rdata')
+
+#data setup
+#build month dataframe
+monthly <- HydroList %>%
+  select(Reference, month)
+
+#rejoin with environmental data
+SXS_run_env <- SXS_filtered_env %>%
+  #left_join(SXS_filtered_env) %>%
+  left_join(monthly) %>%
+  group_by(systemSeason) %>%
+  add_count(name = "n_hauls") %>% #count number of hauls per systemSeason
+  ungroup() %>%
+  group_by(systemSeason, seasonYear) %>%
+  mutate(avg_temp = mean(Temperature, na.rm = TRUE),
+         n_temp = n(),
+         upper = quantile(Temperature, 0.9),
+         lower = quantile(Temperature, 0.1),
+         sd_ann = sd(Temperature)) %>%
+  ungroup() %>%
+  group_by(systemSeason) %>%
+  mutate(avg_ltm = mean(avg_temp),
+         sd_ltm = sd(avg_temp, na.rm = TRUE),
+         upper_sd = sd(upper),
+         lower_sd = sd(lower)) %>%
+  mutate(anom_temp = avg_temp - avg_ltm,
+         se_temp = sd_ltm/sqrt(n_temp),
+         lower.ci.anom.temp = 0 - (1.96 * se_temp),
+         upper.ci.anom.temp = 0 + (1.96 * se_temp)) %>%
+  #zscoreing
+  mutate(bvc_ltm  = mean(BottomVegCover, na.rm = TRUE),
+         bvc_sd   = sd(BottomVegCover, na.rm = TRUE),
+         temp_ltm = mean(Temperature, na.rm = TRUE),
+         temp_sd  = sd(Temperature, na.rm = TRUE),
+         year_ltm = mean(as.numeric(as.character(seasonYear)), na.rm = TRUE),
+         year_sd  = sd(as.numeric(as.character(seasonYear)), na.rm = TRUE),
+         bvc_Z    = ((BottomVegCover - bvc_ltm)/bvc_sd),
+         temp_Z   = ((Temperature - temp_ltm)/temp_sd),
+         year_Z    = ((as.numeric(as.character(seasonYear)) - year_ltm)/year_sd),
+         sd_t_Z   = sd(temp_Z)) %>%
+  #monthly
+  ungroup() %>%
+  group_by(systemSeason, seasonYear, month) %>%
+  mutate(avg_temp_mon = mean(Temperature, na.rm = TRUE),
+         n_temp_mon = n(),
+         upper_mon = quantile(Temperature, 0.9),
+         lower_mon = quantile(Temperature, 0.1),
+         upper_Z  = quantile(temp_Z, 0.9),
+         lower_Z  = quantile(temp_Z, 0.1),
+         sd_mon = sd(Temperature),
+         se_mon = sd_mon/sqrt(n_temp_mon))
+
+systemSeason_list <- SXS_filtered %>%
+  select(systemSeason) %>%
+  distinct()
+
+### centroids ####
+for(i in systemSeason_list$systemSeason){
+  df <- SXS_filtered %>% #filter out systemSeason of interest
+    filter(systemSeason %in% i)
+  
+  df_spe_filtered <- SXS_filtered %>%
+    filter(Reference %in% df$Reference) %>%
+    subset(select = -c(systemSeason, seasonYear, Reference, systemZone, BottomVegCover, Temperature)) %>%
+    select(which(!colSums(., na.rm=TRUE) %in% 0)) #select only taxa present in this systemSeason
+  
+  df_env <- data.frame(SXS_run_env %>% #pull out environmental variables
+                         filter(Reference %in% df$Reference) %>%
+                         subset(select = c(systemSeason, seasonYear, bvc_Z, temp_Z)) %>%
+                         mutate(contYear = as.numeric(as.character(seasonYear))))
+
+CAPsforAll[[i]]$centroids <- centroids.long(sites.long(ordiplot(CAPsforAll[[i]])),
+                                            df_env$seasonYear,
+                                            centroids.only = TRUE)
+}
+
+##### centroids with sppvec plots #######
+#need fixed range of sppvecs first
+sppvecs_list <- list()
+sppvecs_list_fix <- list()
+for(i in systemSeason_list$systemSeason){
+spp_vecs <- data.frame(CAPsforAll[[i]]$cproj) %>%
+  arrange(desc(abs(LD1))) %>%
+  slice_head(n = 10)
+sppvecs_list_fix[[i]] <- spp_vecs
+}
+sppvecs_list_fixdf <- bind_rows(sppvecs_list_fix)
+
+centroidPlots <- list()
+for(i in systemSeason_list$systemSeason){
+  print(i) #watch progress through list
+  var_CA <- round(cap_pctvars(CAPsforAll[[i]]), 2)
+  #var_CA <- round(100 * CAPsforAll[[i]][["lda.other"]][["svd"]]^2/sum(CAPsforAll[[i]][["lda.other"]][["svd"]]^2), 2)
+  site_scores <- data.frame(CAPsforAll[[i]]$x)
+  middles <- data.frame(CAPsforAll[[i]]$centroids)
+  spp_vecs <- data.frame(CAPsforAll[[i]]$cproj) %>%
+                           arrange(desc(abs(LD1))) %>%
+                           slice_head(n = 10) #grab only top 10 for axis 1 and plot
+  sppvecs_list[[i]] <- spp_vecs
+  mult <- 6
+  centroidPlots[[i]] <- ggplot(middles) + 
+    geom_vline(xintercept = 0,
+               colour     = "grey70",
+               size       = .25) +
+    geom_hline(yintercept = 0,
+               colour     = "grey70",
+               size       = .25) +
+    scale_x_continuous(limits       = symmetric_range((1+mult)*sppvecs_list_fixdf$LD1),
+                       breaks       = c(-6,-3,0,3,6),
+                       minor_breaks = NULL) +
+    scale_y_continuous(limits       = symmetric_range((1+mult)*sppvecs_list_fixdf$LD2),
+                       breaks       = c(-6,-3,0,3,6),
+                       minor_breaks = NULL) +
+    geom_point(aes(x    = axis1c, 
+                   y    = axis2c, 
+                   fill = as.numeric(as.character(df_env.seasonYear))),
+               size   = 4, 
+               stroke = 0.1,
+               pch    = 21, 
+               colour = "black") +
+    labs(title = i,
+         x     = paste("CA1 (",var_CA[1],"%)",sep=""),
+         y     = paste("CA2 (",var_CA[2],"%)",sep=""),
+         fill  = NULL) +
+    scale_fill_gradient(
+      low = "red",
+      high = "blue",
+      space = "Lab",
+      na.value = "grey50",
+      guide = "colourbar",
+      aesthetics = "fill"
+    ) +
+    theme_bw() +
+    theme(legend.text       = element_text(size=rel(0.8)),
+          legend.position   = c(0.055,0.89),
+          legend.background = element_blank(),
+          legend.key        = element_blank(),
+          panel.grid        = element_blank()) +
+    geom_segment(data = spp_vecs,
+                 aes(x    = 0,
+                     xend = mult*LD1,
+                     y    = 0,
+                     yend = mult*LD2),
+                 arrow = arrow(length = unit(0.1,"inches")),
+                 color = "grey1",
+                 size  = .75,
+                 alpha = 0.6)+
+  geom_label_repel(data = spp_vecs,
+                   aes(x     = mult*LD1 + 0.2*cos(atan(LD2/LD1))*sign(LD1),
+                       y     = mult*LD2 + 0.2*sin(atan(LD2/LD1))*sign(LD2),
+                       label = rownames(spp_vecs)),
+                   segment.alpha = 0,
+                   size          = 3.25,
+                   color         = "blue",
+                   fontface      = "bold",
+                   fill          = "white",
+                   alpha         = 0.7,
+                   box.padding   = .25,
+                   lineheight    = 0.4,
+                   label.size    = 0.25,
+                   nudge_x       = ifelse(spp_vecs$LD1>0,0.05,-0.05),
+                   nudge_y       = ifelse(spp_vecs$LD2>-0.02,0.05,-0.05),
+                   force         = 0.3) +
+  guides(fill = guide_legend(override.aes = list(size = 2.5),
+                             keyheight    = 0.15,
+                             keywidth     = 0.2))
+  
+}
+
+centroidCAP <- wrap_plots(centroidPlots,
+           ncol = 4)
+```
+
+```{r}
+#| label: fig-centroidCAP
+#| echo: FALSE
+#| message: FALSE
+#| warning: FALSE
+#| fig-width: 7.5
+#| fig-height: 5
+#| fig-cap: "CAP amazing plot"
+
+plot(centroidCAP)
+```
+
+Now, which taxa are actually changing? Initial look using CAP ([@fig-centroidCAP]). Centroids of each year with red being older and blue being more recent. Most seem to have no discernible patterns, except for Cedar Key summer, where there appears to be a "pre" and "post" era. Because of this, we went back and performed a post-analysis PERMANOVA on this year and season to look closer.
+
+So, how does this compare to others? Like Dornelas, we examined which taxa were the winners and losers. Generally, the number of taxa changing significantly is fairly well balanced between summer and winter. Exception to this is Tampa Bay winter *only* had significant positively changing taxa.
+
+Then we look at the groups of each taxa.
+
+Finally the climatology of the taxa.

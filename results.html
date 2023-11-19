@@ -244,7 +244,7 @@ div.csl-indent {
 </div>
 </div>
 </div>
-<div class="cell" data-fig.heigh="5">
+<div class="cell">
 <div class="cell-output-display">
 <div id="fig-NPlot" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
@@ -300,7 +300,7 @@ div.csl-indent {
 </div>
 </div>
 </div>
-<div class="cell" data-fig.heigh="5">
+<div class="cell">
 <div class="cell-output-display">
 <div id="fig-AbundPlot" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
@@ -311,7 +311,7 @@ div.csl-indent {
 </div>
 </div>
 <p>Seagrass coverage over time significantly changed in Cedar Key summer (negatively), Tampa Bay winter (positively), and in both seasons in Charlotte Harbor (positively) (<a href="#fig-BVCPlot">Figure&nbsp;4</a>).</p>
-<div class="cell" data-fig.heigh="5">
+<div class="cell">
 <div class="cell-output-display">
 <div id="fig-BVCPlot" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
@@ -322,7 +322,7 @@ div.csl-indent {
 </div>
 </div>
 <p>Temperature increased significantly through time for all estuaries in the winter and for AP and TB in the summer (<a href="#fig-TempPlot">Figure&nbsp;5</a>).</p>
-<div id="fig-TempPlot" class="cell quarto-layout-panel" data-fig.heigh="5">
+<div id="fig-TempPlot" class="cell quarto-layout-panel">
 <figure class="figure">
 <div class="quarto-layout-row quarto-layout-valign-top">
 <div class="cell-output-display quarto-layout-cell quarto-layout-cell-subref" style="flex-basis: 50.0%;justify-content: center;">
@@ -515,7 +515,7 @@ div.csl-indent {
 </div>
 </div>
 <p>Looking closer at temp, specifically as in <span class="citation" data-cites="Miner2021">(<a href="#ref-Miner2021" role="doc-biblioref">Miner et al. 2021</a>)</span>, the upper and lower 10th percentiles of temp are sometimes changing. Mostly in winter, though not significant using linear model alone (<a href="#fig-upperLower">Figure&nbsp;6</a>).</p>
-<div class="cell" data-fig.heigh="5">
+<div class="cell">
 <div class="cell-output-display">
 <div id="fig-upperLower" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
@@ -526,7 +526,7 @@ div.csl-indent {
 </div>
 </div>
 <p>The betadiversity stuff is interesting (<a href="#fig-betadiversity">Figure&nbsp;7</a>).</p>
-<div class="cell" data-fig.heigh="5">
+<div class="cell">
 <div class="cell-output-display">
 <div id="fig-betadiversity" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
@@ -536,27 +536,31 @@ div.csl-indent {
 </div>
 </div>
 </div>
-<p>NMDS plots are cool ([<a href="#fig-NMDS_winter">Figure&nbsp;8</a>]).</p>
-<div class="cell" data-fig.heigh="5">
-<div class="cell-output-display">
-<div id="fig-NMDS_winter" class="quarto-figure quarto-figure-center anchored">
+<p>NMDS plots are cool (<a href="#fig-NMDS_all">Figure&nbsp;8</a>).</p>
+<div id="fig-NMDS_all" class="cell quarto-layout-panel">
 <figure class="figure">
-<p><img src="results_files/figure-html/fig-NMDS_winter-1.png" class="img-fluid figure-img" width="720"></p>
-<figcaption class="figure-caption">Figure&nbsp;8: NMDS amazing plot</figcaption>
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="cell-output-display quarto-layout-cell quarto-layout-cell-subref" style="flex-basis: 100.0%;justify-content: center;">
+<div id="fig-NMDS_all-1" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="results_files/figure-html/fig-NMDS_all-1.png" class="img-fluid figure-img" data-ref-parent="fig-NMDS_all" width="720"></p>
+<figcaption class="figure-caption">(a) summer</figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>And they’re warm (<a href="#fig-NMDS_summer">Figure&nbsp;9</a>).</p>
-<div class="cell" data-fig.heigh="5">
-<div class="cell-output-display">
-<div id="fig-NMDS_summer" class="quarto-figure quarto-figure-center anchored">
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="cell-output-display quarto-layout-cell quarto-layout-cell-subref" style="flex-basis: 100.0%;justify-content: center;">
+<div id="fig-NMDS_all-2" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
-<p><img src="results_files/figure-html/fig-NMDS_summer-1.png" class="img-fluid figure-img" width="720"></p>
-<figcaption class="figure-caption">Figure&nbsp;9: NMDS amazing summer plot</figcaption>
+<p><img src="results_files/figure-html/fig-NMDS_all-2.png" class="img-fluid figure-img" data-ref-parent="fig-NMDS_all" width="720"></p>
+<figcaption class="figure-caption">(b) winter</figcaption>
 </figure>
 </div>
 </div>
+</div>
+<p></p><figcaption class="figure-caption">Figure&nbsp;8: NMDS plots</figcaption><p></p>
+</figure>
 </div>
 <div class="cell">
 <div class="cell-output-display">
@@ -696,7 +700,33 @@ div.csl-indent {
 </div>
 </div>
 </div>
-<p>Next up… PERMANOVA! The best is this one <a href="#tbl-fullPERMANOVAwinter">Table&nbsp;6</a>.</p>
+<p>Next up… PERMANOVA! The best is this one <a href="#tbl-fullPERMANOVAwinter">Table&nbsp;6</a>. Estuary * year significant in the initial test. Thus, needed to separate and run each estuary separately.</p>
+<p>After PERMANOVA, needed to look at environmental factors. RDA used for this. SAV and temperature significant in all years and seasons (<a href="#fig-RDAforAll">Figure&nbsp;9</a>).</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-RDAforAll" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="results_files/figure-html/fig-RDAforAll-1.png" class="img-fluid figure-img" width="720"></p>
+<figcaption class="figure-caption">Figure&nbsp;9: RDA amazing plot</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Look at all these RDAs! (<a href="#fig-RDAforAll">Figure&nbsp;9</a>)</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-centroidCAP" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="results_files/figure-html/fig-centroidCAP-1.png" class="img-fluid figure-img" width="720"></p>
+<figcaption class="figure-caption">Figure&nbsp;10: CAP amazing plot</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Now, which taxa are actually changing? Initial look using CAP (<a href="#fig-centroidCAP">Figure&nbsp;10</a>). Centroids of each year with red being older and blue being more recent. Most seem to have no discernible patterns, except for Cedar Key summer, where there appears to be a “pre” and “post” era. Because of this, we went back and performed a post-analysis PERMANOVA on this year and season to look closer.</p>
+<p>So, how does this compare to others? Like Dornelas, we examined which taxa were the winners and losers. Generally, the number of taxa changing significantly is fairly well balanced between summer and winter. Exception to this is Tampa Bay winter <em>only</em>&nbsp;had significant positively changing taxa.</p>
+<p>Then we look at the groups of each taxa.</p>
+<p>Finally the climatology of the taxa.</p>
 
 </section>
 </section>
