@@ -64,6 +64,7 @@ winterNMDS <- ggplot(data = winterScores,
              aes(colour = system), 
              size = 3, 
              alpha = .8) + 
+  stat_ellipse(aes(colour = system)) +
   geom_point(data = winterSpp, #spp
              size = 1, 
              alpha = 0.5,
@@ -73,19 +74,21 @@ winterNMDS <- ggplot(data = winterScores,
                data = winter_coords_con, 
                size =1, 
                alpha = 0.5, 
-               colour = "grey30") +
-  geom_point(data = winter_coords_cat, #centroids
-             aes(x = NMDS1, 
-                 y = NMDS2),
-             shape = "diamond", 
-             size = 4, 
-             alpha = 0.8, 
-             colour = "grey10") +
-  geom_label_repel(data = winter_coords_cat, #labels
-            aes(x = NMDS1, y = NMDS2),
-            label = winter_coords_cat$cleaned, 
-            colour = "grey10", 
-            fontface = "bold") +
+               colour = "grey30",
+               arrow = arrow(length = unit(0.03, "npc"))
+               ) +
+  # geom_point(data = winter_coords_cat, #centroids
+  #            aes(x = NMDS1, 
+  #                y = NMDS2),
+  #            shape = "diamond", 
+  #            size = 4, 
+  #            alpha = 0.8, 
+  #            colour = "grey10") +
+  # geom_label_repel(data = winter_coords_cat, #labels
+  #           aes(x = NMDS1, y = NMDS2),
+  #           label = winter_coords_cat$cleaned, 
+  #           colour = "grey10", 
+  #           fontface = "bold") +
   # geom_text_repel(data = winterSpp, #labels
   #                  aes(x = NMDS1, y = NMDS2),
   #                  label = row.names(winterSpp), 
@@ -168,6 +171,7 @@ summerNMDS <- ggplot(data = summerScores,
              aes(colour = system), 
              size = 3, 
              alpha = .8) + 
+  stat_ellipse(aes(colour = system)) +
   geom_point(data = summerSpp, #spp
              size = 1, 
              alpha = 0.5,
@@ -177,19 +181,20 @@ summerNMDS <- ggplot(data = summerScores,
                data = summer_coords_con, 
                size =1, 
                alpha = 0.5, 
-               colour = "grey30") +
-  geom_point(data = summer_coords_cat, #centroids
-             aes(x = NMDS1, 
-                 y = NMDS2),
-             shape = "diamond", 
-             size = 4, 
-             alpha = 0.8, 
-             colour = "grey10") +
-  geom_label_repel(data = summer_coords_cat, #labels
-                   aes(x = NMDS1, y = NMDS2),
-                   label = summer_coords_cat$cleaned, 
-                   colour = "grey10", 
-                   fontface = "bold") +
+               colour = "grey30",
+               arrow = arrow(length = unit(0.03, "npc"))) +
+  # geom_point(data = summer_coords_cat, #centroids
+  #            aes(x = NMDS1, 
+  #                y = NMDS2),
+  #            shape = "diamond", 
+  #            size = 4, 
+  #            alpha = 0.8, 
+  #            colour = "grey10") +
+  # geom_label_repel(data = summer_coords_cat, #labels
+  #                  aes(x = NMDS1, y = NMDS2),
+  #                  label = summer_coords_cat$cleaned, 
+  #                  colour = "grey10", 
+  #                  fontface = "bold") +
   # geom_text_repel(data = summerSpp, #labels
   #                  aes(x = NMDS1, y = NMDS2),
   #                  label = row.names(summerSpp), 
