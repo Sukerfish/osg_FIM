@@ -454,7 +454,7 @@ for (i in seaList){
   runner <- data.frame()
   runner <- filter(totAbModelDF, season == i)
   
-  glmmOut <- glmmTMB(N ~ year_Z +
+  glmmOut <- glmmTMB(N ~ (1|year_Z) +
                        system +
                        #bvc_Z +
                        #(1|contYear) +
@@ -494,7 +494,7 @@ for (i in seaList){
   runner <- data.frame()
   runner <- filter(totAbModelDF, season == i)
   
-  glmmOut <- glmmTMB(abund ~ year_Z +
+  glmmOut <- glmmTMB(abund ~ (1|year_Z) +
                        system +
                        #bvc_Z +
                        #(1|contYear) +
@@ -537,7 +537,7 @@ for (i in sysList){
   runner <- data.frame()
   runner <- filter(totAbModelDF, systemSeason == i)
  
-  glmmOut <- glmmTMB(N ~ year_Z +
+  glmmOut <- glmmTMB(N ~ (1|year_Z) +
                            temp_Z +
                            bvc_Z +
                        #(1|contYear) +
@@ -597,7 +597,7 @@ for (i in sysList){
   funner <- data.frame()
   funner <- filter(totAbModelDF, systemSeason == i)
   
-  glmmOut <- glmmTMB(abund ~ year_Z +
+  glmmOut <- glmmTMB(abund ~ (1|year_Z) +
                        temp_Z +
                        bvc_Z +
                        offset(log(n_hauls)) +
