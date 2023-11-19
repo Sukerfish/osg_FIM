@@ -10,17 +10,14 @@ library(patchwork)
 
 osg_theme <- readRDS('osg_theme.rds')
 
-systems <- c("AP", "CK", "TB", "CH")
-
-sigSlopes <- list()
-for (i in unique(systems)){
-  sigSlopes[[i]] <- read_excel("Outputs/SigSlopes.xlsx",
-                          sheet = i)
-}
+sigSlopes <- read_excel("./Outputs/sigSlopes_SXS.xlsx")
 
 ecoGroup <- read.csv("Outputs/taxaList_grouped.csv")
 
-sigSlopesdf <- bind_rows(sigSlopes)
+#reclass syngnathids under fish
+ecoGroup$syngnathid <- 0
+ecoGroup$syngnathid[ecoGroup$group == "syngnathid"] <- 1
+ecoGroup$group[ecoGroup$group == "syngnathid"] <- "fish"
 
 load('TidyGearCode20.Rdata')
 
@@ -79,7 +76,7 @@ YearXSpeciesZ <- SiteXSpeciesFull %>%
 # filter(system == "AP") %>%
 # filter(season == "winter")
 
-YearXSigSpeciesZ <- sigSlopesdf %>%
+YearXSigSpeciesZ <- sigSlopes %>%
   left_join(YearXSpeciesZ) %>%
   mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH"))) %>%
   group_by(system, season) %>%
