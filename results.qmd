@@ -99,7 +99,7 @@ summerAbStats <- filter(SXAb, season == "summer")
 
 In total, 17492 sampling events occurred where at least one taxa was caught and counted during summer or winter across all four estuaries. For seven sampling events, temperature data was unavailable and thus excluded from the analyses. Further, hauls that were comprised solely of rare species (taxa found in ≤5% of all samples for that system and season) were removed from the analyses which reduced samples down to `r nrow(SXS_filtered)`. Overall, `r ncol(SXS_filtered_spp)` taxa in the dataset were recorded, spanning `r max(as.numeric(as.character(waterBVC_full$seasonYear)))-min(as.numeric(as.character(waterBVC_full$seasonYear)))` years of collections.
 
-Total richness was significantly changing (positively) only in winter in Tampa Bay (@fig-NPlot). However, the total richness in winter (average richness `r round(mean(winterStats$meanN),3)`) was consistently lower for each estuary than in the summer (average richness `r round(mean(summerStats$meanN),3)`).
+Total richness was significantly changing (positively) only in winter in Tampa Bay ([@fig-NPlot]). However, the total richness in winter (average richness `r round(mean(winterStats$meanN),3)`) was consistently lower for each estuary than in the summer (average richness `r round(mean(summerStats$meanN),3)`).
 
 ```{r}
 #| label: tbl-fullRichModels
@@ -120,7 +120,7 @@ pander(richFullEstimates)
 plot(NPlot)
 ```
 
-Similarly, total abundance was generally lower for all systems in the winter season (average total abundance `r round(mean(winterAbStats$meanAb),3)`), with summer generally higher (average total abundance `r round(mean(summerAbStats$meanAb),3)`) (@fig-AbundPlot). Apalachicola Bay (in winter) and Tampa Bay (in summer) both have significant changes in total abundance over time, though AP is changing negatively and TB is changing positively.
+Similarly, total abundance was generally lower for all systems in the winter season (average total abundance `r round(mean(winterAbStats$meanAb),3)`), with summer generally higher (average total abundance `r round(mean(summerAbStats$meanAb),3)`) ([@fig-AbundPlot]). Apalachicola Bay (in winter) and Tampa Bay (in summer) both have significant changes in total abundance over time, though AP is changing negatively and TB is changing positively.
 
 ```{r}
 #| label: tbl-fullAbundModels
@@ -141,7 +141,7 @@ pander(abundFullEstimates)
 plot(AbundPlot)
 ```
 
-Seagrass coverage over time significantly changed in Cedar Key summer (negatively), Tampa Bay winter (positively), and in both seasons in Charlotte Harbor (positively) (@fig-BVCPlot).
+Seagrass coverage over time significantly changed in Cedar Key summer (negatively), Tampa Bay winter (positively), and in both seasons in Charlotte Harbor (positively) ([@fig-BVCPlot]).
 
 ```{r BVCPlot}
 #| label: fig-BVCPlot
@@ -153,7 +153,7 @@ Seagrass coverage over time significantly changed in Cedar Key summer (negativel
 plot(BVCPlot)
 ```
 
-Temperature increased significantly through time for all estuaries in the winter and for AP and TB in the summer (@fig-TempPlot).
+Temperature increased significantly through time for all estuaries in the winter and for AP and TB in the summer ([@fig-TempPlot]).
 
 ```{r}
 #| label: fig-TempPlot
@@ -195,7 +195,7 @@ emphasize.strong.cells(which(richPvalues < 0.05, arr.ind = TRUE))
 pander(richEstimates)
 ```
 
-Looking closer at temp, specifically as in [@Miner2021], the upper and lower 10th percentiles of temp are sometimes changing. Mostly in winter, though not significant using linear model alone (@fig-upperLower).
+Looking closer at temp, specifically as in [@Miner2021], the upper and lower 10th percentiles of temp are sometimes changing. Mostly in winter, though not significant using linear model alone ([@fig-upperLower]).
 
 ```{r}
 #| label: fig-upperLower
@@ -214,7 +214,7 @@ plot(annualTemp)
 source("BetadiversityPairwise.R")
 ```
 
-The betadiversity stuff is interesting (@fig-betadiversity).
+The betadiversity stuff is interesting ([@fig-betadiversity]).
 
 ```{r}
 #| label: fig-betadiversity
@@ -225,3 +225,60 @@ The betadiversity stuff is interesting (@fig-betadiversity).
 #| fig-cap: "Betadiversity amazing plot"
 plot(betaTimePlot)
 ```
+
+```{r}
+#| label: NMDS
+#| include: FALSE
+#| cache: TRUE
+source("NMDS_annual.R")
+```
+
+NMDS plots are cool (\[@fig-NMDS_winter\]).
+
+```{r}
+#| label: fig-NMDS_winter
+#| echo: FALSE
+#| message: FALSE
+#| fig.width: 7.5
+#| fig.heigh: 5
+#| fig-cap: "NMDS amazing plot"
+plot(winterNMDS)
+```
+
+And they're warm ([@fig-NMDS_summer]).
+
+```{r}
+#| label: fig-NMDS_summer
+#| echo: FALSE
+#| message: FALSE
+#| fig.width: 7.5
+#| fig.heigh: 5
+#| fig-cap: "NMDS amazing summer plot"
+plot(summerNMDS)
+```
+
+```{r}
+#| label: PERMANOVA
+#| include: FALSE
+load("bigPERMANOVAs.RData")
+```
+
+```{r}
+#| label: tbl-fullPERMANOVAwinter
+#| echo: FALSE
+#| message: FALSE
+#| tbl-cap: "Winter PERMANOVA"
+emphasize.strong.cells(which(winterfAbundPERM < 0.05, arr.ind = TRUE))
+pander(winterfAbundPERM)
+```
+
+```{r}
+#| label: tbl-fullPERMANOVAsummer
+#| echo: FALSE
+#| message: FALSE
+#| tbl-cap: "Summer PERMANOVA"
+emphasize.strong.cells(which(summerfAbundPERM < 0.05, arr.ind = TRUE))
+pander(summerfAbundPERM)
+```
+
+Next up... PERMANOVA! The best is this one [@tbl-fullPERMANOVAwinter].
