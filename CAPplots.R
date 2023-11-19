@@ -171,7 +171,7 @@ for(i in systemSeason_list$systemSeason){
   
   CAP <- CAPdiscrim(bf ~ seasonYear,
                     data = df_env,
-                    mmax = 200,
+                    mmax = 8,
                     #add = "lingoes",
                     #parallel = 6,
                     #method="bray", 
@@ -483,7 +483,7 @@ for(i in systemSeason_list$systemSeason){
                            arrange(desc(abs(LD1))) %>%
                            slice_head(n = 10) #grab only top 10 for axis 1 and plot
   sppvecs_list[[i]] <- spp_vecs
-  mult <- 6
+  mult <- 1
   centroidPlots[[i]] <- ggplot(middles) + 
     geom_vline(xintercept = 0,
                colour     = "grey70",
@@ -492,10 +492,10 @@ for(i in systemSeason_list$systemSeason){
                colour     = "grey70",
                size       = .25) +
     scale_x_continuous(limits       = symmetric_range((1+mult)*sppvecs_list_fixdf$LD1),
-                       breaks       = c(-6,-3,0,3,6),
+                       breaks       = c(-1.5,-0.5,0,0.5,1.5),
                        minor_breaks = NULL) +
     scale_y_continuous(limits       = symmetric_range((1+mult)*sppvecs_list_fixdf$LD2),
-                       breaks       = c(-6,-3,0,3,6),
+                       breaks       = c(-1.5,-0.5,0,0.5,1.5),
                        minor_breaks = NULL) +
     geom_point(aes(x    = axis1c, 
                    y    = axis2c, 
@@ -557,5 +557,5 @@ for(i in systemSeason_list$systemSeason){
 centroidCAP <- wrap_plots(centroidPlots,
            ncol = 4)
 
-save(CAPsforAll, file = "./Outputs/CAPsforAll_Z.RData")
+save(CAPsforAll, file = "./Outputs/CAPsforAll_Z_8m.RData")
 save(centroidCAP, fullCAPPlot, centroidPlots, sppPlots, file = "./Outputs/CAPsforAll_PLOTS.RData")
