@@ -569,7 +569,7 @@ for (i in seasysKey){
     #scale_x_continuous(limits = symmetric_range) +
     geom_vline(xintercept = 0, linetype="dashed") +
     theme_bw() +
-    labs(title = plotup$title,
+    labs(title = i,
          shape = "Climatology") + #dynamic title using the formatted values
     theme(axis.title.y=element_blank(),
           axis.title.x = element_blank())
