@@ -596,7 +596,7 @@ for (i in seasysKey){
 #   theme(plot.margin = margin(5.5, 5.5, 0, 5.5))
 
 finalEco <- wrap_plots(plotsEco, ncol = 2, guides = "collect") &
-  labs() & theme(plot.margin = margin(5.5, 5.5, 0, 5.5))
+  labs() & theme(plot.margin = margin(5.5, 5.5, 0, 5.5)) & theme(legend.position = 'bottom')
 
 # Use the tag label as an x-axis label
 finalEco <- wrap_elements(panel = finalEco) +
