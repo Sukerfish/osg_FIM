@@ -7,7 +7,7 @@ authors:
     affiliation:
       - name: The University of South Florida
         department: College of Marine Science
-format: html
+format: docx
 reference-doc: results_formatting.docx
 editor: visual
 bibliography: references.bib
@@ -38,7 +38,7 @@ Sys.setenv(FISHBASE_API="sealifebase")
 #knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Introduction {.unnumbered}
+# Introduction {#sec-introduction .unnumbered}
 
 Global climate change is having strong effects on biodiversity and associated ecosystem structure and functions [@Doney2012; @Poloczanska2016; @Murphy2020]. Shifts in species distributions [@McCarty2001], changes in phenology [@Stenseth2002], and changes in biodiversity [@Dornelas2019] have been observed globally. However, the direction and magnitude of change varies. For example, species richness is declining around the equator and increasing at midlatitudes [@Chaudhary2021]. Some taxa are migrating poleward while others remain unchanged in distribution [@Parmesan1999; @Perry2005; @Chivers2017]. Given that changes in biodiversity can affect ecosystem stability [@Hautier2015], there has been increased concern about how climate change will alter ecosystems, including rainforests [@Levine2016], coral reefs [@Toth2019], and estuaries [@Erickson2021]. However, our understanding of changes in ecosystem stability has been limited by a paucity of long-term time series data [but see @Dornelas2018]. Further, many ecosystems at lower latitudes have received comparatively less attention than those at higher latitudes. Understanding stability in these lower latitude ecosystems can shed light on their responses to climate change and broaden our understanding about generalities.
 
@@ -48,9 +48,9 @@ The eastern Gulf of Mexico (eGOM) is a productive subtropical region that suppor
 
 Increased abundance of tropically-associated taxa had already been observed in northern Gulf of Mexico (nGOM) seagrass systems as early as 2006, potentially indicating tropicalization by taxa from the Floridian ecoregion [@Fodrie2010]. However, Fodrie et al. [-@Fodrie2010] was restricted to the northernmost edge of the eGOM as well as only the summer and fall seasons. Further, assemblages commonly differ between summer and winter in subtropical and temperate estuaries [@Hagan2003; @Strydom2015; @Schrandt2020]. Thus, it is unclear how estuarine systems across the broader eGOM may be responding to climate change, especially in the context of imbalanced seasonal temperature change. Long-term data collected consistently within and across multiple eGOM estuaries that span temperate and subtropical latitudes can improve our ability to evaluate the stability of these assemblages and establish a timeline of tropicalization in this region. Long-term time series data are available in the eGOM, where estuarine seine hauls have been conducted monthly since 1997 and followed consistent study designs and methods. Using these data, I will investigate whether fish assemblages in estuaries within the eGOM have changed over a 20-year period in response to climate change. Specifically, I will address the following questions: 1) has the richness and abundance of eGOM estuarine fish assemblages changed over a 20-year period? 2) Has the composition and stability of eGOM estuarine fish assemblages changed over time and, if so, are these changes related to water temperature?
 
-# Methods {.unnumbered}
+# Methods {#sec-methods .unnumbered}
 
-### Data collection
+### Data collection {#sec-data-collection}
 
 This study used data collected by the Florida Fish and Wildlife Research Institute's (FWRI) Fisheries Independent Monitoring (FIM) program. The program follows a monthly stratified random sampling design in estuaries across Florida, including four in the eastern Gulf of Mexico (from north to south: Apalachicola Bay, Cedar Key, Tampa Bay, and Charlotte Harbor; @fig-FIMsystems). Apalachicola Bay is a shallow, semi-enclosed estuary located on the northern coast of the GOM in the panhandle of Florida, USA and is within the Northern Gulf of Mexico ecoregion [@Spalding2007]. Cedar Key is located within the Suwannee River open estuary system and is also in the Northern Gulf of Mexico ecoregion. Tampa Bay is Florida's largest open water estuary and lies within the Floridian ecoregion [@Spalding2007]. Charlotte Harbor, a drowned river estuary system, is within the Floridian ecoregion [@FWRIFloridaFishandWildlifeResearchInstitute2017]. All systems are dominated by seagrass vegetation in shallow waters, except for Apalachicola Bay, where seagrass is less than 7% of bottom coverage [@FWRIFloridaFishandWildlifeResearchInstitute2017]. However, sampling gear was partly determined by habitat, where all seagrass at particular depths were sampled with the same gear type across estuaries [see also below, @FWRIFloridaFishandWildlifeResearchInstitute2017]. Finally, marsh grasses and oyster beds are dominant along shorelines in Apalachicola Bay and Cedar Key, while mangroves dominate in Charlotte Harbor, and Tampa Bay is characterized by a mix of marsh grasses, oyster beds, and mangroves [@FWRIFloridaFishandWildlifeResearchInstitute2017].
 
@@ -66,7 +66,7 @@ Within each estuary, sampling was divided into zones (subdivided into 1-nm^2^ gr
 knitr::kable(read.csv(file = "conceptFigs/diffIDTaxa.csv"))
 ```
 
-### Data Analyses
+### Data Analyses {#sec-data-analyses}
 
 ```{r}
 #| label: Models
@@ -76,13 +76,13 @@ knitr::kable(read.csv(file = "conceptFigs/diffIDTaxa.csv"))
 source("RichnessModel.R")
 ```
 
-All analyses were conducted using the R Statistical Computing Environment v4.3.0 and an alpha of 0.05 was used for all significance testing . To address if the richness and abundance of eGOM estuarine fish assemblages has changed over a 20-year period, I modeled richness and abundance per haul across all estuaries for both the summer and winter seasons using generalized linear mixed models (GLMMs) from the R package *glmmTMB* [@glmmTMB]. Given the well-documented seasonal differences in estuarine systems [see @Hagan2003; @Strydom2015; @Schrandt2020], in this and all subsequent analyses, summer and winter are treated entirely separately. For each seine haul, I calculated the richness as the number of taxa present and total abundance as the sum of all individuals counted. In all calculations, total abundance was fourth-root transformed to reduce the effects of overly-abundant taxa, given total abundance ranged from a maximum of `r format(max(totAbModelDF$abundRaw), nsmall = 0)` to `r format(min(totAbModelDF$abundRaw), nsmall = 0)`. For each model, the response in the GLMM included either the richness or transformed abundance of each haul, with estuary (four levels) as a fixed effect and year as a random effect. To account for serial autocorrelation, an `ar1` covariance matrix was used in each model calculated from month of sampling event and within-estuary zone. Given that species richness is strongly affected by sampling effort [@Mittelbach2019], I included an offset term to account for variation in the number of seine hauls. Further, I used permutational multivariate analysis of variance (PERMANOVA) from the R package *vegan* to examine the interaction between estuary and time, as a means to determine if there are different magnitudes and directions of temporal change among estuaries and thus if each estuary should be treated separately [@vegan].
+All analyses were conducted using the R Statistical Computing Environment v4.3.0 and an alpha of 0.05 was used for all significance testing ([@R2023]). To address if the richness and abundance of eGOM estuarine fish assemblages has changed over a 20-year period, I modeled richness and abundance per haul across all estuaries for both the summer and winter seasons using generalized linear mixed models (GLMMs) from the R package *glmmTMB* [@glmmTMB]. Given the well-documented seasonal differences in estuarine systems [see @Hagan2003; @Strydom2015; @Schrandt2020], in this and all subsequent analyses, summer and winter are treated entirely separately. For each seine haul, I calculated the richness as the number of taxa present and total abundance as the sum of all individuals counted. In all calculations, total abundance was fourth-root transformed to reduce the effects of overly-abundant taxa, given total abundance ranged from a maximum of `r format(max(totAbModelDF$abundRaw), nsmall = 0)` to `r format(min(totAbModelDF$abundRaw), nsmall = 0)`. For each model, the response in the GLMM included either the richness or transformed abundance of each haul, with estuary (four levels) as a fixed effect and year as a random effect. To account for serial autocorrelation, an `ar1` covariance matrix was used in each model calculated from month of sampling event and within-estuary zone. Given that species richness is strongly affected by sampling effort [@Mittelbach2019], I included an offset term to account for variation in the number of seine hauls. Further, I used permutational multivariate analysis of variance (PERMANOVA) from the R package *vegan* to examine the interaction between estuary and time, as a means to determine if there are different magnitudes and directions of temporal change among estuaries and thus if each estuary should be treated separately [@vegan].
 
-To explore whether the composition and abundance has changed over the same time period and if it may be related to water temperature, I used several techniques. First, I examined the turnover and nestedness of each system through time using the R package *betapart* [@betapart]. Then, I ran additional GLMM models for each estuary, but included random terms for Z-scored water temperature and Z-scored percent bottom vegetation coverage (BVC). In all cases, the same `ar1` covariance structure was used as before as well as an offset term for sampling effort. To help visualize the differences among estuaries, I used Non-metric Multidimensional Scaling (NMDS) to plot the average annual abundance of each taxa in each season in multivariate space. Since this is not a routine for hypothesis testing, I used distance-based redundancy analysis (dbRDA) from the R package *vegan* to explore the magnitude and direction of effect of water temperature and BVC in multivariate space. Finally, to explore the *a priori* hypothesis of a possible "directional" change (see concept fig) in species space over time, I used canonical analysis of principal coordinates (CAP) models from the R package *BiodiversityR* for each estuary and season [@BiodiversityR]. Following [@Dornelas2019], I further examined individual taxa for change over time. Within each estuary and season, I ran a linear model on the transformed abundance of each taxa independently and tested for significance. This was used to determine both the magnitude and direction of change at the species level, thus describing the distribution of "winners and losers" across each estuarine system.
+To explore whether the composition and abundance has changed over the same time period and if it may be related to water temperature, I used several techniques. First, I examined the turnover and nestedness of each system through time using the R package *betapart* [@betapart]. Then, I ran additional GLMM models for each estuary, but included random terms for Z-scored water temperature and Z-scored percent bottom vegetation coverage (BVC). In all cases, the same `ar1` covariance structure was used as before as well as an offset term for sampling effort. To help visualize the differences among estuaries, I used Non-metric Multidimensional Scaling (NMDS) to plot the average annual abundance of each taxa in each season in multivariate space. Since this is not a routine for hypothesis testing, I used distance-based redundancy analysis (dbRDA) from the R package *vegan* to explore the magnitude and direction of effect of water temperature and BVC in multivariate space. Finally, to explore the *a priori* hypothesis of a possible "directional" change in species space over time, I used canonical analysis of principal coordinates (CAP) models from the R package *BiodiversityR* for each estuary and season [@BiodiversityR]. Following [@Dornelas2019], I further examined individual taxa for change over time. Within each estuary and season, I ran a linear model on the transformed abundance of each taxa independently and tested for significance. This was used to determine both the magnitude and direction of change at the species level, thus describing the distribution of "winners and losers" across each estuarine system.
 
-# Results {.unnumbered}
+# Results {#sec-results .unnumbered}
 
-### Overview
+### Overview {#sec-overview}
 
 ```{r}
 #| label: Temp_BVC
@@ -99,7 +99,7 @@ summerAbStats <- filter(SXAb, season == "summer")
 
 In total, 17492 sampling events occurred where at least one taxa was caught and counted during summer or winter across all four estuaries. For seven sampling events, temperature data was unavailable and thus excluded from the analyses. Further, hauls that were comprised solely of rare species (taxa found in ≤5% of all samples for that system and season) were removed from the analyses which reduced samples down to `r nrow(SXS_filtered)`. Overall, `r ncol(SXS_filtered_spp)` taxa in the dataset were recorded, spanning `r max(as.numeric(as.character(waterBVC_full$seasonYear)))-min(as.numeric(as.character(waterBVC_full$seasonYear)))` years of collections.
 
-The total richness GLMM formula: `richness ~ estuary + (1|year) + offset(log(n_hauls)) + ar1(yearMonth + 0|systemZone)` total richness per haul was significantly different in all estuary/season combinations except for Tampa Bay winter and Cedar Key winter ([@tbl-fullRichModels]). However, the total richness ([@fig-NPlot]) in winter (average richness `r round(mean(winterStats$meanN),3)`) was consistently lower for each estuary than in the summer (average richness `r round(mean(summerStats$meanN),3)`).
+The total richness GLMM formula used was `richness ~ estuary + (1|year) + offset(log(n_hauls)) + ar1(yearMonth + 0|systemZone)`. Total richness per haul was significantly different in all estuary/season combinations except for Tampa Bay winter and Cedar Key winter ([@tbl-fullRichModels]). However, the total richness ([@fig-NPlot]) in winter (average richness `r round(mean(winterStats$meanN),3)`) was consistently lower for each estuary than in the summer (average richness `r round(mean(summerStats$meanN),3)`).
 
 ```{r}
 #| label: tbl-fullRichModels
@@ -120,7 +120,7 @@ pander(richFullEstimates)
 plot(NPlot_ann)
 ```
 
-Similarly, total abundance was generally lower for all systems in the winter season (average total abundance `r round(mean(winterAbStats$meanAb),3)`), with summer generally higher (average total abundance `r round(mean(summerAbStats$meanAb),3)`) ([@fig-AbundPlot]). However, the only significant differences in total abundance across estuaries occurred during the winter, where all levels of estuary were significant. In the summer, only Apalachicola Bay tested as significant using GLMM ([@tbl-fullRichModels]).
+Similarly, total abundance was generally lower for all systems in the winter season (average total abundance `r round(mean(winterAbStats$meanAb),3)`), with summer generally higher (average total abundance `r round(mean(summerAbStats$meanAb),3)`) ([@fig-AbundPlot]). The total abundance GLMM formula used was `abundance ~ estuary + (1|year) + offset(log(n_hauls)) + ar1(yearMonth + 0|systemZone)`. However, the only significant differences in total abundance across estuaries occurred during the winter, where all levels of estuary were significant. In the summer, only Apalachicola Bay tested as significant using GLMM ([@tbl-fullRichModels]).
 
 ```{r}
 #| label: tbl-fullAbundModels
@@ -148,7 +148,7 @@ plot(AbundPlot_ann)
 source("BetadiversityPairwise.R")
 ```
 
-Nestedness and turnover components of Bray-Curtis pairwise dissimilarity over time reveal a general trend of stability during the summer. However, during winter, particularly in the northern estuaries (AP and CK), there is considerably higher variability in the years after 2010 ([@fig-betadiversity]).
+Nestedness and turnover components of Bray-Curtis pairwise dissimilarity over time reveal a general trend of stability during the summer. However, during winter, particularly in the northern estuaries (Apalachicola and Cedar Key), there is considerably higher variability in the years after 2010 ([@fig-betadiversity]).
 
 ```{r}
 #| label: fig-betadiversity
@@ -156,7 +156,7 @@ Nestedness and turnover components of Bray-Curtis pairwise dissimilarity over ti
 #| message: FALSE
 #| fig-width: 7.5
 #| fig-height: 5
-#| fig-cap: "Partitioned betadiversity calculated pairwise with respect to the first year of available data. Balanced represents nestedness and gradient represents turnover."
+#| fig-cap: "Partitioned betadiversity calculated pairwise with respect to the first year of available data. Balanced represents turnover and gradient represents nestedness."
 plot(betaTimePlot)
 ```
 
@@ -168,7 +168,7 @@ Seagrass coverage over time significantly changed in Cedar Key summer (negativel
 #| message: FALSE
 #| fig-width: 7.5
 #| fig-height: 5
-#| fig-cap: "Yet another amazing plot"
+#| fig-cap: "Bottom vegetation coverage as a percentage averaged annually and plotted over time. Error bars are ± 1 standard error."
 plot(BVCPlot)
 ```
 
@@ -182,13 +182,15 @@ Temperature increased significantly through time for all estuaries in the winter
 #| warning: FALSE
 #| fig-width: 7.5
 #| fig-height: 5
-#| fig-cap: "Charts"
+#| fig-cap: "Water temperature over time."
 #| fig-subcap: 
-#|   - "One more amazing plot"
-#|   - "Annually plotted"
+#|   - "Water temperature taken at each sampling event and plotted over time. Blue line is linear model fitted to each dataset."
+#|   - "Temperature averaged annually and plotted over time. Blue line is linear model fitted to each dataset. Error bars are ± 1 standard error."
 plot(fullTemp)
 plot(TempPlot)
 ```
+
+### Multivariate Analyses {#sec-multivariate-analyses}
 
 Before examining the relationship between temperature and richness/abundance, I used PERMANOVA to test for any significant interaction between estuary and year. Indeed, for both seasons, the interaction between year and estuary was significant ([@tbl-fullPERMANOVA]). This confirmed the need to separately examine each estuary from here onward.
 
@@ -202,7 +204,7 @@ load("bigPERMANOVAs.RData")
 #| label: tbl-fullPERMANOVA
 #| echo: FALSE
 #| message: FALSE
-#| tbl-cap: "All PERMANOVAs"
+#| tbl-cap: "Summary outputs from PERMANOVAs conducted for each season. Values in bold are significant at alpha of 0.05."
 #| tbl-subcap:
 #|   - "Winter"
 #|   - "Summer"
@@ -213,7 +215,7 @@ emphasize.strong.cells(which(summerfAbundPERM < 0.05, arr.ind = TRUE))
 pander(summerfAbundPERM)
 ```
 
-The relationship of temperature to richness and abundance was better defined when including environmental parameters. The formula used for all models was: `response ~ (1|year_Z) + temp_Z +  bvc_Z + offset(log(n_hauls)) + ar1(yearMonth + 0|systemZone)` where `response` was either total abundance or total richness per haul.
+To explore the relationship of temperature to richness and abundance, I used multiple GLMM models wherein the formula used for each was: `response ~ (1|year_Z) + temp_Z +  bvc_Z + offset(log(n_hauls)) + ar1(yearMonth + 0|systemZone)` where `response` was either total abundance or total richness per haul.
 
 Total abundance was significantly affected by BVC in almost all estuaries, while the only case when temperature was significant in the summer was in Apalachicola Bay ([@tbl-abundModels]). Otherwise, temperature was significant in all estuaries in the winter. In all cases, temperature and BVC were positively correlated with total abundance, with the magnitude of the effect from BVC typically twice as large as that of temperature (where significant). The exception to this is winter in Apalachicola, where the effect of temperature is nearly twice the effect of BVC.
 
@@ -237,18 +239,6 @@ emphasize.strong.cells(which(richPvalues < 0.05, arr.ind = TRUE))
 pander(richEstimates)
 ```
 
-Looking closer at temp, specifically as in [@Miner2021], the upper and lower 10th percentiles of temp are sometimes changing. Mostly in winter, though not significant using linear model alone ([@fig-upperLower]).
-
-```{r}
-#| label: fig-upperLower
-#| echo: FALSE
-#| message: FALSE
-#| fig-width: 7.5
-#| fig-height: 5
-#| fig-cap: "Temperature averaged annually and plotted over time. Blue line is linear model fitted to each dataset."
-plot(annualTemp)
-```
-
 ```{r}
 #| label: NMDS
 #| include: FALSE
@@ -256,7 +246,7 @@ plot(annualTemp)
 source("NMDS_annual.R")
 ```
 
-NMDS reveals distinct separation among northern and southern estuaries in multivariate species-space. Using an `envfit` model, water temperature and BVC are best aligned with the distance between the two groups of estuaries ([@fig-NMDS_all]).
+NMDS reveals distinct separation among northern and southern estuaries in multivariate species-space. Using an `envfit` model, water temperature and BVC are best aligned with the distance between the two groups of estuaries ([@fig-NMDS_all]). Specifically, temperature predominantly separates the northern and southern groups (NMDS1), with BVC associated with differences among northern and southern groups (NMDS2).
 
 ```{r}
 #| label: fig-NMDS_all
@@ -266,15 +256,13 @@ NMDS reveals distinct separation among northern and southern estuaries in multiv
 #| warning: FALSE
 #| fig-width: 7.5
 #| fig-height: 5
-#| fig-cap: "NMDS plots based on annual average abundance (transformed) data."
+#| fig-cap: "NMDS plots based on annual average abundance (transformed) data. Ellipses represent 95% confidence of location of centroid of each system. Individual taxa annual abundances (grey circles) are plotted as weighted average scores. Best fit of environmental parameters plotted as grey vectors and labeled."
 #| fig-subcap: 
 #|   - "Summer"
 #|   - "Winter"
 plot(summerNMDS)
 plot(winterNMDS)
 ```
-
-In order to test whether this was significant, I followed up with a dbRDA. For all systems and seasons, water temperature and BVC indeed tested as significant ([@fig-RDAforAll]).
 
 ```{r}
 #| label: RDA
@@ -287,6 +275,7 @@ systemSeason_list <- SXS_filtered %>%
   select(systemSeason) %>%
   distinct()
 
+RDAaxesVar <- list()
 plotsforAll <- list()
 #rdaVecslist <- list()
 for(i in systemSeason_list$systemSeason){
@@ -389,11 +378,17 @@ for(i in systemSeason_list$systemSeason){
                                keywidth     = 0.2,
                                title = "Year"))
   
+  RDAaxesVar[[i]]$CA1 <- round(100*RDAsforAll[[i]]$rda$CCA$eig[1]/RDAsforAll[[i]]$rda$tot.chi,2)
+  RDAaxesVar[[i]]$CA2 <- round(100*RDAsforAll[[i]]$rda$CCA$eig[2]/RDAsforAll[[i]]$rda$tot.chi,2)
 }
 
 fullRDAPlot <- wrap_plots(plotsforAll,
                       ncol = 2)
+
+RDAaxes <- bind_rows(RDAaxesVar, .id = "systemSeason")
 ```
+
+In order to test whether this was significant, I followed up with a dbRDA. For all systems and seasons, water temperature and BVC indeed tested as significant ([@fig-RDAforAll]). The range of variation explained by the first canonical axis was `r min(RDAaxes$CA1)`% to `r max(RDAaxes$CA1)`% with the range of the second canonical axis as `r min(RDAaxes$CA2)`% to `r max(RDAaxes$CA2)`% across all models.
 
 ```{r}
 #| label: fig-RDAforAll
@@ -401,7 +396,7 @@ fullRDAPlot <- wrap_plots(plotsforAll,
 #| message: FALSE
 #| fig-width: 7.5
 #| fig-height: 9
-#| fig-cap: "Distance-based redundancy analysis (dbRDA) ordination to visualize effects of habitat parameters. Canonical axis (CA) percentages indicate the total variation in estuarine communities explained by that axis. Each habitat variable is represented by vectors and centroids of taxa groups are calculated using weighted average scores."
+#| fig-cap: "Distance-based redundancy analysis (dbRDA) ordination to visualize effects of habitat parameters. Shading of markers indicates year for that group, with red markers indicating centroids of the oldest years in the data and blue indicating the most recent years. Canonical axis (CA) percentages indicate the total variation in estuarine communities explained by that axis. Each habitat variable is represented by vectors and centroids of taxa groups are calculated using weighted average scores."
 
 plot(fullRDAPlot)
 ```
@@ -658,7 +653,7 @@ pander(sysSpp)
 #| warning: FALSE
 #| fig-width: 7.5
 #| fig-height: 9
-#| fig-cap: "Canonical analysis of principal coordinates ordination. Shading of markers indicates year for that group, with red markers indicating centroids of the oldest years in the data and blue indicating the most recent years. Percentages next to subplot title indicate total variability captured by the model. Top 10 taxa associated with canonical axes scores plotted as vectors (still need better labels). Canonical axis (CA) percentages indicate the among-group variation captured in each axis."
+#| fig-cap: "Canonical analysis of principal coordinates ordination plots. Shading of markers indicates year for that group, with red markers indicating centroids of the oldest years in the data and blue indicating the most recent years. Percentages next to subplot title indicate total variability captured by the model. Top 10 taxa associated with canonical axes scores plotted as vectors (still need better labels). Canonical axis (CA) percentages indicate the among-group variation captured in each axis."
 
 plot(centroidCAP)
 ```
@@ -680,14 +675,21 @@ winDiff <- sigDiff %>%
 
 sumDiff <- sigDiff %>%
   filter(season == "summer")
+
+minSlope <- which(abs(sigSlopes$raw_slope - 0) == min(abs(sigSlopes$raw_slope - 0)))
+
+minSpSlope <- sigSlopes[minSlope,]
 ```
 
-Following [@Dornelas2019], linear models were applied to the average annual abundance of each taxa through time and the slope of each was used for further examination. The majority of taxa are not undergoing significant change over time with a large group centered around zero (\[@fig-winnersLosers\]). Generally, the number of taxa changing significantly is fairly well balanced across estuaries within summer. However, the greatest difference occurs in winter (\[@tbl-sigTaxa\]), with an average of `r format(winDiff$meanDiff, nsmall = 2)` more taxa undergoing positive significant change across all systems. Meanwhile, on average in the summer, `r format(abs(sumDiff$meanDiff), nsmall = 2)` more taxa is undergoing negative change compared to the number changing positively.
+### Univariate Analyses {#sec-univariate-analyses}
+
+Following [@Dornelas2019], linear models were applied to the average annual abundance of each taxa through time and the slope of each was used for further examination. The majority of taxa are not undergoing significant change over time with a large group centered around zero ([@fig-winnersLosers]). Generally, the number of taxa changing significantly is fairly well balanced across estuaries within summer. However, the greatest difference occurs in winter ([@tbl-sigTaxa]), with an average of `r format(winDiff$meanDiff, nsmall = 2)` more taxa undergoing positive significant change across all systems. Meanwhile, on average in the summer, `r format(abs(sumDiff$meanDiff), nsmall = 2)` more taxa is undergoing negative change compared to the number changing positively.
 
 ```{r}
 #| label: tbl-sigTaxa
 #| echo: FALSE
 #| message: FALSE
+#| warning: FALSE
 #| tbl-cap: "Number of taxa with significant changes in abundance over time."
 
 sigSummaryShort <- sigSummary %>%
@@ -719,7 +721,7 @@ pander(sigSummaryShort)
 winnersLosers
 ```
 
-Then we look at the groups of each taxa ([@fig-sigSlopes_grouped]).
+Plotting the taxonomic groups of each significant taxa reveals the magnitude of change in boney fishes is considerably greater than in all other groups. In Cedar Key summer, there is an exception where the greatest change is observed in a shrimp species ([@fig-sigSlopes_grouped]).
 
 ```{r}
 #| label: fig-sigSlopes_grouped
@@ -728,10 +730,12 @@ Then we look at the groups of each taxa ([@fig-sigSlopes_grouped]).
 #| warning: FALSE
 #| fig-width: 7.5
 #| fig-height: 5
-#| fig-cap: "Sig slopes groups plot"
+#| fig-cap: "Taxonomically-grouped slopes of abundance over time plotted per estuary and season. Red indicates a negative change over time and blue indicates a positive change. The dashed line represents a slope of 0."
 
 sigSlopesGroups
 ```
+
+In terms of individual taxa, a few have slopes an order of magnitude greater than the majority, ranging from `r format(minSpSlope$raw_slope, digits = 2)` up to `r round(max(abs(sigSlopes$raw_slope)), 2)` (see [@tbl-sigSlopesAll]). In [@fig-sigSlopes], it is clear how the majority of significantly changing taxa are still centered around zero. The upper and lower taxa have extreme values and thus are not represented on these plots.
 
 ```{r}
 #| label: fig-sigSlopes
@@ -739,13 +743,13 @@ sigSlopesGroups
 #| message: FALSE
 #| warning: FALSE
 #| fig-width: 7.5
-#| fig-height: 5
-#| fig-cap: "Sig slopes plot"
+#| fig-height: 9
+#| fig-cap: "Slopes of taxa abundance over time plotted per estuary and season. Red indicates a negative change over time and blue indicates a positive change. The dashed line represents a slope of 0."
 
 sigSlopesAll
 ```
 
-Finally the climatology of the taxa.
+Climatological association data were pulled from Fishbase using *rfishbase* [@rfishbase]. Not all taxa were available, but for those that were, no discernible patterns were revealed.
 
 ```{r}
 #| label: fig-ecoSlopes
@@ -753,8 +757,61 @@ Finally the climatology of the taxa.
 #| message: FALSE
 #| warning: FALSE
 #| fig-width: 7.5
-#| fig-height: 5
-#| fig-cap: "Eco slopes plot"
+#| fig-height: 9
+#| fig-cap: "Slopes of taxa abundance over time plotted per estuary and season. Red indicates a negative change over time and blue indicates a positive change. The dashed line represents a slope of 0. Climatological association is represented by the symbol shape."
+
+# intEco <- wrap_plots(plotsEco, ncol = 2, guides = "collect") &
+#   labs() & theme(plot.margin = margin(5.5, 5.5, 0, 5.5)) & theme(legend.position = 'bottom')
+# 
+# # Use the tag label as an x-axis label
+# outEco <- wrap_elements(panel = intEco) +
+#   labs(tag = "Raw slope of abundance change") +
+#   theme(
+#     plot.tag = element_text(size = rel(1)),
+#     plot.tag.position = "bottom"
+#   )
+# 
+# outEco
 
 finalEco
 ```
+
+# Discussion {#sec-discussion}
+
+# Conclusion {#sec-conclusion}
+
+# Supplemental Materials {#sec-supplemental-materials .appendix}
+
+Looking closer at temp, specifically as in [@Miner2021], the upper and lower 10th percentiles of temp are sometimes changing. Mostly in winter, though not significant using linear models alone ([@fig-upperLower]). Follow-up with GLMM and model selection using AIC to determine whether upper or lower percentile was significant resulted in changes in base model structure, namely dropping the offset term and sometimes dropping BVC or temperature.
+
+```{r}
+#| label: fig-upperLower
+#| echo: FALSE
+#| message: FALSE
+#| fig-width: 7.5
+#| fig-height: 5
+#| fig-cap: "Temperature extremes."
+plot(annualTemp)
+```
+
+Slopes of all significantly changing taxa:
+
+```{r}
+#| label: tbl-sigSlopesAll
+#| echo: FALSE
+#| message: FALSE
+#| tbl-cap: "Taxa identified as having a signficant slope in abundance over time."
+#| tbl-prefix: "SM"
+
+sigPvalues <- sigSlopes %>%
+  select(systemSeason, Scientificname, p.value)
+
+sigRawSlopes <- sigSlopes %>%
+  select(systemSeason, Scientificname, raw_slope) %>%
+  group_by(systemSeason) %>%
+  arrange(desc(raw_slope), .by_group = TRUE)
+
+pander(sigRawSlopes)
+```
+
+# References {#sec-references .appendix}
