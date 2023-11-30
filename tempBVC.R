@@ -16,6 +16,8 @@ library(DHARMa)
 library(gridExtra)
 library(gridGraphics)
 library(grid)
+library(broom)
+library(pixiedust)
 
 load('TidyGearCode20.Rdata')
 load('SXS_filtered.Rdata')
@@ -38,7 +40,8 @@ waterBVC_full <- SXS_filtered %>%
          seBVC = sdBVC/sqrt(nBVC)) %>%
   separate(systemSeason,
            c("system","season"),
-           sep = "_") %>%
+           sep = "_",
+           remove = FALSE) %>%
   mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH")))
 
 SXAb <- SXS_filtered %>%
@@ -212,11 +215,11 @@ BVCPlot <- ggplot(data = waterBVC_full,
   #   aes(ymin=q10BVC,
   #       ymax=q90BVC),
   #   linetype=2, alpha=0.1, color="black") +
-  geom_smooth(method="lm", se = FALSE) +
+  #geom_smooth(method="lm", se = FALSE) +
   geom_errorbar(aes(ymin = meanBVC-seBVC, ymax = meanBVC+seBVC))+
-  labs(title = "Annual Bottom Vegetation Coverage Over Time",
+  labs(#title = "Annual Bottom Vegetation Coverage Over Time",
        x     = "Year",
-       y     = "Mean Annual Bottom Vegetation Coverage (%)",
+       y     = "Mean annual bottom vegetation coverage (%)",
        #fill  = NULL
   ) +
   # scale_fill_manual(values = cbPalette1,
@@ -228,11 +231,11 @@ BVCPlot <- ggplot(data = waterBVC_full,
         legend.key        = element_blank(),
         #panel.grid        = element_blank()
   ) +
-  stat_fit_glance(method = 'lm',
-                  method.args = list(formula = y ~ x),  geom = 'text', 
-                  aes(label = paste("p-value = ", signif(after_stat(p.value), digits = 3), 
-                                    "\n R-squared = ", signif(after_stat(r.squared), digits = 2), sep = "")),
-                  label.x = 2005, label.y = 20, size = 3) +
+  # stat_fit_glance(method = 'lm',
+  #                 method.args = list(formula = y ~ x),  geom = 'text', 
+  #                 aes(label = paste("p-value = ", signif(after_stat(p.value), digits = 3), 
+  #                                   "\n R-squared = ", signif(after_stat(r.squared), digits = 2), sep = "")),
+  #                 label.x = 2005, label.y = 20, size = 3) +
   facet_grid(season ~ system)
 
 # ggsave(plot = BVCPlot,
@@ -254,11 +257,11 @@ TempPlot <- ggplot(waterBVC_full,
   #   aes(ymin=q10Temp,
   #       ymax=q90Temp),
   #   linetype=2, alpha=0.1, color="black") +
-  geom_smooth(method = "lm", se = FALSE) +
+  #geom_smooth(method = "lm", se = FALSE) +
   geom_errorbar(aes(ymin = meanTemp-seTemp, ymax = meanTemp+seTemp))+
-  labs(title = "Annual Water Temperature Over Time",
+  labs(#title = "Annual Water Temperature Over Time",
        x     = "Year",
-       y     = "Mean Annual Water Temperature (°C)",
+       y     = "Mean annual water temperature (°C)",
        #fill  = NULL
   ) +
   # scale_fill_manual(values = cbPalette1,
@@ -270,11 +273,11 @@ TempPlot <- ggplot(waterBVC_full,
         legend.key        = element_blank(),
         #panel.grid        = element_blank()
   ) +
-  stat_fit_glance(method = 'lm',
-                  method.args = list(formula = y ~ x),  geom = 'text', 
-                  aes(label = paste("p-value = ", signif(after_stat(p.value), digits = 3), 
-                                    "\n R-squared = ", signif(after_stat(r.squared), digits = 2), sep = "")),
-                  label.x = 2005, label.y = 25, size = 3) +
+  # stat_fit_glance(method = 'lm',
+  #                 method.args = list(formula = y ~ x),  geom = 'text', 
+  #                 aes(label = paste("p-value = ", signif(after_stat(p.value), digits = 3), 
+  #                                   "\n R-squared = ", signif(after_stat(r.squared), digits = 2), sep = "")),
+  #                 label.x = 2005, label.y = 25, size = 3) +
   facet_grid(season ~ system)
 
 # ggsave(plot = TempPlot,
@@ -298,9 +301,9 @@ NPlot <- ggplot(totAbModelDF,
   #   linetype=2, alpha=0.1, color="black") +
   #geom_smooth(method = "lm", se = FALSE) +
   #geom_errorbar(aes(ymin = meanN-seN, ymax = meanN+seN))+
-  labs(title = "Annual Richness Over Time",
+  labs(#title = "Annual Richness Over Time",
        x     = "Year",
-       y     = "Mean Annual Richness per Haul",
+       y     = "Mean annual richness per haul",
        #fill  = NULL
   ) +
   # scale_fill_manual(values = cbPalette1,
@@ -335,9 +338,9 @@ NPlot_ann <- ggplot(SXR_filtered,
   #   linetype=2, alpha=0.1, color="black") +
   # geom_smooth(method = "lm", se = FALSE) +
   geom_errorbar(aes(ymin = meanN-seN, ymax = meanN+seN))+
-  labs(title = "Annual Richness Over Time",
+  labs(#title = "Annual Richness Over Time",
        x     = "Year",
-       y     = "Mean Annual Richness per Haul",
+       y     = "Mean annual richness per haul",
        #fill  = NULL
   ) +
   # scale_fill_manual(values = cbPalette1,
@@ -377,9 +380,9 @@ AbundPlot_ann <- ggplot(SXAb,
   #   linetype=2, alpha=0.1, color="black") +
   # geom_smooth(method = "lm", se = FALSE) +
   geom_errorbar(aes(ymin = meanAb-seAb, ymax = meanAb+seAb))+
-  labs(title = "Annual Abundance Over Time",
+  labs(#title = "Annual Abundance Over Time",
        x     = "Year",
-       y     = "Mean Annual Total Abundance per Haul",
+       y     = "Mean annual total abundance per haul",
        #fill  = NULL
   ) +
   # scale_fill_manual(values = cbPalette1,
@@ -402,3 +405,63 @@ AbundPlot_ann <- ggplot(SXAb,
 #        filename = "./Outputs/AbundPlot.png",
 #        width = 16,
 #        height = 9)
+
+#### linear models for temp/bvc ####
+
+tempOutputs <- list()
+cleanTemps <- list()
+for (i in systemSeason_list$systemSeason){
+  tempDF <- data.frame()
+  tempDF <- filter(waterBVC_full, systemSeason == i) %>%
+    mutate(contYear = as.numeric(as.character(seasonYear))) %>%
+    filter(!(contYear == 2010 & season == "winter")) %>%
+    mutate(cYear = contYear - mean(contYear))
+  
+  tempOut <- lm(meanTemp ~ cYear, tempDF)
+  tempOutputs[[i]] <- tempOut
+  cleanTemps[[i]] <- broom::tidy(tempOut)
+  
+}
+
+tempTest <- bind_rows(cleanTemps, .id = "systemSeason")
+redOut <- dust(tempTest) %>%
+  sprinkle(cols = c("estimate", "std.error", "statistic"), round = 3) %>%
+  sprinkle(cols = "p.value", fn = quote(pvalString(value))) %>%
+  sprinkle_colnames(term = "Term", p.value = "P-value")
+
+tempEstimates <- as.data.frame(redOut) %>%
+  select(c(systemSeason, Term, "estimate")) %>%
+  pivot_wider(names_from = Term, values_from = "estimate")
+
+tempPvalues <- as.data.frame(redOut) %>%
+  select(c(systemSeason, Term, "P-value")) %>%
+  pivot_wider(names_from = Term, values_from = "P-value")
+
+BVCOutputs <- list()
+cleanBVCs <- list()
+for (i in systemSeason_list$systemSeason){
+  bvcDF <- data.frame()
+  bvcDF <- filter(waterBVC_full, systemSeason == i) %>%
+    mutate(contYear = as.numeric(as.character(seasonYear))) %>%
+    #filter(!(contYear == 2010 & season == "winter")) %>%
+    mutate(cYear = contYear - mean(contYear))
+  
+  bvcOut <- lm(meanBVC ~ cYear, bvcDF)
+  BVCOutputs[[i]] <- bvcOut
+  cleanBVCs[[i]] <- broom::tidy(bvcOut)
+  
+}
+
+bvcTest <- bind_rows(cleanBVCs, .id = "systemSeason")
+greenOut <- dust(bvcTest) %>%
+  sprinkle(cols = c("estimate", "std.error", "statistic"), round = 3) %>%
+  sprinkle(cols = "p.value", fn = quote(pvalString(value))) %>%
+  sprinkle_colnames(term = "Term", p.value = "P-value")
+
+bvcEstimates <- as.data.frame(greenOut) %>%
+  select(c(systemSeason, Term, "estimate")) %>%
+  pivot_wider(names_from = Term, values_from = "estimate")
+
+bvcPvalues <- as.data.frame(greenOut) %>%
+  select(c(systemSeason, Term, "P-value")) %>%
+  pivot_wider(names_from = Term, values_from = "P-value")
