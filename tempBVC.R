@@ -246,7 +246,7 @@ BVCPlot <- ggplot(data = waterBVC_full,
 TempPlot <- ggplot(waterBVC_full,
                    aes(x    = as.numeric(as.character(seasonYear)), 
                        y    = meanTemp, 
-                       #color = season
+                       #color = system
                    )) + 
   geom_point(#size   = 2, 
     #stroke = 0.1,
@@ -407,6 +407,78 @@ AbundPlot_ann <- ggplot(SXAb,
 #        height = 9)
 
 #### linear models for temp/bvc ####
+
+stuff <- waterBVC_full %>%
+  mutate(contYear = as.numeric(as.character(seasonYear))) %>%
+  filter(!(contYear == 2010 & season == "winter")) %>%
+  ungroup() %>%
+  mutate(smallYear = contYear - min(contYear))
+
+checkTest <- aov(meanTemp ~ smallYear * system * season, data = stuff)
+
+#because interaction in system:season ... see which ones.... almost all summer:summer insig
+another <- TukeyHSD(checkTest, "system:season")
+
+#now separate models for each season
+crunk <- stuff %>%
+  filter(season == "winter")
+
+crink <- stuff %>%
+  filter(season == "summer")
+
+(cute <- ggplot(wee,
+                   aes(x    = things, 
+                       y    = monthTemp, 
+                       group = system,
+                       color = system
+                   )) + 
+  geom_point(#size   = 2, 
+    #stroke = 0.1,
+    #pch    = 21, 
+    #colour = "black"
+  ) +
+  # geom_ribbon(
+  #   aes(ymin=q10Temp,
+  #       ymax=q90Temp),
+  #   linetype=2, alpha=0.1, color="black") +
+  geom_smooth(method = "lm", 
+              formula = y ~ x + cos(2*pi*x) + sin(2*pi*x),
+                se = FALSE) +
+  #geom_errorbar(aes(ymin = meanTemp-seTemp, ymax = meanTemp+seTemp))+
+  labs(#title = "Annual Water Temperature Over Time",
+    x     = "Year",
+    y     = "Mean annual water temperature (°C)",
+    #fill  = NULL
+  ) +
+  # scale_fill_manual(values = cbPalette1,
+  #                   labels = c(unique(as.character(df_env$seasonYear)))) +
+  theme_bw() +
+  theme(legend.text       = element_text(size=rel(0.8)),
+        legend.position   = c(0.1,0.89),
+        legend.background = element_blank(),
+        legend.key        = element_blank(),
+        #panel.grid        = element_blank()
+  ))
+  # stat_fit_glance(method = 'lm',
+  #                 method.args = list(formula = y ~ x),  geom = 'text', 
+  #                 aes(label = paste("p-value = ", signif(after_stat(p.value), digits = 3), 
+  #                                   "\n R-squared = ", signif(after_stat(r.squared), digits = 2), sep = "")),
+  #                 label.x = 2005, label.y = 25, size = 3) +
+  #facet_grid(season ~ system)
+
+#separated
+checkTest2 <- lm(meanTemp ~ smallYear * system, data = crink)
+#hmmm <- TukeyHSD(checkTest2, "system")
+
+wee <- totAbModelDF %>%
+  group_by(yearMonth, system) %>%
+  summarise(monthTemp = mean(Temperature)) %>%
+  mutate(things = round(decimal_date(as.Date(parse_date_time(yearMonth, "mY"))), 3)) %>%
+  ungroup() %>%
+  mutate(things = things - min(things))
+  #filter(season == "winter")
+
+checkTest3 <- lm(monthTemp ~ things * system + cos(2*pi*things) + sin(2*pi*things), data = wee)
 
 tempOutputs <- list()
 cleanTemps <- list()
