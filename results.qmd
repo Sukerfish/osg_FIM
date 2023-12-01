@@ -143,6 +143,11 @@ hydroSummary <- waterBVC_full %>%
             nBVCFull = length(meanBVC),
             seTempFull = sdTempFull/sqrt(nTempFull),
             seBVCFull = sdBVCFull/sqrt(nBVCFull))
+
+tempSummary <- as.data.frame(redOut) %>%
+  filter(systemSeason %in% c("AP_winter", "TB_winter", "CH_winter")) %>%
+  filter(Term != "(Intercept)") %>%
+  pivot_wider(names_from = Term, values_from = c(estimate, std.error))
 ```
 
 In total, 17492 sampling events occurred where at least one taxa was caught and counted during summer or winter across all four estuaries. For seven sampling events, temperature data were unavailable and thus excluded from the analyses. Further, hauls that were composed solely of rare species (taxa found in ≤5% of all samples for that system and season) were removed from the analyses which reduced samples down to `r nrow(SXS_filtered)`. Overall, `r ncol(SXS_filtered_spp)` taxa in the dataset were recorded, spanning `r max(as.numeric(as.character(waterBVC_full$seasonYear)))-min(as.numeric(as.character(waterBVC_full$seasonYear)))` years of collections.
@@ -157,13 +162,32 @@ To explore whether the composition and abundance has changed over the same time 
 
 # Results {#sec-results .unnumbered}
 
+```{r}
+#| label: DeltaTaxa
+#| include: FALSE
+#| message: FALSE
+#| cache: TRUE
+source("DeltaTaxa.R")
+
+sigDiff <- sigSummary %>%
+  mutate(diff = (posCount - negCount)) %>%
+  group_by(season) %>%
+  summarise(meanDiff = mean(diff))
+
+winDiff <- sigDiff %>%
+  filter(season == "winter")
+
+sumDiff <- sigDiff %>%
+  filter(season == "summer")
+
+minSlope <- which(abs(sigSlopes$raw_slope - 0) == min(abs(sigSlopes$raw_slope - 0)))
+
+minSpSlope <- sigSlopes[minSlope,]
+```
+
 ### Overview {#sec-overview}
 
-Overall, there were clear indications of change in water temperature over the study period during the winter season. Of particular interest, water temperature was increasing through time during winter for all systems except Cedar Key. There was no change in water temperature during summer. Simultaneously, bottom vegetation coverage (BVC) increased in Charlotte Harbor (both seasons) and Tampa Bay (winter only), but decreased during the summer in Cedar Key.
-
-Summer temperatures were fairly stable over the 22-year period, with mean (+-se) change of 0.X C (0.Y) (Fig X). Although change in temperatures during winter months were not statistically significant for any of the systems, the magnitude was more pronounced than the summer months (mean +-se = 2.1 +- 0.9).
-
-Temperature increased significantly through time for all estuaries in the winter and for Apalachicola Bay and Tampa Bay in the summer ([@fig-TempPlot]; [@tbl-tempModels]).
+Throughout the study period, water temperature was increasing during winter for all systems except Cedar Key, with a range of increases from `r format(min(tempSummary$estimate_cYear), digits = 2)`°Cyr^-1^ ± `r format(max(tempSummary[2,]$std.error_cYear), digits = 2)` to `r format(max(tempSummary$estimate_cYear), digits = 2)`°Cyr^-1^ ± `r format(max(tempSummary[1,]$std.error_cYear), digits = 2)`. However, summer water temperatures were fairly stable during the 22-year period, with no statistically significant changes detected ([@fig-TempPlot]; [@tbl-tempModels]). Simultaneously, bottom vegetation coverage (BVC) increased through time in Charlotte Harbor in both seasons and in winter in Tampa Bay, but decreased during the summer in Cedar Key. In species-space, `r length(unique(sigSlopes$Scientificname))` taxa were changing across all systems out of a total `r length(unique(SlopesForAllDF$Scientificname))` identified taxa.
 
 ```{r}
 #| label: tbl-tempModels
@@ -692,29 +716,6 @@ pander(sysSpp)
 #| fig-cap: "Canonical analysis of principal coordinates ordination plots. Shading of markers indicates year for that group, with red markers indicating centroids of the oldest years in the data and blue indicating the most recent years. Percentages next to subplot title indicate total variability captured by the model. Top 10 taxa associated with canonical axes scores plotted as vectors (still need better labels). Canonical axis (CA) percentages indicate the among-group variation captured in each axis."
 
 plot(centroidCAP)
-```
-
-```{r}
-#| label: DeltaTaxa
-#| include: FALSE
-#| message: FALSE
-#| cache: TRUE
-source("DeltaTaxa.R")
-
-sigDiff <- sigSummary %>%
-  mutate(diff = (posCount - negCount)) %>%
-  group_by(season) %>%
-  summarise(meanDiff = mean(diff))
-
-winDiff <- sigDiff %>%
-  filter(season == "winter")
-
-sumDiff <- sigDiff %>%
-  filter(season == "summer")
-
-minSlope <- which(abs(sigSlopes$raw_slope - 0) == min(abs(sigSlopes$raw_slope - 0)))
-
-minSpSlope <- sigSlopes[minSlope,]
 ```
 
 ### Univariate Analyses {#sec-univariate-analyses}
