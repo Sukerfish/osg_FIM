@@ -408,132 +408,188 @@ AbundPlot_ann <- ggplot(SXAb,
 
 #### linear models for temp/bvc ####
 
-stuff <- waterBVC_full %>%
+#pull out temp and drop winter 2010
+tempSubset <- waterBVC_full %>%
   mutate(contYear = as.numeric(as.character(seasonYear))) %>%
   filter(!(contYear == 2010 & season == "winter")) %>%
   ungroup() %>%
-  mutate(smallYear = contYear - min(contYear))
+  mutate(smallYear = contYear - min(contYear)) %>%
+  mutate(region = ifelse(system %in% c("AP", "CK"), "North", "South"))
 
-checkTest <- aov(meanTemp ~ smallYear * system * season, data = stuff)
+BVCSubset <- waterBVC_full %>%
+  mutate(contYear = as.numeric(as.character(seasonYear))) %>%
+  #filter(!(contYear == 2010 & season == "winter")) %>%
+  ungroup() %>%
+  mutate(smallYear = contYear - min(contYear)) %>%
+  mutate(region = ifelse(system %in% c("AP", "CK"), "North", "South"))
 
-#because interaction in system:season ... see which ones.... almost all summer:summer insig
-another <- TukeyHSD(checkTest, "system:season")
+#ancova for initial test of temp over time by system and season
+TempYearAnn <- aov(meanTemp ~ smallYear * system * season, data = tempSubset)
+
+#BVCYearAnn <- aov(meanBVC ~ smallYear * system * season, data = tempSubset)
+
+#because interaction in system:season ... see which ones.... almost all summer:summer insig except CH/CK summer... all winter sig diff than summer
+TempYearAnnCheck <- TukeyHSD(TempYearAnn, "system:season")
 
 #now separate models for each season
-crunk <- stuff %>%
+winterTemp <- tempSubset %>%
+  filter(season == "winter")
+winterBVC <- BVCSubset %>%
   filter(season == "winter")
 
-crink <- stuff %>%
+summerTemp <- tempSubset %>%
+  filter(season == "summer")
+summerBVC <- BVCSubset %>%
   filter(season == "summer")
 
-(cute <- ggplot(wee,
-                   aes(x    = things, 
-                       y    = monthTemp, 
-                       group = system,
-                       color = system
-                   )) + 
-  geom_point(#size   = 2, 
-    #stroke = 0.1,
-    #pch    = 21, 
-    #colour = "black"
-  ) +
-  # geom_ribbon(
-  #   aes(ymin=q10Temp,
-  #       ymax=q90Temp),
-  #   linetype=2, alpha=0.1, color="black") +
-  geom_smooth(method = "lm", 
-              formula = y ~ x + cos(2*pi*x) + sin(2*pi*x),
-                se = FALSE) +
-  #geom_errorbar(aes(ymin = meanTemp-seTemp, ymax = meanTemp+seTemp))+
-  labs(#title = "Annual Water Temperature Over Time",
-    x     = "Year",
-    y     = "Mean annual water temperature (°C)",
-    #fill  = NULL
-  ) +
-  # scale_fill_manual(values = cbPalette1,
-  #                   labels = c(unique(as.character(df_env$seasonYear)))) +
-  theme_bw() +
-  theme(legend.text       = element_text(size=rel(0.8)),
-        legend.position   = c(0.1,0.89),
-        legend.background = element_blank(),
-        legend.key        = element_blank(),
-        #panel.grid        = element_blank()
-  ))
-  # stat_fit_glance(method = 'lm',
-  #                 method.args = list(formula = y ~ x),  geom = 'text', 
-  #                 aes(label = paste("p-value = ", signif(after_stat(p.value), digits = 3), 
-  #                                   "\n R-squared = ", signif(after_stat(r.squared), digits = 2), sep = "")),
-  #                 label.x = 2005, label.y = 25, size = 3) +
-  #facet_grid(season ~ system)
+#separated winter
+winterLm <- lm(meanTemp ~ smallYear * system, data = winterTemp)
+winterBVCLm <- lm(meanBVC ~ smallYear * system, data = winterBVC)
+summerLm <- lm(meanTemp ~ smallYear * system, data = summerTemp)
+summerBVCLm <- lm(meanBVC ~ smallYear * system, data = summerBVC)
 
-#separated
-checkTest2 <- lm(meanTemp ~ smallYear * system, data = crink)
-#hmmm <- TukeyHSD(checkTest2, "system")
-
-wee <- totAbModelDF %>%
+#combine temps and go by month now for sinusoidal plot
+combinedTemp <- totAbModelDF %>%
   group_by(yearMonth, system) %>%
   summarise(monthTemp = mean(Temperature)) %>%
-  mutate(things = round(decimal_date(as.Date(parse_date_time(yearMonth, "mY"))), 3)) %>%
+  mutate(tinyYear = round(decimal_date(as.Date(parse_date_time(yearMonth, "mY"))), 3)) %>%
   ungroup() %>%
-  mutate(things = things - min(things))
-  #filter(season == "winter")
+  mutate(tinyYear = tinyYear - min(tinyYear))
 
-checkTest3 <- lm(monthTemp ~ things * system + cos(2*pi*things) + sin(2*pi*things), data = wee)
+combinedLm <- lm(monthTemp ~ tinyYear * system + cos(2*pi*tinyYear) + sin(2*pi*tinyYear), data = combinedTemp)
 
-tempOutputs <- list()
-cleanTemps <- list()
-for (i in systemSeason_list$systemSeason){
-  tempDF <- data.frame()
-  tempDF <- filter(waterBVC_full, systemSeason == i) %>%
-    mutate(contYear = as.numeric(as.character(seasonYear))) %>%
-    filter(!(contYear == 2010 & season == "winter")) %>%
-    mutate(cYear = contYear - mean(contYear))
+#### full temperature model setup ####
+load('GearCode20Refresh.Rdata')
+
+#establish years of interest
+YearFilter <- ZoneFilter %>%
+  select(system, StartYear, EndYear) %>%
+  unique()
+
+#establish seasons of interest
+SOI <- c(
+  "spring",
+  "summer",
+  "fall",
+  "winter"
+)
+
+#expand sampling date and attach years of interest
+bigHydroList <- TidyHydro %>%
+  mutate(month = month(Sampling_Date), year = year(Sampling_Date)) %>%
+  left_join(YearFilter) %>%
+  #label specific months as seasons
+  mutate(season = if_else(month %in% c(4:5), "spring",
+                          if_else(month %in% c(6:9), "summer",
+                                  if_else(month %in% c(10:11), "fall",
+                                          "winter")))) %>%
+  #tag everything with year associated with sampling season, with December
+  #as the preceding year's data
+  mutate(seasonYear = if_else(month %in% c(12), year + 1, year)) %>%
+  #remove the incomplete final seasonYear of winter data
+  filter(season != "winter" | seasonYear != EndYear + 1) %>%
+  #filter by years of interest (all begin before, so first year of interest is
+  #not truncated)
+  filter(seasonYear >= StartYear) %>%
+  #remove year of interest logic
+  subset(select = -c(StartYear, EndYear)) %>%
+  #filter by seasons of interest
+  filter(season %in% SOI) 
+
+allTemps <- bigHydroList %>%
+  mutate(contYear = as.numeric(as.character(seasonYear))) %>%
+  unite(yearMonth, c(month, contYear), sep = "/", remove = FALSE) %>%
+  unite(systemSeason, c(system, season), sep = "_", remove = FALSE) %>%
+  mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH"))) %>%
+  mutate(seasonYear = as.factor(seasonYear)) %>%
+  #declare factor levels
+  mutate(yearMonth = factor(yearMonth, levels = dateSetup$yearMonth))%>%
+  group_by(yearMonth, system) %>%
+  summarise(monthTemp = mean(Temperature)) %>%
+  mutate(tinyYear = round(decimal_date(as.Date(parse_date_time(yearMonth, "mY"))), 3)) %>%
+  ungroup()
   
-  tempOut <- lm(meanTemp ~ cYear, tempDF)
-  tempOutputs[[i]] <- tempOut
-  cleanTemps[[i]] <- broom::tidy(tempOut)
-  
-}
+(allTempsPlot <- ggplot(allTemps,
+                aes(x     = tinyYear, 
+                    y     = monthTemp, 
+                    group = system,
+                    color = system
+                )) + 
+    geom_point() +
+    geom_smooth(method = "lm", 
+                formula = y ~ x + cos(2*pi*x) + sin(2*pi*x),
+                se = FALSE) +
+    #geom_errorbar(aes(ymin = meanTemp-seTemp, ymax = meanTemp+seTemp))+
+    labs(#title = "Annual Water Temperature Over Time",
+      x     = "Year",
+      y     = "Mean monthly water temperature (°C)",
+      #fill  = NULL
+    ) +
+    #scale_color_viridis_d() +
+    theme_bw() +
+  facet_grid(~system) +
+    theme(
+      legend.position = "bottom"
+    )
+)
 
-tempTest <- bind_rows(cleanTemps, .id = "systemSeason")
-redOut <- dust(tempTest) %>%
-  sprinkle(cols = c("estimate", "std.error", "statistic"), round = 3) %>%
-  sprinkle(cols = "p.value", fn = quote(pvalString(value))) %>%
-  sprinkle_colnames(term = "Term", p.value = "P-value")
 
-tempEstimates <- as.data.frame(redOut) %>%
-  select(c(systemSeason, Term, "estimate")) %>%
-  pivot_wider(names_from = Term, values_from = "estimate")
-
-tempPvalues <- as.data.frame(redOut) %>%
-  select(c(systemSeason, Term, "P-value")) %>%
-  pivot_wider(names_from = Term, values_from = "P-value")
-
-BVCOutputs <- list()
-cleanBVCs <- list()
-for (i in systemSeason_list$systemSeason){
-  bvcDF <- data.frame()
-  bvcDF <- filter(waterBVC_full, systemSeason == i) %>%
-    mutate(contYear = as.numeric(as.character(seasonYear))) %>%
-    #filter(!(contYear == 2010 & season == "winter")) %>%
-    mutate(cYear = contYear - mean(contYear))
-  
-  bvcOut <- lm(meanBVC ~ cYear, bvcDF)
-  BVCOutputs[[i]] <- bvcOut
-  cleanBVCs[[i]] <- broom::tidy(bvcOut)
-  
-}
-
-bvcTest <- bind_rows(cleanBVCs, .id = "systemSeason")
-greenOut <- dust(bvcTest) %>%
-  sprinkle(cols = c("estimate", "std.error", "statistic"), round = 3) %>%
-  sprinkle(cols = "p.value", fn = quote(pvalString(value))) %>%
-  sprinkle_colnames(term = "Term", p.value = "P-value")
-
-bvcEstimates <- as.data.frame(greenOut) %>%
-  select(c(systemSeason, Term, "estimate")) %>%
-  pivot_wider(names_from = Term, values_from = "estimate")
-
-bvcPvalues <- as.data.frame(greenOut) %>%
-  select(c(systemSeason, Term, "P-value")) %>%
-  pivot_wider(names_from = Term, values_from = "P-value")
+#### old methodology ####
+# 
+# tempOutputs <- list()
+# cleanTemps <- list()
+# for (i in systemSeason_list$systemSeason){
+#   tempDF <- data.frame()
+#   tempDF <- filter(waterBVC_full, systemSeason == i) %>%
+#     mutate(contYear = as.numeric(as.character(seasonYear))) %>%
+#     filter(!(contYear == 2010 & season == "winter")) %>%
+#     mutate(cYear = contYear - mean(contYear))
+#   
+#   tempOut <- lm(meanTemp ~ cYear, tempDF)
+#   tempOutputs[[i]] <- tempOut
+#   cleanTemps[[i]] <- broom::tidy(tempOut)
+#   
+# }
+# 
+# tempTest <- bind_rows(cleanTemps, .id = "systemSeason")
+# redOut <- dust(tempTest) %>%
+#   sprinkle(cols = c("estimate", "std.error", "statistic"), round = 3) %>%
+#   sprinkle(cols = "p.value", fn = quote(pvalString(value))) %>%
+#   sprinkle_colnames(term = "Term", p.value = "P-value")
+# 
+# tempEstimates <- as.data.frame(redOut) %>%
+#   select(c(systemSeason, Term, "estimate")) %>%
+#   pivot_wider(names_from = Term, values_from = "estimate")
+# 
+# tempPvalues <- as.data.frame(redOut) %>%
+#   select(c(systemSeason, Term, "P-value")) %>%
+#   pivot_wider(names_from = Term, values_from = "P-value")
+# 
+# BVCOutputs <- list()
+# cleanBVCs <- list()
+# for (i in systemSeason_list$systemSeason){
+#   bvcDF <- data.frame()
+#   bvcDF <- filter(waterBVC_full, systemSeason == i) %>%
+#     mutate(contYear = as.numeric(as.character(seasonYear))) %>%
+#     #filter(!(contYear == 2010 & season == "winter")) %>%
+#     mutate(cYear = contYear - mean(contYear))
+#   
+#   bvcOut <- lm(meanBVC ~ cYear, bvcDF)
+#   BVCOutputs[[i]] <- bvcOut
+#   cleanBVCs[[i]] <- broom::tidy(bvcOut)
+#   
+# }
+# 
+# bvcTest <- bind_rows(cleanBVCs, .id = "systemSeason")
+# greenOut <- dust(bvcTest) %>%
+#   sprinkle(cols = c("estimate", "std.error", "statistic"), round = 3) %>%
+#   sprinkle(cols = "p.value", fn = quote(pvalString(value))) %>%
+#   sprinkle_colnames(term = "Term", p.value = "P-value")
+# 
+# bvcEstimates <- as.data.frame(greenOut) %>%
+#   select(c(systemSeason, Term, "estimate")) %>%
+#   pivot_wider(names_from = Term, values_from = "estimate")
+# 
+# bvcPvalues <- as.data.frame(greenOut) %>%
+#   select(c(systemSeason, Term, "P-value")) %>%
+#   pivot_wider(names_from = Term, values_from = "P-value")
