@@ -144,17 +144,24 @@ hydroSummary <- waterBVC_full %>%
             seTempFull = sdTempFull/sqrt(nTempFull),
             seBVCFull = sdBVCFull/sqrt(nBVCFull))
 
-tempSummary <- as.data.frame(redOut) %>%
-  filter(systemSeason %in% c("AP_winter", "TB_winter", "CH_winter")) %>%
-  filter(Term != "(Intercept)") %>%
-  pivot_wider(names_from = Term, values_from = c(estimate, std.error))
+winterSummary <- tidy(winterLm)
+summerSummary <- tidy(summerLm)
+winterBVCSummary <- tidy(winterBVCLm)
+summerBVCSummary <- tidy(summerBVCLm)
+
+stuff <- dust(summerSummary)
+
+# tempSummary <- as.data.frame(redOut) %>%
+#   filter(systemSeason %in% c("AP_winter", "TB_winter", "CH_winter")) %>%
+#   filter(Term != "(Intercept)") %>%
+#   pivot_wider(names_from = Term, values_from = c(estimate, std.error))
 ```
 
 In total, 17492 sampling events occurred where at least one taxa was caught and counted during summer or winter across all four estuaries. For seven sampling events, temperature data were unavailable and thus excluded from the analyses. Further, hauls that were composed solely of rare species (taxa found in ≤5% of all samples for that system and season) were removed from the analyses which reduced samples down to `r nrow(SXS_filtered)`. Overall, `r ncol(SXS_filtered_spp)` taxa in the dataset were recorded, spanning `r max(as.numeric(as.character(waterBVC_full$seasonYear)))-min(as.numeric(as.character(waterBVC_full$seasonYear)))` years of collections.
 
 ### Data Analyses {#sec-data-analyses}
 
-All analyses were conducted using the R Statistical Computing Environment v4.3.0 and an alpha of 0.05 was used for all significance testing ([@R2023]). Overview analyses included running linear models on annually-summarized means of water temperature and bottom vegetation coverage. Upon first examination, the change in temperature over time was, at best, only marginally significant for winter estuaries (p 0.059-0.366). However, 2010 was an anomalously cold winter (CITE) and was dropped from the winter models after visual inspection of the data (Supplemental?).
+All analyses were conducted using the R Statistical Computing Environment v4.3.0 and an alpha of 0.05 was used for all significance testing ([@R2023]). Overview analyses included running linear models on annually-summarized means of water temperature and bottom vegetation coverage. Upon first examination, the change in temperature over time was marginally significant for winter estuaries (p 0.059-0.366). However, 2010 was an anomalously cold winter (CITE) and was dropped from the winter models after visual inspection of the data (Supplemental?).
 
 To address if the richness and abundance of eGOM estuarine fish assemblages has changed over the study period, I modeled richness and abundance per haul across all estuaries for both the summer and winter seasons using generalized linear mixed models (GLMMs) from the R package *glmmTMB* [@glmmTMB]. Given the well-documented seasonal differences in estuarine systems [see @Hagan2003; @Strydom2015; @Schrandt2020], in this and all subsequent analyses, summer and winter are treated entirely separately. For each seine haul, I calculated the richness as the number of taxa present and total abundance as the sum of all individuals counted. In all calculations, total abundance was fourth-root transformed to reduce the effects of overly-abundant taxa, given total abundance ranged from a maximum of `r format(max(totAbModelDF$abundRaw), nsmall = 0)` to `r format(min(totAbModelDF$abundRaw), nsmall = 0)`. For each model, the response in the GLMM included either the richness or transformed abundance of each haul, with estuary (four levels) as a fixed effect and year as a random effect. To account for serial autocorrelation, an `ar1` covariance matrix was used in each model calculated from month of sampling event and within-estuary zone. Given that species richness is strongly affected by sampling effort [@Mittelbach2019], I included an offset term to account for variation in the number of seine hauls. Before examining the relationship between temperature and richness/abundance, I used permutational multivariate analysis of variance (PERMANOVA) from the R package *vegan* to examine the interaction between estuary and time, as a means to determine if there are different magnitudes and directions of temporal change among estuaries and thus if each estuary should be treated separately [@vegan].
 
@@ -187,16 +194,13 @@ minSpSlope <- sigSlopes[minSlope,]
 
 ### Overview {#sec-overview}
 
-Throughout the study period, water temperature was increasing during winter for all systems except Cedar Key, with a range of increases from `r format(min(tempSummary$estimate_cYear), digits = 2)`°Cyr^-1^ ± `r format(max(tempSummary[2,]$std.error_cYear), digits = 2)` to `r format(max(tempSummary$estimate_cYear), digits = 2)`°Cyr^-1^ ± `r format(max(tempSummary[1,]$std.error_cYear), digits = 2)`. However, summer water temperatures were fairly stable during the 22-year period, with no statistically significant changes detected ([@fig-TempPlot]; [@tbl-tempModels]). Simultaneously, bottom vegetation coverage (BVC) increased through time in Charlotte Harbor in both seasons and in winter in Tampa Bay, but decreased during the summer in Cedar Key. In species-space, `r length(unique(sigSlopes$Scientificname))` taxa were changing across all systems out of a total `r length(unique(SlopesForAllDF$Scientificname))` identified taxa.
+Throughout the study period, water temperature was increasing during winter for all systems at a rate of `r format(winterSummary[2,]$estimate, digits = 2)`°Cyr^-1^ ± `r format(winterSummary[2,]$std.error, digits = 2)` and during the summer at a rate of `r format(summerSummary[2,]$estimate, digits = 2)`°Cyr^-1^ ± `r format(summerSummary[2,]$std.error, digits = 2)`, about half the rate observed in winter ([@fig-TempPlot]). Simultaneously, bottom vegetation coverage (BVC) changed through time at a rate of `r format(winterBVCSummary[2,]$estimate, digits = 2)`%yr^-1^ ± `r format(winterBVCSummary[2,]$std.error, digits = 2)` and during the summer at a rate of `r format(summerBVCSummary[2,]$estimate, digits = 2)`%yr^-1^ ± `r format(summerBVCSummary[2,]$std.error, digits = 2)`,
 
-```{r}
-#| label: tbl-tempModels
-#| echo: FALSE
-#| message: FALSE
-#| tbl-cap: "Coefficients of year on linear models run within each estuary. Bolded values are significant at alpha 0.05."
-emphasize.strong.cells(which(tempPvalues < 0.05, arr.ind = TRUE))
-pander(tempEstimates)
-```
+X% per year in Charlotte Harbor in winter and in winter in Tampa Bay, but decreased during the summer in Cedar Key. In species-space, `r length(unique(sigSlopes$Scientificname))` out of `r length(unique(SlopesForAllDF$Scientificname))` total identified taxataxa had significant changes in abundance over time across all systems.
+
+### Habitat Parameters {#sec-habitat-parameters}
+
+Water temperature for each system was significantly different in the winter, but not in the summer.
 
 ```{r}
 #| label: fig-TempPlot
@@ -204,9 +208,57 @@ pander(tempEstimates)
 #| message: FALSE
 #| warning: FALSE
 #| fig-width: 6.5
-#| fig-height: 5
+#| fig-height: 4
 #| fig-cap: "Temperature averaged annually and plotted over time. Error bars are ± 1 standard error."
-plot(TempPlot)
+#| fig-subcap: 
+#|   - "winter"
+#|   - "summer"
+
+(winterPlot <- ggplot(winterTemp,
+                aes(x     = smallYear, 
+                    y     = meanTemp, 
+                    group = system,
+                    color = system
+                )) + 
+    geom_point() +
+    geom_smooth(method = "lm", 
+                formula = y ~ x,
+                se = FALSE) +
+    geom_errorbar(aes(ymin = meanTemp-seTemp, ymax = meanTemp+seTemp))+
+    labs(#title = "Annual Water Temperature Over Time",
+      x     = "Year",
+      y     = "Mean annual water temperature (°C)",
+      #fill  = NULL
+    ) +
+    scale_color_viridis_d() +
+    theme_bw() +
+  #facet_grid(~system) +
+    theme(
+      legend.position = "bottom"
+    ))
+
+(summerPlot <- ggplot(summerTemp,
+                aes(x     = smallYear, 
+                    y     = meanTemp, 
+                    group = system,
+                    color = system
+                )) + 
+    geom_point() +
+    geom_smooth(method = "lm", 
+                formula = y ~ x,
+                se = FALSE) +
+    geom_errorbar(aes(ymin = meanTemp-seTemp, ymax = meanTemp+seTemp))+
+    labs(#title = "Annual Water Temperature Over Time",
+      x     = "Year",
+      y     = "Mean annual water temperature (°C)",
+      #fill  = NULL
+    ) +
+    scale_color_viridis_d() +
+    theme_bw() +
+  #facet_grid(~system) +
+    theme(
+      legend.position = "bottom"
+    ))
 ```
 
 Seagrass coverage over time significantly changed in Cedar Key summer (negatively), Tampa Bay winter (positively), and in both seasons in Charlotte Harbor (positively) ([@fig-BVCPlot]; [@tbl-bvcModels]).
@@ -217,8 +269,8 @@ Seagrass coverage over time significantly changed in Cedar Key summer (negativel
 #| message: FALSE 
 #| tbl-cap: "Coefficients of year on linear models run within each estuary. Bolded values are significant at alpha 0.05." 
 
-emphasize.strong.cells(which(bvcPvalues < 0.05, arr.ind = TRUE)) 
-pander(bvcEstimates)
+emphasize.strong.cells(which(winterBVCSummary < 0.05, arr.ind = TRUE)) 
+pander(winterBVCSummary)
 ```
 
 ```{r BVCPlot}
@@ -228,9 +280,58 @@ pander(bvcEstimates)
 #| fig-width: 6.5 
 #| fig-height: 5 
 #| fig-cap: "Bottom vegetation coverage as a percentage averaged annually and plotted over time. Error bars are ± 1 standard error."
+#| fig-subcap:
+#|   - "winter"
+#|   - "summer"
 
-plot(BVCPlot)
+(winterBVCPlot <- ggplot(winterBVC,
+                aes(x     = smallYear, 
+                    y     = meanBVC, 
+                    group = system,
+                    color = system
+                )) + 
+    geom_point() +
+    geom_smooth(method = "lm", 
+                formula = y ~ x,
+                se = FALSE) +
+    geom_errorbar(aes(ymin = meanBVC-seBVC, ymax = meanBVC+seBVC))+
+    labs(#title = "Annual Water Temperature Over Time",
+      x     = "Year",
+      y     = "Mean annual BVC",
+      #fill  = NULL
+    ) +
+    scale_color_viridis_d() +
+    theme_bw() +
+  #facet_grid(~system) +
+    theme(
+      legend.position = "bottom"
+    ))
+
+(summerBVCPlot <- ggplot(summerBVC,
+                aes(x     = smallYear, 
+                    y     = meanBVC, 
+                    group = system,
+                    color = system
+                )) + 
+    geom_point() +
+    geom_smooth(method = "lm", 
+                formula = y ~ x,
+                se = FALSE) +
+    geom_errorbar(aes(ymin = meanBVC-seBVC, ymax = meanBVC+seBVC))+
+    labs(#title = "Annual Water Temperature Over Time",
+      x     = "Year",
+      y     = "Mean annual BVC",
+      #fill  = NULL
+    ) +
+    scale_color_viridis_d() +
+    theme_bw() +
+  #facet_grid(~system) +
+    theme(
+      legend.position = "bottom"
+    ))
 ```
+
+### Community Data {#sec-community-data}
 
 The total richness ([@fig-NPlot]) in winter (average richness `r format(nStats[2,]$meanN, digits = 2)` ±`r format(nStats[2,]$seN, digits = 2)`) was consistently lower for each estuary than in the summer (average richness `r format(nStats[1,]$meanN, digits = 2)` ±`r format(nStats[1,]$seN, digits = 2)`).
 
@@ -274,8 +375,6 @@ Nestedness and turnover components of Bray-Curtis pairwise dissimilarity over ti
 #| fig-cap: "Partitioned betadiversity calculated pairwise with respect to the first year of available data. Balanced represents turnover and gradient represents nestedness."
 plot(betaTimePlot)
 ```
-
-### Some Analyses {#sec-some-analyses}
 
 Before examining the relationship between temperature and richness/abundance, I used PERMANOVA to test for any significant interaction between estuary and year. Indeed, for both seasons, the interaction between year and estuary was significant ([@tbl-fullPERMANOVA]). This confirmed the need to separately examine each estuary from here onward.
 
@@ -322,7 +421,7 @@ emphasize.strong.cells(which(richPvalues < 0.05, arr.ind = TRUE))
 pander(richEstimates)
 ```
 
-Placeholder.
+### Constrained Analyses {#sec-constrained-analyses}
 
 ```{r}
 #| label: RDA
@@ -818,6 +917,17 @@ finalEco
 # Conclusion {#sec-conclusion}
 
 # Supplemental Materials {#sec-supplemental-materials .appendix}
+
+```{r}
+#| label: tbl-tempModels
+#| echo: FALSE
+#| message: FALSE
+#| tbl-cap: "Output of summer water temeprature linear model."
+#emphasize.strong.cells(which(summerSummary < 0.05, arr.ind = TRUE))
+pander(summerSummary)
+```
+
+water temp output
 
 ```{r}
 #| label: NMDS

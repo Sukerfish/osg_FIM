@@ -190,7 +190,7 @@ div.csl-indent {
 </section>
 <section id="sec-data-analyses" class="level3">
 <h3 class="anchored" data-anchor-id="sec-data-analyses">Data Analyses</h3>
-<p>All analyses were conducted using the R Statistical Computing Environment v4.3.0 and an alpha of 0.05 was used for all significance testing (<span class="citation" data-cites="R2023">(<a href="#ref-R2023" role="doc-biblioref">Team 2023</a>)</span>). Overview analyses included running linear models on annually-summarized means of water temperature and bottom vegetation coverage. Upon first examination, the change in temperature over time was, at best, only marginally significant for winter estuaries (p 0.059-0.366). However, 2010 was an anomalously cold winter (CITE) and was dropped from the winter models after visual inspection of the data (Supplemental?).</p>
+<p>All analyses were conducted using the R Statistical Computing Environment v4.3.0 and an alpha of 0.05 was used for all significance testing (<span class="citation" data-cites="R2023">(<a href="#ref-R2023" role="doc-biblioref">Team 2023</a>)</span>). Overview analyses included running linear models on annually-summarized means of water temperature and bottom vegetation coverage. Upon first examination, the change in temperature over time was marginally significant for winter estuaries (p 0.059-0.366). However, 2010 was an anomalously cold winter (CITE) and was dropped from the winter models after visual inspection of the data (Supplemental?).</p>
 <p>To address if the richness and abundance of eGOM estuarine fish assemblages has changed over the study period, I modeled richness and abundance per haul across all estuaries for both the summer and winter seasons using generalized linear mixed models (GLMMs) from the R package <em>glmmTMB</em> <span class="citation" data-cites="glmmTMB">(<a href="#ref-glmmTMB" role="doc-biblioref">Brooks et al. 2017</a>)</span>. Given the well-documented seasonal differences in estuarine systems <span class="citation" data-cites="Hagan2003 Strydom2015 Schrandt2020">(see <a href="#ref-Hagan2003" role="doc-biblioref">Hagan and Able 2003</a>; <a href="#ref-Strydom2015" role="doc-biblioref">Strydom 2015</a>; <a href="#ref-Schrandt2020" role="doc-biblioref">Schrandt and MacDonald 2020</a>)</span>, in this and all subsequent analyses, summer and winter are treated entirely separately. For each seine haul, I calculated the richness as the number of taxa present and total abundance as the sum of all individuals counted. In all calculations, total abundance was fourth-root transformed to reduce the effects of overly-abundant taxa, given total abundance ranged from a maximum of 104502 to 1. For each model, the response in the GLMM included either the richness or transformed abundance of each haul, with estuary (four levels) as a fixed effect and year as a random effect. To account for serial autocorrelation, an <code>ar1</code> covariance matrix was used in each model calculated from month of sampling event and within-estuary zone. Given that species richness is strongly affected by sampling effort <span class="citation" data-cites="Mittelbach2019">(<a href="#ref-Mittelbach2019" role="doc-biblioref">Mittelbach and McGill 2019</a>)</span>, I included an offset term to account for variation in the number of seine hauls. Before examining the relationship between temperature and richness/abundance, I used permutational multivariate analysis of variance (PERMANOVA) from the R package <em>vegan</em> to examine the interaction between estuary and time, as a means to determine if there are different magnitudes and directions of temporal change among estuaries and thus if each estuary should be treated separately <span class="citation" data-cites="vegan">(<a href="#ref-vegan" role="doc-biblioref">Oksanen et al. 2022</a>)</span>.</p>
 <p>To explore whether the composition and abundance has changed over the same time period and if it may be related to water temperature, I used several techniques. First, I examined the turnover and nestedness of each system through time using the R package <em>betapart</em> <span class="citation" data-cites="betapart">(<a href="#ref-betapart" role="doc-biblioref">Baselga et al. 2023</a>)</span>. Then, I ran additional GLMM models for each estuary, but included random terms for Z-scored water temperature and Z-scored percent bottom vegetation coverage (BVC). In all cases, the same <code>ar1</code> covariance structure was used as before as well as an offset term for sampling effort. To explore the relationship of temperature to richness and abundance, I used multiple GLMM models wherein the formula used for each was: <code>response ~ (1|year_Z) + temp_Z +  bvc_Z + offset(log(n_hauls)) + ar1(yearMonth + 0|systemZone)</code> where <code>response</code> was either total abundance or total richness per haul. I used distance-based redundancy analysis (dbRDA) from the R package <em>vegan</em> to explore the magnitude and direction of effect of water temperature and BVC in multivariate species-space. Finally, to explore the <em>a priori</em> hypothesis of a possible “directional” change in species space over time, I used canonical analysis of principal coordinates (CAP) models from the R package <em>BiodiversityR</em> for each estuary and season <span class="citation" data-cites="BiodiversityR">(<a href="#ref-BiodiversityR" role="doc-biblioref">Kindt and Coe 2005</a>)</span>. Following <span class="citation" data-cites="Dornelas2019">(<a href="#ref-Dornelas2019" role="doc-biblioref">Dornelas et al. 2019</a>)</span>, I further examined individual taxa for change over time. Within each estuary and season, I ran a linear model on the transformed abundance of each taxa independently and tested for significance. This was used to determine both the magnitude and direction of change at the species level, thus describing the distribution of “winners and losers” across each estuarine system. Finally, climatological association data were pulled from Fishbase using <em>rfishbase</em> <span class="citation" data-cites="rfishbase">(<a href="#ref-rfishbase" role="doc-biblioref">Boettiger, Temple Lang, and Wainwright 2012</a>)</span>.</p>
 </section>
@@ -199,154 +199,141 @@ div.csl-indent {
 <h1 class="unnumbered">Results</h1>
 <section id="sec-overview" class="level3">
 <h3 class="anchored" data-anchor-id="sec-overview">Overview</h3>
-<p>Throughout the study period, water temperature was increasing during winter for all systems except Cedar Key, with a range of increases from 0.065°Cyr<sup>-1</sup> ± 0.026 to 0.076°Cyr<sup>-1</sup> ± 0.032. However, summer water temperatures were fairly stable during the 22-year period, with no statistically significant changes detected (<a href="#fig-TempPlot">Figure&nbsp;2</a>; <a href="#tbl-tempModels">Table&nbsp;2</a>). Simultaneously, bottom vegetation coverage (BVC) increased through time in Charlotte Harbor in both seasons and in winter in Tampa Bay, but decreased during the summer in Cedar Key. In species-space, 91 taxa were changing across all systems out of a total 295 identified taxa.</p>
-<div class="cell">
-<div class="cell-output-display">
-<div id="tbl-tempModels" class="anchored">
-<table class="table table-sm table-striped small">
-<caption>Table&nbsp;2: Coefficients of year on linear models run within each estuary. Bolded values are significant at alpha 0.05.</caption>
-<colgroup>
-<col style="width: 20%">
-<col style="width: 19%">
-<col style="width: 19%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: center;">systemSeason</th>
-<th style="text-align: center;">(Intercept)</th>
-<th style="text-align: center;">cYear</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: center;">AP_winter</td>
-<td style="text-align: center;"><strong>15.999</strong></td>
-<td style="text-align: center;"><strong>0.076</strong></td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">AP_summer</td>
-<td style="text-align: center;"><strong>29.569</strong></td>
-<td style="text-align: center;">0.035</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">CH_winter</td>
-<td style="text-align: center;"><strong>20.826</strong></td>
-<td style="text-align: center;"><strong>0.067</strong></td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">CH_summer</td>
-<td style="text-align: center;"><strong>30.164</strong></td>
-<td style="text-align: center;">0.012</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">CK_winter</td>
-<td style="text-align: center;"><strong>16.459</strong></td>
-<td style="text-align: center;">0.042</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">CK_summer</td>
-<td style="text-align: center;"><strong>29.353</strong></td>
-<td style="text-align: center;">0.009</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">TB_winter</td>
-<td style="text-align: center;"><strong>19.106</strong></td>
-<td style="text-align: center;"><strong>0.065</strong></td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">TB_summer</td>
-<td style="text-align: center;"><strong>29.769</strong></td>
-<td style="text-align: center;">0.019</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-<div class="cell">
-<div class="cell-output-display">
+<p>Throughout the study period, water temperature was increasing during winter for all systems at a rate of 0.076°Cyr<sup>-1</sup> ± 0.035 and during the summer at a rate of 0.035°Cyr<sup>-1</sup> ± 0.016, about half the rate observed in winter (<a href="#fig-TempPlot">Figure&nbsp;2</a>). Simultaneously, bottom vegetation coverage (BVC) changed through time at a rate of -0.16%yr<sup>-1</sup> ± 0.14 and during the summer at a rate of 0.23%yr<sup>-1</sup> ± 0.14,</p>
+<p>X% per year in Charlotte Harbor in winter and in winter in Tampa Bay, but decreased during the summer in Cedar Key. In species-space, 91 out of 295 total identified taxataxa had significant changes in abundance over time across all systems.</p>
+</section>
+<section id="sec-habitat-parameters" class="level3">
+<h3 class="anchored" data-anchor-id="sec-habitat-parameters">Habitat Parameters</h3>
+<p>Water temperature for each system was significantly different in the winter, but not in the summer.</p>
 <div id="fig-TempPlot" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
-<p><img src="results_files/figure-html/fig-TempPlot-1.png" class="img-fluid figure-img" width="624"></p>
-<figcaption class="figure-caption">Figure&nbsp;2: Temperature averaged annually and plotted over time. Error bars are ± 1 standard error.</figcaption>
+<div class="cell-output-display">
+<div id="fig-TempPlot-1" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="results_files/figure-html/fig-TempPlot-1.png" class="img-fluid figure-img" data-ref-parent="fig-TempPlot" width="624"></p>
+<figcaption class="figure-caption">(a) winter</figcaption>
 </figure>
 </div>
 </div>
+<div class="cell-output-display">
+<div id="fig-TempPlot-2" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="results_files/figure-html/fig-TempPlot-2.png" class="img-fluid figure-img" data-ref-parent="fig-TempPlot" width="624"></p>
+<figcaption class="figure-caption">(b) summer</figcaption>
+</figure>
 </div>
-<p>Seagrass coverage over time significantly changed in Cedar Key summer (negatively), Tampa Bay winter (positively), and in both seasons in Charlotte Harbor (positively) (<a href="#fig-BVCPlot">Figure&nbsp;3</a>; <a href="#tbl-bvcModels">Table&nbsp;3</a>).</p>
+</div>
+<figcaption class="figure-caption">Figure&nbsp;2: Temperature averaged annually and plotted over time. Error bars are ± 1 standard error.</figcaption>
+</figure>
+</div>
+<p>Seagrass coverage over time significantly changed in Cedar Key summer (negatively), Tampa Bay winter (positively), and in both seasons in Charlotte Harbor (positively) (<a href="#fig-BVCPlot">Figure&nbsp;3</a>; <a href="#tbl-bvcModels">Table&nbsp;2</a>).</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="tbl-bvcModels" class="anchored">
 <table class="table table-sm table-striped small">
-<caption>Table&nbsp;3: Coefficients of year on linear models run within each estuary. Bolded values are significant at alpha 0.05.</caption>
+<caption>Table&nbsp;2: Coefficients of year on linear models run within each estuary. Bolded values are significant at alpha 0.05.</caption>
 <colgroup>
+<col style="width: 26%">
+<col style="width: 19%">
+<col style="width: 15%">
+<col style="width: 17%">
 <col style="width: 20%">
-<col style="width: 19%">
-<col style="width: 19%">
 </colgroup>
 <thead>
 <tr class="header">
-<th style="text-align: center;">systemSeason</th>
-<th style="text-align: center;">(Intercept)</th>
-<th style="text-align: center;">cYear</th>
+<th style="text-align: center;">term</th>
+<th style="text-align: center;">estimate</th>
+<th style="text-align: center;">std.error</th>
+<th style="text-align: center;">statistic</th>
+<th style="text-align: center;">p.value</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: center;">AP_winter</td>
-<td style="text-align: center;"><strong>26.346</strong></td>
-<td style="text-align: center;">-0.155</td>
+<td style="text-align: center;"><strong>(Intercept)</strong></td>
+<td style="text-align: center;">28.29</td>
+<td style="text-align: center;">1.964</td>
+<td style="text-align: center;">14.4</td>
+<td style="text-align: center;"><strong>1.112e-23</strong></td>
 </tr>
 <tr class="even">
-<td style="text-align: center;">AP_summer</td>
-<td style="text-align: center;"><strong>32.224</strong></td>
-<td style="text-align: center;">0.235</td>
+<td style="text-align: center;">smallYear</td>
+<td style="text-align: center;"><strong>-0.1554</strong></td>
+<td style="text-align: center;">0.1427</td>
+<td style="text-align: center;"><strong>-1.089</strong></td>
+<td style="text-align: center;">0.2794</td>
 </tr>
 <tr class="odd">
-<td style="text-align: center;">CH_winter</td>
-<td style="text-align: center;"><strong>46.042</strong></td>
-<td style="text-align: center;"><strong>0.486</strong></td>
+<td style="text-align: center;">systemCK</td>
+<td style="text-align: center;"><strong>-16.66</strong></td>
+<td style="text-align: center;">2.777</td>
+<td style="text-align: center;"><strong>-5.997</strong></td>
+<td style="text-align: center;"><strong>5.91e-08</strong></td>
 </tr>
 <tr class="even">
-<td style="text-align: center;">CH_summer</td>
-<td style="text-align: center;"><strong>49.499</strong></td>
-<td style="text-align: center;"><strong>0.348</strong></td>
+<td style="text-align: center;">systemTB</td>
+<td style="text-align: center;">8.181</td>
+<td style="text-align: center;">2.462</td>
+<td style="text-align: center;">3.322</td>
+<td style="text-align: center;"><strong>0.001361</strong></td>
 </tr>
 <tr class="odd">
-<td style="text-align: center;">CK_winter</td>
-<td style="text-align: center;"><strong>8.918</strong></td>
-<td style="text-align: center;">-0.217</td>
+<td style="text-align: center;">systemCH</td>
+<td style="text-align: center;">12.4</td>
+<td style="text-align: center;">2.462</td>
+<td style="text-align: center;">5.037</td>
+<td style="text-align: center;"><strong>2.981e-06</strong></td>
 </tr>
 <tr class="even">
-<td style="text-align: center;">CK_summer</td>
-<td style="text-align: center;"><strong>13.27</strong></td>
-<td style="text-align: center;"><strong>-0.441</strong></td>
+<td style="text-align: center;">smallYear:systemCK</td>
+<td style="text-align: center;"><strong>-0.06177</strong></td>
+<td style="text-align: center;">0.2018</td>
+<td style="text-align: center;"><strong>-0.3061</strong></td>
+<td style="text-align: center;">0.7603</td>
 </tr>
 <tr class="odd">
-<td style="text-align: center;">TB_winter</td>
-<td style="text-align: center;"><strong>40.915</strong></td>
-<td style="text-align: center;"><strong>0.404</strong></td>
+<td style="text-align: center;">smallYear:systemTB</td>
+<td style="text-align: center;">0.5595</td>
+<td style="text-align: center;">0.1836</td>
+<td style="text-align: center;">3.047</td>
+<td style="text-align: center;"><strong>0.003156</strong></td>
 </tr>
 <tr class="even">
-<td style="text-align: center;">TB_summer</td>
-<td style="text-align: center;"><strong>39.443</strong></td>
-<td style="text-align: center;">0.065</td>
+<td style="text-align: center;">smallYear:systemCH</td>
+<td style="text-align: center;">0.6418</td>
+<td style="text-align: center;">0.1836</td>
+<td style="text-align: center;">3.494</td>
+<td style="text-align: center;"><strong>0.0007863</strong></td>
 </tr>
 </tbody>
 </table>
 </div>
 </div>
 </div>
-<div class="cell">
-<div class="cell-output-display">
 <div id="fig-BVCPlot" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
-<p><img src="results_files/figure-html/fig-BVCPlot-1.png" class="img-fluid figure-img" width="624"></p>
-<figcaption class="figure-caption">Figure&nbsp;3: Bottom vegetation coverage as a percentage averaged annually and plotted over time. Error bars are ± 1 standard error.</figcaption>
+<div class="cell-output-display">
+<div id="fig-BVCPlot-1" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="results_files/figure-html/fig-BVCPlot-1.png" class="img-fluid figure-img" data-ref-parent="fig-BVCPlot" width="624"></p>
+<figcaption class="figure-caption">(a) winter</figcaption>
 </figure>
 </div>
 </div>
+<div class="cell-output-display">
+<div id="fig-BVCPlot-2" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="results_files/figure-html/fig-BVCPlot-2.png" class="img-fluid figure-img" data-ref-parent="fig-BVCPlot" width="624"></p>
+<figcaption class="figure-caption">(b) summer</figcaption>
+</figure>
 </div>
+</div>
+<figcaption class="figure-caption">Figure&nbsp;3: Bottom vegetation coverage as a percentage averaged annually and plotted over time. Error bars are ± 1 standard error.</figcaption>
+</figure>
+</div>
+</section>
+<section id="sec-community-data" class="level3">
+<h3 class="anchored" data-anchor-id="sec-community-data">Community Data</h3>
 <p>The total richness (<a href="#fig-NPlot">Figure&nbsp;4</a>) in winter (average richness 5.8 ±0.038) was consistently lower for each estuary than in the summer (average richness 8.7 ±0.046).</p>
 <div class="cell">
 <div class="cell-output-display">
@@ -380,13 +367,10 @@ div.csl-indent {
 </div>
 </div>
 </div>
-</section>
-<section id="sec-some-analyses" class="level3">
-<h3 class="anchored" data-anchor-id="sec-some-analyses">Some Analyses</h3>
-<p>Before examining the relationship between temperature and richness/abundance, I used PERMANOVA to test for any significant interaction between estuary and year. Indeed, for both seasons, the interaction between year and estuary was significant (<a href="#tbl-fullPERMANOVA">Table&nbsp;4</a>). This confirmed the need to separately examine each estuary from here onward.</p>
+<p>Before examining the relationship between temperature and richness/abundance, I used PERMANOVA to test for any significant interaction between estuary and year. Indeed, for both seasons, the interaction between year and estuary was significant (<a href="#tbl-fullPERMANOVA">Table&nbsp;3</a>). This confirmed the need to separately examine each estuary from here onward.</p>
 <div id="tbl-fullPERMANOVA" class="cell tbl-parent quarto-layout-panel anchored">
 <div class="panel-caption table-caption">
-<p>Table&nbsp;4: Summary outputs from PERMANOVAs conducted for each season. Values in bold are significant at alpha of 0.05.</p>
+<p>Table&nbsp;3: Summary outputs from PERMANOVAs conducted for each season. Values in bold are significant at alpha of 0.05.</p>
 </div>
 <div class="quarto-layout-row quarto-layout-valign-top">
 <div id="tbl-fullPERMANOVA-1" class="quarto-layout-cell quarto-layout-cell-subref anchored" data-ref-parent="tbl-fullPERMANOVA" style="flex-basis: 100.0%;justify-content: center;">
@@ -523,12 +507,12 @@ div.csl-indent {
 </div>
 </div>
 </div>
-<p>Total abundance was significantly affected by BVC in almost all estuaries, while the only case when temperature was significant in the summer was in Apalachicola Bay (<a href="#tbl-abundModels">Table&nbsp;5</a>). Otherwise, temperature was significant in all estuaries in the winter. In all cases, temperature and BVC were positively correlated with total abundance, with the magnitude of the effect from BVC typically twice as large as that of temperature (where significant). The exception to this is winter in Apalachicola, where the effect of temperature is nearly twice the effect of BVC.</p>
+<p>Total abundance was significantly affected by BVC in almost all estuaries, while the only case when temperature was significant in the summer was in Apalachicola Bay (<a href="#tbl-abundModels">Table&nbsp;4</a>). Otherwise, temperature was significant in all estuaries in the winter. In all cases, temperature and BVC were positively correlated with total abundance, with the magnitude of the effect from BVC typically twice as large as that of temperature (where significant). The exception to this is winter in Apalachicola, where the effect of temperature is nearly twice the effect of BVC.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="tbl-abundModels" class="anchored">
 <table class="table table-sm table-striped small">
-<caption>Table&nbsp;5: Coefficients of fixed effects from total abundance GLMMs run within each estuary. Bolded values are significant at alpha 0.05.</caption>
+<caption>Table&nbsp;4: Coefficients of fixed effects from total abundance GLMMs run within each estuary. Bolded values are significant at alpha 0.05.</caption>
 <colgroup>
 <col style="width: 20%">
 <col style="width: 19%">
@@ -597,12 +581,12 @@ div.csl-indent {
 </div>
 </div>
 </div>
-<p>Similarly, total richness was significantly affected by BVC in almost all estuaries, while temperature was not significant in any estuaries during the summer and was again significant in all estuaries in winter (<a href="#tbl-richModels">Table&nbsp;6</a>). However, the relative magnitude of the effect of BVC on richness was lessened compared to the abundance models. Further, the effect of BVC in winter in Cedar Key was the only negative correlation in all of the models ran.</p>
+<p>Similarly, total richness was significantly affected by BVC in almost all estuaries, while temperature was not significant in any estuaries during the summer and was again significant in all estuaries in winter (<a href="#tbl-richModels">Table&nbsp;5</a>). However, the relative magnitude of the effect of BVC on richness was lessened compared to the abundance models. Further, the effect of BVC in winter in Cedar Key was the only negative correlation in all of the models ran.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="tbl-richModels" class="anchored">
 <table class="table table-sm table-striped small">
-<caption>Table&nbsp;6: Coefficients of fixed effects from total richness GLMMs run within each estuary. Bolded values are significant at alpha 0.05.</caption>
+<caption>Table&nbsp;5: Coefficients of fixed effects from total richness GLMMs run within each estuary. Bolded values are significant at alpha 0.05.</caption>
 <colgroup>
 <col style="width: 20%">
 <col style="width: 19%">
@@ -671,7 +655,9 @@ div.csl-indent {
 </div>
 </div>
 </div>
-<p>Placeholder.</p>
+</section>
+<section id="sec-constrained-analyses" class="level3">
+<h3 class="anchored" data-anchor-id="sec-constrained-analyses">Constrained Analyses</h3>
 <p>In order to test whether this was significant, I followed up with a dbRDA. For all systems and seasons, water temperature and BVC indeed tested as significant (<a href="#fig-RDAforAll">Figure&nbsp;7</a>). The range of variation explained by the first canonical axis was 1.22% to 5.08% with the range of the second canonical axis as 0.08% to 0.91% across all models.</p>
 <div class="cell">
 <div class="cell-output-display">
@@ -683,12 +669,12 @@ div.csl-indent {
 </div>
 </div>
 </div>
-<p>CAP analyses revealed little in the way of discernible yearly patterns (<a href="#fig-centroidCAP">Figure&nbsp;8</a>). All CAP analyses used 8 dimensions except Cedar Key summer which selected to 7. Only three taxa were selected as the top associated with year separation on the first canonical axis (see <a href="#tbl-CAPtaxa">Table&nbsp;7</a>). The range of variability described by the CAP models was 8.12% to 13.13%.</p>
+<p>CAP analyses revealed little in the way of discernible yearly patterns (<a href="#fig-centroidCAP">Figure&nbsp;8</a>). All CAP analyses used 8 dimensions except Cedar Key summer which selected to 7. Only three taxa were selected as the top associated with year separation on the first canonical axis (see <a href="#tbl-CAPtaxa">Table&nbsp;6</a>). The range of variability described by the CAP models was 8.12% to 13.13%.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="tbl-CAPtaxa" class="anchored">
 <table class="table table-sm table-striped small">
-<caption>Table&nbsp;7: Top taxon identified by CAP driving group separation on the first axis in each estuary and season.</caption>
+<caption>Table&nbsp;6: Top taxon identified by CAP driving group separation on the first axis in each estuary and season.</caption>
 <colgroup>
 <col style="width: 12%">
 <col style="width: 12%">
@@ -760,12 +746,12 @@ div.csl-indent {
 </section>
 <section id="sec-univariate-analyses" class="level3">
 <h3 class="anchored" data-anchor-id="sec-univariate-analyses">Univariate Analyses</h3>
-<p>Following <span class="citation" data-cites="Dornelas2019">(<a href="#ref-Dornelas2019" role="doc-biblioref">Dornelas et al. 2019</a>)</span>, linear models were applied to the average annual abundance of each taxa through time and the slope of each was used for further examination. The majority of taxa are not undergoing significant change over time with a large group centered around zero (<a href="#fig-winnersLosers">Figure&nbsp;9</a>). Generally, the number of taxa changing significantly is fairly well balanced across estuaries within summer. However, the greatest difference occurs in winter (<a href="#tbl-sigTaxa">Table&nbsp;8</a>), with an average of 6.25 more taxa undergoing positive significant change across all systems. Meanwhile, on average in the summer, 1.00 more taxa is undergoing negative change compared to the number changing positively.</p>
+<p>Following <span class="citation" data-cites="Dornelas2019">(<a href="#ref-Dornelas2019" role="doc-biblioref">Dornelas et al. 2019</a>)</span>, linear models were applied to the average annual abundance of each taxa through time and the slope of each was used for further examination. The majority of taxa are not undergoing significant change over time with a large group centered around zero (<a href="#fig-winnersLosers">Figure&nbsp;9</a>). Generally, the number of taxa changing significantly is fairly well balanced across estuaries within summer. However, the greatest difference occurs in winter (<a href="#tbl-sigTaxa">Table&nbsp;7</a>), with an average of 6.25 more taxa undergoing positive significant change across all systems. Meanwhile, on average in the summer, 1.00 more taxa is undergoing negative change compared to the number changing positively.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="tbl-sigTaxa" class="anchored">
 <table class="table table-sm table-striped small">
-<caption>Table&nbsp;8: Number of taxa with significant changes in abundance over time.</caption>
+<caption>Table&nbsp;7: Number of taxa with significant changes in abundance over time.</caption>
 <colgroup>
 <col style="width: 12%">
 <col style="width: 12%">
@@ -910,6 +896,90 @@ div.csl-indent {
 
 <div id="quarto-appendix" class="default"><section id="sec-supplemental-materials" class="level1 appendix"><h2 class="anchored quarto-appendix-heading">Supplemental Materials</h2><div class="quarto-appendix-contents">
 
+<div class="cell">
+<div class="cell-output-display">
+<div id="tbl-tempModels" class="anchored">
+<table class="table table-sm table-striped small">
+<caption>Table&nbsp;8: Output of summer water temeprature linear model.</caption>
+<colgroup>
+<col style="width: 29%">
+<col style="width: 15%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">term</th>
+<th style="text-align: center;">estimate</th>
+<th style="text-align: center;">std.error</th>
+<th style="text-align: center;">statistic</th>
+<th style="text-align: center;">p.value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">(Intercept)</td>
+<td style="text-align: center;">29.13</td>
+<td style="text-align: center;">0.2174</td>
+<td style="text-align: center;">134</td>
+<td style="text-align: center;">5.825e-94</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">smallYear</td>
+<td style="text-align: center;">0.03548</td>
+<td style="text-align: center;">0.01579</td>
+<td style="text-align: center;">2.247</td>
+<td style="text-align: center;">0.02748</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">systemCK</td>
+<td style="text-align: center;">0.1129</td>
+<td style="text-align: center;">0.3074</td>
+<td style="text-align: center;">0.3674</td>
+<td style="text-align: center;">0.7143</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">systemTB</td>
+<td style="text-align: center;">0.4336</td>
+<td style="text-align: center;">0.2726</td>
+<td style="text-align: center;">1.591</td>
+<td style="text-align: center;">0.1157</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">systemCH</td>
+<td style="text-align: center;">0.9061</td>
+<td style="text-align: center;">0.2726</td>
+<td style="text-align: center;">3.324</td>
+<td style="text-align: center;">0.001352</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">smallYear:systemCK</td>
+<td style="text-align: center;">-0.02626</td>
+<td style="text-align: center;">0.02233</td>
+<td style="text-align: center;">-1.176</td>
+<td style="text-align: center;">0.2432</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">smallYear:systemTB</td>
+<td style="text-align: center;">-0.01639</td>
+<td style="text-align: center;">0.02033</td>
+<td style="text-align: center;">-0.8061</td>
+<td style="text-align: center;">0.4226</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">smallYear:systemCH</td>
+<td style="text-align: center;">-0.02336</td>
+<td style="text-align: center;">0.02033</td>
+<td style="text-align: center;">-1.149</td>
+<td style="text-align: center;">0.254</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<p>water temp output</p>
 <p>NMDS reveals distinct separation among northern and southern estuaries in multivariate species-space. Using an <code>envfit</code> model, water temperature and BVC are best aligned with the distance between the two groups of estuaries (<a href="#fig-NMDS_all">Figure&nbsp;13</a>). Specifically, temperature predominantly separates the northern and southern groups (NMDS1), with BVC associated with differences among northern and southern groups (NMDS2).</p>
 <div id="fig-NMDS_all" class="cell quarto-layout-panel">
 <figure class="figure">
