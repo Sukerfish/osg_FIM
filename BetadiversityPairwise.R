@@ -94,7 +94,10 @@ betaTimeDF <- bind_rows(betaTime, .id = "systemSeason") %>%
   pivot_longer(cols = c("Overall", "Balanced", "Gradient")) %>% #prep for large plot
   rename(Index = name) %>%
   mutate(season = str_to_title(season)) %>%
-  filter(value > 0) #filter index value to clip off initialization year at 0
+  filter(value > 0) %>% #filter index value to clip off initialization year at 0
+  mutate(contYear = as.numeric(as.character(seasonYear))) %>%
+  ungroup() %>%
+  mutate(smallYear = contYear - min(contYear))
 
 system_name <- c(
   AP = "Apalachicola Bay",
@@ -103,16 +106,20 @@ system_name <- c(
   CH = "Charlotte Harbor"
 )
 
-betaTimePlot <- ggplot(data = betaTimeDF) +
-  geom_line(aes(x = seasonYear,
-    y = value,
-    color = Index),
+betaTimePlot <- ggplot(aes(x = smallYear,
+                            y = value,
+                            color = Index),
+                        data = betaTimeDF) +
+  geom_line(
     linewidth = 0.7) +
   facet_grid(season~system) +
   # scale_x_continuous(breaks= seq(1998,2020,5)) +
   # scale_color_cmocean(discrete = TRUE,
   #                     name = "solar") +
   # scale_color_viridis_d(option = "viridis") +
+    # geom_smooth(method = "lm", 
+    #             formula = y ~ x,
+    #             se = FALSE) +
   scale_color_brewer(palette = "Set1") +
   labs(title = "Abundance-based dissimilarity over time",
        x = "Year",
@@ -120,6 +127,17 @@ betaTimePlot <- ggplot(data = betaTimeDF) +
        color = "Component") +
   theme_bw() +
   theme(legend.position="bottom")
+
+betaWinter <- betaTimeDF %>%
+  filter(season == "Winter") %>%
+  filter(Index == "Overall")
+
+betaSummer <- betaTimeDF %>%
+  filter(season == "Summer") %>%
+  filter(Index == "Overall")
+
+betaWinterLm <- lm(value ~ smallYear * system, data = betaWinter)
+betaSummerLm <- lm(value ~ smallYear * system, data = betaSummer)
 
 # ggsave(plot = betaTimePlot,
 #        filename = "./Outputs/betaTime.png",
