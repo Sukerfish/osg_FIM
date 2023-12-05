@@ -131,13 +131,29 @@ betaTimePlot <- ggplot(aes(x = smallYear,
 betaWinter <- betaTimeDF %>%
   filter(season == "Winter") %>%
   filter(Index == "Overall")
+nestWinter <- betaTimeDF %>%
+  filter(season == "Winter") %>%
+  filter(Index == "Gradient")
+turnWinter <- betaTimeDF %>%
+  filter(season == "Winter") %>%
+  filter(Index == "Balanced")
 
 betaSummer <- betaTimeDF %>%
   filter(season == "Summer") %>%
   filter(Index == "Overall")
+nestSummer <- betaTimeDF %>%
+  filter(season == "Summer") %>%
+  filter(Index == "Gradient")
+turnSummer <- betaTimeDF %>%
+  filter(season == "Summer") %>%
+  filter(Index == "Balanced")
 
 betaWinterLm <- lm(value ~ smallYear * system, data = betaWinter)
+nestWinterLm <- lm(value ~ smallYear * system, data = nestWinter)
+turnWinterLm <- lm(value ~ smallYear * system, data = turnWinter)
 betaSummerLm <- lm(value ~ smallYear * system, data = betaSummer)
+nestSummerLm <- lm(value ~ smallYear * system, data = nestSummer)
+turnSummerLm <- lm(value ~ smallYear * system, data = turnSummer)
 
 # ggsave(plot = betaTimePlot,
 #        filename = "./Outputs/betaTime.png",
