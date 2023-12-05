@@ -33,6 +33,7 @@ library(gridGraphics)
 library(grid)
 library(pander)
 library(pixiedust) #for model output formats
+library(emmeans)
 
 Sys.setenv(FISHBASE_API="sealifebase")
 #knitr::opts_chunk$set(echo = TRUE)
@@ -56,7 +57,7 @@ This study used data collected by the Florida Fish and Wildlife Research Institu
 
 ![Locations of all estuaries in this study.](conceptFigs/FIMsystems.png){#fig-FIMsystems}
 
-Within each estuary, sampling was divided into zones (subdivided into 1-nm^2^ grids) based on geographic, habitat, and depth criteria [@FWRIFloridaFishandWildlifeResearchInstitute2017]. These criteria defined which of three different types of gear were used to collect organisms. For this study, only the 21.3-m seine net were considered, because it was used the longest and most consistently throughout the study period. Specifically, this gear targeted young-of-year and juvenile fishes in shallow habitats (≤1.8-m deep). For every net deployment, all vertebrates and select commercially important invertebrates were counted and identified to the lowest practical taxonomic level (typically species). This study used all available seine data from 1998 to 2020. Further, each seine haul was categorized by season, with summer defined as June-September and winter as December-March, following [@Schrandt2020]. Due to the similarity in appearance, and thus difficulty for *in situ* species-level identification, certain taxa were aggregated at the genus level to reduce potential effects of misidentification ([@tbl-diffID]). Finally, using a YSI sonde, several parameters, including water temperature, were recorded at the surface of the water and at the bottom during each sampling event.
+Within each estuary, sampling was divided into zones (subdivided into 1-nm^2^ grids) based on geographic, habitat, and depth criteria [@FWRIFloridaFishandWildlifeResearchInstitute2017]. These criteria defined which of three different types of gear were used to collect organisms. For this study, only the 21.3-m seine net were considered, because it was used the longest and most consistently throughout the study period. Specifically, this gear targeted young-of-year and juvenile fishes in shallow habitats (≤1.8-m deep). For every net deployment, all vertebrates and select commercially important invertebrates were counted and identified to the lowest practical taxonomic level (typically species). This study used all available seine data from 1998 to 2020. Further, each seine haul was categorized by season, with summer defined as June-September and winter as December-March, following [@Schrandt2020]. Due to the similarity in appearance, and thus difficulty for *in situ* species-level identification, certain taxa were aggregated at the genus level to reduce potential effects of misidentification ([@tbl-diffID]). A visual estimate of the percent bottom vegetation coverage is recorded for each sampling event. Finally, using a YSI sonde, several parameters, including water temperature, were recorded at the surface of the water and at the bottom during each sampling event.
 
 ```{r}
 #| label: tbl-diffID
@@ -144,17 +145,28 @@ hydroSummary <- waterBVC_full %>%
             seTempFull = sdTempFull/sqrt(nTempFull),
             seBVCFull = sdBVCFull/sqrt(nBVCFull))
 
+#pairwise emmeans
+winterSummaryAll <- lsmeans(winterLm, spec = "system", contr = "revpairwise")
+summerSummaryAll <- lsmeans(summerLm, spec = "system", contr = "revpairwise")
+
+winterSumAll <- tidy(winterSummaryAll$lsmeans)
+summerSumAll <- tidy(summerSummaryAll$lsmeans)
+
 winterSummary <- tidy(winterLm)
 summerSummary <- tidy(summerLm)
 winterBVCSummary <- tidy(winterBVCLm)
 summerBVCSummary <- tidy(summerBVCLm)
 
-stuff <- dust(summerSummary)
+#pairwise emmeans
+winterSummaryBVCAll <- lsmeans(winterBVCLm, spec = "system", contr = "revpairwise")
+summerSummaryBVCAll <- lsmeans(summerBVCLm, spec = "system", contr = "revpairwise")
 
-# tempSummary <- as.data.frame(redOut) %>%
-#   filter(systemSeason %in% c("AP_winter", "TB_winter", "CH_winter")) %>%
-#   filter(Term != "(Intercept)") %>%
-#   pivot_wider(names_from = Term, values_from = c(estimate, std.error))
+winterSumBVCAll <- tidy(winterSummaryBVCAll$lsmeans)
+summerSumBVCAll <- tidy(summerSummaryBVCAll$lsmeans)
+
+#pairwise slope checks
+BVCwinterSlope <- tidy(lstrends(winterBVCLm, ~ system, var = "smallYear"))
+BVCsummerSlope <- tidy(lstrends(summerBVCLm, ~ system, var = "smallYear"))
 ```
 
 In total, 17492 sampling events occurred where at least one taxa was caught and counted during summer or winter across all four estuaries. For seven sampling events, temperature data were unavailable and thus excluded from the analyses. Further, hauls that were composed solely of rare species (taxa found in ≤5% of all samples for that system and season) were removed from the analyses which reduced samples down to `r nrow(SXS_filtered)`. Overall, `r ncol(SXS_filtered_spp)` taxa in the dataset were recorded, spanning `r max(as.numeric(as.character(waterBVC_full$seasonYear)))-min(as.numeric(as.character(waterBVC_full$seasonYear)))` years of collections.
@@ -200,7 +212,7 @@ X% per year in Charlotte Harbor in winter and in winter in Tampa Bay, but decrea
 
 ### Habitat Parameters {#sec-habitat-parameters}
 
-Water temperature for each system was significantly different in the winter, but not in the summer.
+Water temperature models for winter indicated Apalachicola Bay and Cedar Key averaged `r format(winterSumAll[1,]$estimate, digits = 3)`°C ± `r format(winterSumAll[1,]$std.error, digits = 2)` during the study period, compared to `r format(winterSumAll[3,]$estimate, digits = 3)`°C ± `r format(winterSumAll[3,]$std.error, digits = 2)` for Tampa Bay and `r format(winterSumAll[4,]$estimate, digits = 3)`°C ± `r format(winterSumAll[4,]$std.error, digits = 2)` for Charlotte Harbor. However, for the summer, Charlotte Harbor averaged warmer than all other systems at `r format(summerSumAll[4,]$estimate, digits = 3)`°C ± `r format(summerSumAll[4,]$std.error, digits = 2)`. As in winter, average water temperature in Cedar Key and Apalachicola Bay were not different from one another (`r format(summerSumAll[1,]$estimate, digits = 3)`°C ± `r format(summerSumAll[1,]$std.error, digits = 2)`), although Tampa Bay was significantly different than Cedar Key, averaging `r format(summerSumAll[3,]$estimate, digits = 3)`°C ± `r format(summerSumAll[3,]$std.error, digits = 2)`. In all systems during the winter, water temperature increased at a mean rate of `r format(winterSummary[2,]$estimate, digits = 2)`°Cyr^-1^ ± `r format(winterSummary[2,]$std.error, digits = 2)` and during the summer at a mean rate of `r format(summerSummary[2,]$estimate, digits = 2)`°Cyr^-1^ ± `r format(summerSummary[2,]$std.error, digits = 2)` ([@fig-TempPlot]).
 
 ```{r}
 #| label: fig-TempPlot
@@ -230,7 +242,8 @@ Water temperature for each system was significantly different in the winter, but
       y     = "Mean annual water temperature (°C)",
       #fill  = NULL
     ) +
-    scale_color_viridis_d() +
+    scale_color_brewer(palette = "PuOr") +
+    #scale_color_viridis_d() +
     theme_bw() +
   #facet_grid(~system) +
     theme(
@@ -253,7 +266,8 @@ Water temperature for each system was significantly different in the winter, but
       y     = "Mean annual water temperature (°C)",
       #fill  = NULL
     ) +
-    scale_color_viridis_d() +
+    scale_color_brewer(palette = "PuOr") +
+    #scale_color_viridis_d() +
     theme_bw() +
   #facet_grid(~system) +
     theme(
@@ -261,7 +275,23 @@ Water temperature for each system was significantly different in the winter, but
     ))
 ```
 
-Seagrass coverage over time significantly changed in Cedar Key summer (negatively), Tampa Bay winter (positively), and in both seasons in Charlotte Harbor (positively) ([@fig-BVCPlot]; [@tbl-bvcModels]).
+Average percent bottom vegetation coverage (BVC) had little variation across seasons for all estuaries, although was consistently higher in summer than winter. Charlotte Harbor had the most coverage for both seasons ranging from `r format(winterSumBVCAll[4,]$estimate, digits = 3)`% ± `r format(winterSumBVCAll[4,]$std.error, digits = 3)` in winter to `r format(summerSumBVCAll[4,]$estimate, digits = 3)`% ± `r format(summerSumBVCAll[4,]$std.error, digits = 3)` in summer. Cedar Key averaged the lowest coverage, ranging from `r format(winterSumBVCAll[2,]$estimate, digits = 3)`% ± `r format(winterSumBVCAll[2,]$std.error, digits = 3)` in winter to `r format(summerSumBVCAll[2,]$estimate, digits = 3)`% ± `r format(summerSumBVCAll[2,]$std.error, digits = 3)` in summer. Tampa Bay and Apalachicola Bay were both in the middle of these ranges for both seasons [@tbl-bvcMeans]. Over the study period, BVC significantly decreased in Cedar Key summer at a rate of `r format(BVCsummerSlope[2,]$smallYear.trend, digits = 3)`%yr^-1^ ± `r format(BVCsummerSlope[2,]$std.error, digits = 3)`, while Tampa Bay winter (positively), and in both seasons in Charlotte Harbor (positively) ([@fig-BVCPlot]; [@tbl-bvcModels]).
+
+```{r}
+#| label: tbl-bvcMeans 
+#| echo: FALSE 
+#| message: FALSE 
+#| tbl-cap: "Least square means of each system for both seasonal linear models. P-values for pairwise contrasts used tukey method for correction." 
+
+bvcMeans <- winterSumBVCAll  %>%
+  mutate(season = "winter") %>%
+  full_join(summerSumBVCAll) %>%
+  mutate(season = ifelse(!is.na(season), "winter", "summer")) %>%
+  select(system, season, estimate, std.error) %>%
+  mutate(std.error = format(std.error, digits = 3))
+
+pander(bvcMeans)
+```
 
 ```{r}
 #| label: tbl-bvcModels 
@@ -304,7 +334,8 @@ pander(summerBVCSummary)
       y     = "Mean annual BVC",
       #fill  = NULL
     ) +
-    scale_color_viridis_d() +
+    scale_color_brewer(palette = "PuOr") +
+    #scale_color_viridis_d() +
     theme_bw() +
   #facet_grid(~system) +
     theme(
@@ -327,7 +358,8 @@ pander(summerBVCSummary)
       y     = "Mean annual BVC",
       #fill  = NULL
     ) +
-    scale_color_viridis_d() +
+    scale_color_brewer(palette = "PuOr") +
+    #scale_color_viridis_d() +
     theme_bw() +
   #facet_grid(~system) +
     theme(
@@ -964,12 +996,35 @@ finalEco
 #| label: tbl-tempModels
 #| echo: FALSE
 #| message: FALSE
-#| tbl-cap: "Output of summer water temeprature linear model."
-#emphasize.strong.cells(which(summerSummary < 0.05, arr.ind = TRUE))
+#| tbl-cap: "Output of water temperature linear models."
+#| tbl-subcap:
+#|   - "Winter"
+#|   - "Summer"
+
+
+emphasize.strong.cells(which(winterSummary < 0.05, arr.ind = TRUE))
+pander(winterSummary)
+emphasize.strong.cells(which(summerSummary < 0.05, arr.ind = TRUE))
 pander(summerSummary)
 ```
 
 water temp output
+
+```{r}
+#| label: tbl-tempMeans 
+#| echo: FALSE 
+#| message: FALSE 
+#| tbl-cap: "Least square means of each system for both seasonal linear models. P-values for pairwise contrasts used tukey method for correction." 
+
+tempMeans <- winterSumAll %>%
+  mutate(season = "winter") %>%
+  full_join(summerSumAll) %>%
+  mutate(season = ifelse(!is.na(season), "winter", "summer")) %>%
+  select(system, season, estimate, std.error) %>%
+  mutate(std.error = format(std.error, digits = 3))
+
+pander(tempMeans)
+```
 
 ```{r}
 #| label: NMDS
