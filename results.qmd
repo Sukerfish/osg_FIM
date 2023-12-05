@@ -344,7 +344,7 @@ The total richness ([@fig-NPlot]) in winter (average richness `r format(nStats[2
 #| echo: FALSE
 #| message: FALSE
 #| fig-width: 6.5
-#| fig-height: 5
+#| fig-height: 4
 #| fig-cap: "Total richness averaged annually and plotted over time. Error bars are ± 1 standard error."
 plot(NPlot_ann)
 ```
@@ -356,7 +356,7 @@ Similarly, total abundance was generally lower for all systems in the winter sea
 #| echo: FALSE
 #| message: FALSE
 #| fig-width: 6.5
-#| fig-height: 5
+#| fig-height: 4
 #| fig-cap: "Total abundance (fourth-root transformed) averaged annually and plotted over time. Error bars are ± 1 standard error."
 plot(AbundPlot_ann)
 ```
@@ -366,9 +366,12 @@ plot(AbundPlot_ann)
 #| include: FALSE
 #| cache: TRUE
 source("BetadiversityPairwise.R")
+
+betaWinterSummary <- tidy(betaWinterLm)
+betaSummerSummary <- tidy(betaSummerLm)
 ```
 
-Nestedness and turnover components of Bray-Curtis pairwise dissimilarity over time reveal a general trend of stability during the summer. However, during winter, particularly in the northern estuaries (Apalachicola and Cedar Key), there is considerably higher variability in the years after 2010 ([@fig-betadiversity]).
+Nestedness and turnover components of Bray-Curtis pairwise dissimilarity over time reveal a general trend of stability during the summer. However, during winter, particularly in the northern estuaries (Apalachicola and Cedar Key), there is considerably higher variability in the years after 2010 ([@fig-betadiversity]). Summary: winter, overall beta is increasing over time equally for AP CK TB... a little slower for CH and only marginally. Overall beta is not changing in the summer. Turnover in winter is slowly increasing over time for all systems at same rate. But turnover is not changing in the summer. Nestedness is only changing significantly in winter in CH and it is decreasing. Not changing in the summer.
 
 ```{r}
 #| label: fig-betadiversity
@@ -378,7 +381,7 @@ Nestedness and turnover components of Bray-Curtis pairwise dissimilarity over ti
 #| fig-height: 5
 #| fig-cap: "Partitioned betadiversity calculated pairwise with respect to the first year of available data. Balanced represents turnover and gradient represents nestedness."
 
-(betaPlot <- ggplot(aes(x = seasonYear,
+(betaTimePlot <- ggplot(aes(x = smallYear,
                             y = value,
                             color = Index),
                         data = betaTimeDF) +
@@ -393,12 +396,26 @@ Nestedness and turnover components of Bray-Curtis pairwise dissimilarity over ti
                 formula = y ~ x,
                 se = FALSE) +
   scale_color_brewer(palette = "Set1") +
-  labs(title = "Abundance-based dissimilarity over time",
+  labs(#title = "Abundance-based dissimilarity over time",
        x = "Year",
        y = "Betadiversity index",
        color = "Component") +
   theme_bw() +
   theme(legend.position="bottom"))
+```
+
+```{r}
+#| label: tbl-betaModels 
+#| echo: FALSE 
+#| message: FALSE 
+#| tbl-cap: "Coefficients of year on linear models run within each estuary. Bolded values are significant at alpha 0.05." 
+#| tbl-subcap:
+#|   - "Winter"
+#|   - "Summer"
+emphasize.strong.cells(which(betaWinterSummary < 0.05, arr.ind = TRUE)) 
+pander(betaWinterSummary)
+emphasize.strong.cells(which(betaSummerSummary < 0.05, arr.ind = TRUE)) 
+pander(betaSummerSummary)
 ```
 
 Before examining the relationship between temperature and richness/abundance, I used PERMANOVA to test for any significant interaction between estuary and year. Indeed, for both seasons, the interaction between year and estuary was significant ([@tbl-fullPERMANOVA]). This confirmed the need to separately examine each estuary from here onward.

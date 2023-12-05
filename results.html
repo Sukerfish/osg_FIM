@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.3.433">
+<meta name="generator" content="quarto-1.3.450">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -199,7 +199,7 @@ div.csl-indent {
 <h1 class="unnumbered">Results</h1>
 <section id="sec-overview" class="level3">
 <h3 class="anchored" data-anchor-id="sec-overview">Overview</h3>
-<p>Throughout the study period, water temperature was increasing during winter for all systems at a rate of 0.076°Cyr<sup>-1</sup> ± 0.035 and during the summer at a rate of 0.035°Cyr<sup>-1</sup> ± 0.016, about half the rate observed in winter (<a href="#fig-TempPlot">Figure&nbsp;2</a>). Simultaneously, percent bottom vegetation coverage (BVC) changed through time at a rate of -0.16%yr<sup>-1</sup> ± 0.14 and during the summer at a rate of 0.23%yr<sup>-1</sup> ± 0.14,</p>
+<p>Throughout the study period, water temperature was increasing during winter for all systems at a rate of 0.076°Cyr<sup>-1</sup> ± 0.035 and during the summer at a rate of 0.035°Cyr<sup>-1</sup> ± 0.016, about half the rate observed in winter (<a href="#fig-TempPlot">Figure&nbsp;2</a>). Simultaneously, winter percent bottom vegetation coverage (BVC) changed through time at a rate of -0.16%yr<sup>-1</sup> ± 0.14 and during the summer at a rate of 0.23%yr<sup>-1</sup> ± 0.14,</p>
 <p>X% per year in Charlotte Harbor in winter and in winter in Tampa Bay, but decreased during the summer in Cedar Key. In species-space, 91 out of 295 total identified taxa had significant changes in abundance over time across all systems.</p>
 </section>
 <section id="sec-habitat-parameters" class="level3">
@@ -440,7 +440,7 @@ div.csl-indent {
 </div>
 </div>
 </div>
-<p>Nestedness and turnover components of Bray-Curtis pairwise dissimilarity over time reveal a general trend of stability during the summer. However, during winter, particularly in the northern estuaries (Apalachicola and Cedar Key), there is considerably higher variability in the years after 2010 (<a href="#fig-betadiversity">Figure&nbsp;6</a>).</p>
+<p>Nestedness and turnover components of Bray-Curtis pairwise dissimilarity over time reveal a general trend of stability during the summer. However, during winter, particularly in the northern estuaries (Apalachicola and Cedar Key), there is considerably higher variability in the years after 2010 (<a href="#fig-betadiversity">Figure&nbsp;6</a>). Summary: winter, overall beta is increasing over time equally for AP CK TB… a little slower for CH and only marginally. Overall beta is not changing in the summer. Turnover in winter is slowly increasing over time for all systems at same rate. But turnover is not changing in the summer. Nestedness is only changing significantly in winter in CH and it is decreasing. Not changing in the summer.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-betadiversity" class="quarto-figure quarto-figure-center anchored">
@@ -451,10 +451,177 @@ div.csl-indent {
 </div>
 </div>
 </div>
-<p>Before examining the relationship between temperature and richness/abundance, I used PERMANOVA to test for any significant interaction between estuary and year. Indeed, for both seasons, the interaction between year and estuary was significant (<a href="#tbl-fullPERMANOVA">Table&nbsp;3</a>). This confirmed the need to separately examine each estuary from here onward.</p>
+<div id="tbl-betaModels" class="cell tbl-parent quarto-layout-panel anchored">
+<div class="panel-caption table-caption">
+<p>Table&nbsp;3: Coefficients of year on linear models run within each estuary. Bolded values are significant at alpha 0.05.</p>
+</div>
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div id="tbl-betaModels-1" class="quarto-layout-cell quarto-layout-cell-subref anchored" data-ref-parent="tbl-betaModels" style="flex-basis: 100.0%;justify-content: center;">
+<table class="table table-sm table-striped small">
+<caption>(a) Winter</caption>
+<colgroup>
+<col style="width: 25%">
+<col style="width: 19%">
+<col style="width: 18%">
+<col style="width: 17%">
+<col style="width: 19%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">term</th>
+<th style="text-align: center;">estimate</th>
+<th style="text-align: center;">std.error</th>
+<th style="text-align: center;">statistic</th>
+<th style="text-align: center;">p.value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"><strong>(Intercept)</strong></td>
+<td style="text-align: center;">0.2199</td>
+<td style="text-align: center;"><strong>0.03009</strong></td>
+<td style="text-align: center;">7.309</td>
+<td style="text-align: center;"><strong>2.6e-10</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">smallYear</td>
+<td style="text-align: center;"><strong>0.008634</strong></td>
+<td style="text-align: center;"><strong>0.002281</strong></td>
+<td style="text-align: center;">3.785</td>
+<td style="text-align: center;"><strong>0.0003098</strong></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">systemCK</td>
+<td style="text-align: center;"><strong>0.01735</strong></td>
+<td style="text-align: center;"><strong>0.04255</strong></td>
+<td style="text-align: center;">0.4077</td>
+<td style="text-align: center;">0.6847</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">systemTB</td>
+<td style="text-align: center;"><strong>0.02105</strong></td>
+<td style="text-align: center;"><strong>0.03754</strong></td>
+<td style="text-align: center;">0.5607</td>
+<td style="text-align: center;">0.5767</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">systemCH</td>
+<td style="text-align: center;"><strong>-0.01277</strong></td>
+<td style="text-align: center;"><strong>0.03754</strong></td>
+<td style="text-align: center;"><strong>-0.3402</strong></td>
+<td style="text-align: center;">0.7346</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">smallYear:systemCK</td>
+<td style="text-align: center;"><strong>-0.004171</strong></td>
+<td style="text-align: center;"><strong>0.003226</strong></td>
+<td style="text-align: center;"><strong>-1.293</strong></td>
+<td style="text-align: center;">0.2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">smallYear:systemTB</td>
+<td style="text-align: center;"><strong>-0.004698</strong></td>
+<td style="text-align: center;"><strong>0.002924</strong></td>
+<td style="text-align: center;"><strong>-1.607</strong></td>
+<td style="text-align: center;">0.1124</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">smallYear:systemCH</td>
+<td style="text-align: center;"><strong>-0.006108</strong></td>
+<td style="text-align: center;"><strong>0.002924</strong></td>
+<td style="text-align: center;"><strong>-2.089</strong></td>
+<td style="text-align: center;"><strong>0.04018</strong></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div id="tbl-betaModels-2" class="quarto-layout-cell quarto-layout-cell-subref anchored" data-ref-parent="tbl-betaModels" style="flex-basis: 100.0%;justify-content: center;">
+<table class="table table-sm table-striped small">
+<caption>(b) Summer</caption>
+<colgroup>
+<col style="width: 25%">
+<col style="width: 20%">
+<col style="width: 18%">
+<col style="width: 16%">
+<col style="width: 19%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">term</th>
+<th style="text-align: center;">estimate</th>
+<th style="text-align: center;">std.error</th>
+<th style="text-align: center;">statistic</th>
+<th style="text-align: center;">p.value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"><strong>(Intercept)</strong></td>
+<td style="text-align: center;">0.214</td>
+<td style="text-align: center;"><strong>0.01382</strong></td>
+<td style="text-align: center;">15.48</td>
+<td style="text-align: center;"><strong>6.464e-25</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">smallYear</td>
+<td style="text-align: center;"><strong>0.001856</strong></td>
+<td style="text-align: center;"><strong>0.001048</strong></td>
+<td style="text-align: center;">1.771</td>
+<td style="text-align: center;">0.08064</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">systemCK</td>
+<td style="text-align: center;"><strong>-0.03263</strong></td>
+<td style="text-align: center;"><strong>0.01955</strong></td>
+<td style="text-align: center;"><strong>-1.669</strong></td>
+<td style="text-align: center;">0.0993</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">systemTB</td>
+<td style="text-align: center;"><strong>-0.0181</strong></td>
+<td style="text-align: center;"><strong>0.01724</strong></td>
+<td style="text-align: center;"><strong>-1.05</strong></td>
+<td style="text-align: center;">0.2972</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">systemCH</td>
+<td style="text-align: center;"><strong>-0.04047</strong></td>
+<td style="text-align: center;"><strong>0.01724</strong></td>
+<td style="text-align: center;"><strong>-2.347</strong></td>
+<td style="text-align: center;"><strong>0.0216</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">smallYear:systemCK</td>
+<td style="text-align: center;"><strong>0.002268</strong></td>
+<td style="text-align: center;"><strong>0.001482</strong></td>
+<td style="text-align: center;">1.531</td>
+<td style="text-align: center;">0.1301</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">smallYear:systemTB</td>
+<td style="text-align: center;"><strong>-0.0003467</strong></td>
+<td style="text-align: center;"><strong>0.001343</strong></td>
+<td style="text-align: center;"><strong>-0.2581</strong></td>
+<td style="text-align: center;">0.797</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">smallYear:systemCH</td>
+<td style="text-align: center;"><strong>0.000913</strong></td>
+<td style="text-align: center;"><strong>0.001343</strong></td>
+<td style="text-align: center;">0.6796</td>
+<td style="text-align: center;">0.4989</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<p>Before examining the relationship between temperature and richness/abundance, I used PERMANOVA to test for any significant interaction between estuary and year. Indeed, for both seasons, the interaction between year and estuary was significant (<a href="#tbl-fullPERMANOVA">Table&nbsp;4</a>). This confirmed the need to separately examine each estuary from here onward.</p>
 <div id="tbl-fullPERMANOVA" class="cell tbl-parent quarto-layout-panel anchored">
 <div class="panel-caption table-caption">
-<p>Table&nbsp;3: Summary outputs from PERMANOVAs conducted for each season. Values in bold are significant at alpha of 0.05.</p>
+<p>Table&nbsp;4: Summary outputs from PERMANOVAs conducted for each season. Values in bold are significant at alpha of 0.05.</p>
 </div>
 <div class="quarto-layout-row quarto-layout-valign-top">
 <div id="tbl-fullPERMANOVA-1" class="quarto-layout-cell quarto-layout-cell-subref anchored" data-ref-parent="tbl-fullPERMANOVA" style="flex-basis: 100.0%;justify-content: center;">
@@ -591,12 +758,12 @@ div.csl-indent {
 </div>
 </div>
 </div>
-<p>Total abundance was significantly affected by BVC in almost all estuaries, while the only case when temperature was significant in the summer was in Apalachicola Bay (<a href="#tbl-abundModels">Table&nbsp;4</a>). Otherwise, temperature was significant in all estuaries in the winter. In all cases, temperature and BVC were positively correlated with total abundance, with the magnitude of the effect from BVC typically twice as large as that of temperature (where significant). The exception to this is winter in Apalachicola, where the effect of temperature is nearly twice the effect of BVC.</p>
+<p>Total abundance was significantly affected by BVC in almost all estuaries, while the only case when temperature was significant in the summer was in Apalachicola Bay (<a href="#tbl-abundModels">Table&nbsp;5</a>). Otherwise, temperature was significant in all estuaries in the winter. In all cases, temperature and BVC were positively correlated with total abundance, with the magnitude of the effect from BVC typically twice as large as that of temperature (where significant). The exception to this is winter in Apalachicola, where the effect of temperature is nearly twice the effect of BVC.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="tbl-abundModels" class="anchored">
 <table class="table table-sm table-striped small">
-<caption>Table&nbsp;4: Coefficients of fixed effects from total abundance GLMMs run within each estuary. Bolded values are significant at alpha 0.05.</caption>
+<caption>Table&nbsp;5: Coefficients of fixed effects from total abundance GLMMs run within each estuary. Bolded values are significant at alpha 0.05.</caption>
 <colgroup>
 <col style="width: 20%">
 <col style="width: 19%">
@@ -665,12 +832,12 @@ div.csl-indent {
 </div>
 </div>
 </div>
-<p>Similarly, total richness was significantly affected by BVC in almost all estuaries, while temperature was not significant in any estuaries during the summer and was again significant in all estuaries in winter (<a href="#tbl-richModels">Table&nbsp;5</a>). However, the relative magnitude of the effect of BVC on richness was lessened compared to the abundance models. Further, the effect of BVC in winter in Cedar Key was the only negative correlation in all of the models ran.</p>
+<p>Similarly, total richness was significantly affected by BVC in almost all estuaries, while temperature was not significant in any estuaries during the summer and was again significant in all estuaries in winter (<a href="#tbl-richModels">Table&nbsp;6</a>). However, the relative magnitude of the effect of BVC on richness was lessened compared to the abundance models. Further, the effect of BVC in winter in Cedar Key was the only negative correlation in all of the models ran.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="tbl-richModels" class="anchored">
 <table class="table table-sm table-striped small">
-<caption>Table&nbsp;5: Coefficients of fixed effects from total richness GLMMs run within each estuary. Bolded values are significant at alpha 0.05.</caption>
+<caption>Table&nbsp;6: Coefficients of fixed effects from total richness GLMMs run within each estuary. Bolded values are significant at alpha 0.05.</caption>
 <colgroup>
 <col style="width: 20%">
 <col style="width: 19%">
@@ -753,12 +920,12 @@ div.csl-indent {
 </div>
 </div>
 </div>
-<p>CAP analyses revealed little in the way of discernible yearly patterns (<a href="#fig-centroidCAP">Figure&nbsp;8</a>). All CAP analyses used 8 dimensions except Cedar Key summer which selected to 7. Only three taxa were selected as the top associated with year separation on the first canonical axis (see <a href="#tbl-CAPtaxa">Table&nbsp;6</a>). The range of variability described by the CAP models was 8.12% to 13.13%.</p>
+<p>CAP analyses revealed little in the way of discernible yearly patterns (<a href="#fig-centroidCAP">Figure&nbsp;8</a>). All CAP analyses used 8 dimensions except Cedar Key summer which selected to 7. Only three taxa were selected as the top associated with year separation on the first canonical axis (see <a href="#tbl-CAPtaxa">Table&nbsp;7</a>). The range of variability described by the CAP models was 8.12% to 13.13%.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="tbl-CAPtaxa" class="anchored">
 <table class="table table-sm table-striped small">
-<caption>Table&nbsp;6: Top taxon identified by CAP driving group separation on the first axis in each estuary and season.</caption>
+<caption>Table&nbsp;7: Top taxon identified by CAP driving group separation on the first axis in each estuary and season.</caption>
 <colgroup>
 <col style="width: 12%">
 <col style="width: 12%">
@@ -830,12 +997,12 @@ div.csl-indent {
 </section>
 <section id="sec-univariate-analyses" class="level3">
 <h3 class="anchored" data-anchor-id="sec-univariate-analyses">Univariate Analyses</h3>
-<p>Following <span class="citation" data-cites="Dornelas2019">(<a href="#ref-Dornelas2019" role="doc-biblioref">Dornelas et al. 2019</a>)</span>, linear models were applied to the average annual abundance of each taxa through time and the slope of each was used for further examination. The majority of taxa are not undergoing significant change over time with a large group centered around zero (<a href="#fig-winnersLosers">Figure&nbsp;9</a>). Generally, the number of taxa changing significantly is fairly well balanced across estuaries within summer. However, the greatest difference occurs in winter (<a href="#tbl-sigTaxa">Table&nbsp;7</a>), with an average of 6.25 more taxa undergoing positive significant change across all systems. Meanwhile, on average in the summer, 1.00 more taxa is undergoing negative change compared to the number changing positively.</p>
+<p>Following <span class="citation" data-cites="Dornelas2019">(<a href="#ref-Dornelas2019" role="doc-biblioref">Dornelas et al. 2019</a>)</span>, linear models were applied to the average annual abundance of each taxa through time and the slope of each was used for further examination. The majority of taxa are not undergoing significant change over time with a large group centered around zero (<a href="#fig-winnersLosers">Figure&nbsp;9</a>). Generally, the number of taxa changing significantly is fairly well balanced across estuaries within summer. However, the greatest difference occurs in winter (<a href="#tbl-sigTaxa">Table&nbsp;8</a>), with an average of 6.25 more taxa undergoing positive significant change across all systems. Meanwhile, on average in the summer, 1.00 more taxa is undergoing negative change compared to the number changing positively.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="tbl-sigTaxa" class="anchored">
 <table class="table table-sm table-striped small">
-<caption>Table&nbsp;7: Number of taxa with significant changes in abundance over time.</caption>
+<caption>Table&nbsp;8: Number of taxa with significant changes in abundance over time.</caption>
 <colgroup>
 <col style="width: 12%">
 <col style="width: 12%">
@@ -945,7 +1112,7 @@ div.csl-indent {
 </div>
 </div>
 </div>
-<p>In terms of individual taxa, a few have slopes an order of magnitude greater than the majority, ranging from 0.00016 up to 12.72 (see <a href="#tbl-sigSlopesAll">Table&nbsp;9</a>). In <a href="#fig-sigSlopes">Figure&nbsp;11</a>, it is clear how the majority of significantly changing taxa are still centered around zero. The upper and lower taxa have extreme values and thus are not represented on these plots.</p>
+<p>In terms of individual taxa, a few have slopes an order of magnitude greater than the majority, ranging from 0.00016 up to 12.72 (see <a href="#tbl-sigSlopesAll">Table&nbsp;10</a>). In <a href="#fig-sigSlopes">Figure&nbsp;11</a>, it is clear how the majority of significantly changing taxa are still centered around zero. The upper and lower taxa have extreme values and thus are not represented on these plots.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-sigSlopes" class="quarto-figure quarto-figure-center anchored">
@@ -984,7 +1151,7 @@ div.csl-indent {
 <div class="cell-output-display">
 <div id="tbl-tempModels" class="anchored">
 <table class="table table-sm table-striped small">
-<caption>Table&nbsp;8: Output of summer water temeprature linear model.</caption>
+<caption>Table&nbsp;9: Output of summer water temeprature linear model.</caption>
 <colgroup>
 <col style="width: 29%">
 <col style="width: 15%">
@@ -1106,7 +1273,7 @@ div.csl-indent {
 <div class="cell-output-display">
 <div id="tbl-sigSlopesAll" class="anchored">
 <table class="table table-sm table-striped small">
-<caption>Table&nbsp;9: Taxa identified as having a signficant slope in abundance over time.</caption>
+<caption>Table&nbsp;10: Taxa identified as having a signficant slope in abundance over time.</caption>
 <colgroup>
 <col style="width: 20%">
 <col style="width: 44%">
