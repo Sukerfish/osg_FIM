@@ -152,6 +152,10 @@ summerSummaryAll <- lsmeans(summerLm, spec = "system", contr = "revpairwise")
 winterSumAll <- tidy(winterSummaryAll$lsmeans)
 summerSumAll <- tidy(summerSummaryAll$lsmeans)
 
+#pairwise slope checks
+winterSlope <- tidy(lstrends(winterLm, ~ system, var = "smallYear"))
+summerSlope <- tidy(lstrends(summerLm, ~ system, var = "smallYear"))
+
 winterSummary <- tidy(winterLm)
 summerSummary <- tidy(summerLm)
 winterBVCSummary <- tidy(winterBVCLm)
@@ -206,13 +210,11 @@ minSpSlope <- sigSlopes[minSlope,]
 
 ### Overview {#sec-overview}
 
-Throughout the study period, water temperature was increasing during winter for all systems at a rate of `r format(winterSummary[2,]$estimate, digits = 2)`°Cyr^-1^ ± `r format(winterSummary[2,]$std.error, digits = 2)` and during the summer at a rate of `r format(summerSummary[2,]$estimate, digits = 2)`°Cyr^-1^ ± `r format(summerSummary[2,]$std.error, digits = 2)`, about half the rate observed in winter ([@fig-TempPlot]). Simultaneously, winter percent bottom vegetation coverage (BVC) changed through time at a rate of `r format(winterBVCSummary[2,]$estimate, digits = 2)`%yr^-1^ ± `r format(winterBVCSummary[2,]$std.error, digits = 2)` and during the summer at a rate of `r format(summerBVCSummary[2,]$estimate, digits = 2)`%yr^-1^ ± `r format(summerBVCSummary[2,]$std.error, digits = 2)`,
-
-X% per year in Charlotte Harbor in winter and in winter in Tampa Bay, but decreased during the summer in Cedar Key. In species-space, `r length(unique(sigSlopes$Scientificname))` out of `r length(unique(SlopesForAllDF$Scientificname))` total identified taxa had significant changes in abundance over time across all systems.
+Throughout the study period, water temperature was increasing during winter for all systems at a rate nearly double that observed during the summer ([@fig-TempPlot]). However, percent bottom vegetation coverage (BVC) had a more nuanced response over time, with increases observed in Charlotte Harbor and Tampa Bay, a decrease in Cedar Key winter, and no change in Apalachicola Bay. In species-space, `r length(unique(sigSlopes$Scientificname))` out of `r length(unique(SlopesForAllDF$Scientificname))` total identified taxa had significant changes in abundance over time across all systems.
 
 ### Habitat Parameters {#sec-habitat-parameters}
 
-Water temperature models for winter indicated Apalachicola Bay and Cedar Key averaged `r format(winterSumAll[1,]$estimate, digits = 3)`°C ± `r format(winterSumAll[1,]$std.error, digits = 2)` during the study period, compared to `r format(winterSumAll[3,]$estimate, digits = 3)`°C ± `r format(winterSumAll[3,]$std.error, digits = 2)` for Tampa Bay and `r format(winterSumAll[4,]$estimate, digits = 3)`°C ± `r format(winterSumAll[4,]$std.error, digits = 2)` for Charlotte Harbor. However, for the summer, Charlotte Harbor averaged warmer than all other systems at `r format(summerSumAll[4,]$estimate, digits = 3)`°C ± `r format(summerSumAll[4,]$std.error, digits = 2)`. As in winter, average water temperature in Cedar Key and Apalachicola Bay were not different from one another (`r format(summerSumAll[1,]$estimate, digits = 3)`°C ± `r format(summerSumAll[1,]$std.error, digits = 2)`), although Tampa Bay was significantly different than Cedar Key, averaging `r format(summerSumAll[3,]$estimate, digits = 3)`°C ± `r format(summerSumAll[3,]$std.error, digits = 2)`. In all systems during the winter, water temperature increased at a mean rate of `r format(winterSummary[2,]$estimate, digits = 2)`°Cyr^-1^ ± `r format(winterSummary[2,]$std.error, digits = 2)` and during the summer at a mean rate of `r format(summerSummary[2,]$estimate, digits = 2)`°Cyr^-1^ ± `r format(summerSummary[2,]$std.error, digits = 2)` ([@fig-TempPlot]).
+Water temperature models for winter indicated Apalachicola Bay and Cedar Key averaged `r format(winterSumAll[1,]$estimate, digits = 3)`°C ± `r format(winterSumAll[1,]$std.error, digits = 2)` during the study period, compared to `r format(winterSumAll[3,]$estimate, digits = 3)`°C ± `r format(winterSumAll[3,]$std.error, digits = 2)` for Tampa Bay and `r format(winterSumAll[4,]$estimate, digits = 3)`°C ± `r format(winterSumAll[4,]$std.error, digits = 2)` for Charlotte Harbor. However, for the summer, Charlotte Harbor averaged warmer than all other systems at `r format(summerSumAll[4,]$estimate, digits = 3)`°C ± `r format(summerSumAll[4,]$std.error, digits = 2)`. As in winter, average water temperature in Cedar Key and Apalachicola Bay were not different from one another (`r format(summerSumAll[1,]$estimate, digits = 3)`°C ± `r format(summerSumAll[1,]$std.error, digits = 2)`), although Tampa Bay was significantly different than Cedar Key, averaging `r format(summerSumAll[3,]$estimate, digits = 3)`°C ± `r format(summerSumAll[3,]$std.error, digits = 2)`. During winter, for all systems except Cedar Key, water temperature increased. Apalachicola Bay incrased at a rate of `r format(winterSummary[2,]$estimate, digits = 2)`°Cyr^-1^ ± `r format(winterSummary[2,]$std.error, digits = 2)`, Tampa Bay at `r format(winterSummary[3,]$estimate, digits = 2)`°Cyr^-1^ ± `r format(winterSummary[3,]$std.error, digits = 2)`, and Charlotte Harbor at `r format(winterSummary[4,]$estimate, digits = 2)`°Cyr^-1^ ± `r format(winterSummary[4,]$std.error, digits = 2)`. During the summer, only Apalachicola Bay had a significant increase in water temperature at a mean rate of `r format(summerSlope[1,]$smallYear.trend, digits = 2)`°Cyr^-1^ ± `r format(summerSlope[1,]$std.error, digits = 2)` ([@fig-TempPlot]).
 
 ```{r}
 #| label: fig-TempPlot
@@ -220,23 +222,109 @@ Water temperature models for winter indicated Apalachicola Bay and Cedar Key ave
 #| message: FALSE
 #| warning: FALSE
 #| fig-width: 6.5
-#| fig-height: 4
+#| fig-height: 6
 #| fig-cap: "Temperature averaged annually and plotted over time. Error bars are ± 1 standard error."
-#| fig-subcap: 
-#|   - "winter"
-#|   - "summer"
 
-(winterPlot <- ggplot(winterTemp,
-                aes(x     = smallYear, 
+# (winterPlot <- ggplot(winterTemp,
+#                 aes(x     = contYear, 
+#                     y     = meanTemp, 
+#                     group = system,
+#                     color = system
+#                 )) + 
+#     geom_point() +
+#     #coord_cartesian(ylim = c(14, 23)) +
+#     geom_smooth(method = "lm", 
+#                 formula = y ~ x,
+#                 se = FALSE,
+#                 data = winterTemp[winterTemp$system %in% c("AP", "TB", "CH"),],
+#                 linetype = "solid") +
+#     geom_smooth(method = "lm", 
+#                 formula = y ~ x,
+#                 se = FALSE,
+#                 data = winterTemp[winterTemp$system %in% c("CK"),],
+#                 linetype = "dashed") +
+#     geom_errorbar(aes(ymin = meanTemp-seTemp, ymax = meanTemp+seTemp))+
+#     labs(#title = "Annual Water Temperature Over Time",
+#       x     = "Year",
+#       y     = "Mean annual water temperature (°C)",
+#       #fill  = NULL
+#     ) +
+#     scale_color_brewer(palette = "PuOr") +
+#     #scale_color_viridis_d() +
+#     theme_bw() +
+#   #facet_grid(~system) +
+#     theme(
+#       legend.position = "bottom"
+#     ))
+# 
+# (summerPlot <- ggplot(summerTemp,
+#                 aes(x     = contYear, 
+#                     y     = meanTemp, 
+#                     group = system,
+#                     color = system
+#                 )) + 
+#     geom_point() +
+#     #coord_cartesian(ylim = c(22, 31)) +
+#     geom_smooth(method = "lm", 
+#                 formula = y ~ x,
+#                 se = FALSE,
+#                 data = summerTemp[summerTemp$system %in% c("CK", "TB", "CH"),],
+#                 linetype = "dashed") +
+#     geom_smooth(method = "lm", 
+#                 formula = y ~ x,
+#                 se = FALSE,
+#                 data = summerTemp[summerTemp$system %in% c("AP"),],
+#                 linetype = "solid") +
+#     geom_errorbar(aes(ymin = meanTemp-seTemp, ymax = meanTemp+seTemp))+
+#     labs(#title = "Annual Water Temperature Over Time",
+#       x     = "Year",
+#       y     = "Mean annual water temperature (°C)",
+#       #fill  = NULL
+#     ) +
+#     scale_color_brewer(palette = "PuOr") +
+#     #scale_color_viridis_d() +
+#     theme_bw() +
+#   #facet_grid(~system) +
+#     theme(
+#       legend.position = "bottom"
+#     ))
+
+(seasonTempPlot <- ggplot(winterTemp,
+                aes(x     = contYear, 
                     y     = meanTemp, 
                     group = system,
                     color = system
                 )) + 
-    geom_point() +
+    geom_point(alpha = 0.4) +
+    geom_errorbar(aes(ymin = meanTemp-seTemp, ymax = meanTemp+seTemp),
+                  data = winterTemp,
+                alpha = 0.4) +
+    geom_point(data = summerTemp,
+                alpha = 0.4) +
+    geom_errorbar(aes(ymin = meanTemp-seTemp, ymax = meanTemp+seTemp),
+                  data = summerTemp,
+                alpha = 0.4) +
+    #coord_cartesian(ylim = c(14, 23)) +
     geom_smooth(method = "lm", 
                 formula = y ~ x,
-                se = FALSE) +
-    geom_errorbar(aes(ymin = meanTemp-seTemp, ymax = meanTemp+seTemp))+
+                se = FALSE,
+                data = winterTemp[winterTemp$system %in% c("AP", "TB", "CH"),],
+                linetype = "solid") +
+    geom_smooth(method = "lm", 
+                formula = y ~ x,
+                se = FALSE,
+                data = winterTemp[winterTemp$system %in% c("CK"),],
+                linetype = "dashed") +
+        geom_smooth(method = "lm", 
+                formula = y ~ x,
+                se = FALSE,
+                data = summerTemp[summerTemp$system %in% c("CK", "TB", "CH"),],
+                linetype = "dashed") +
+    geom_smooth(method = "lm", 
+                formula = y ~ x,
+                se = FALSE,
+                data = summerTemp[summerTemp$system %in% c("AP"),],
+                linetype = "solid") +
     labs(#title = "Annual Water Temperature Over Time",
       x     = "Year",
       y     = "Mean annual water temperature (°C)",
@@ -245,37 +333,14 @@ Water temperature models for winter indicated Apalachicola Bay and Cedar Key ave
     scale_color_brewer(palette = "PuOr") +
     #scale_color_viridis_d() +
     theme_bw() +
-  #facet_grid(~system) +
-    theme(
-      legend.position = "bottom"
-    ))
-
-(summerPlot <- ggplot(summerTemp,
-                aes(x     = smallYear, 
-                    y     = meanTemp, 
-                    group = system,
-                    color = system
-                )) + 
-    geom_point() +
-    geom_smooth(method = "lm", 
-                formula = y ~ x,
-                se = FALSE) +
-    geom_errorbar(aes(ymin = meanTemp-seTemp, ymax = meanTemp+seTemp))+
-    labs(#title = "Annual Water Temperature Over Time",
-      x     = "Year",
-      y     = "Mean annual water temperature (°C)",
-      #fill  = NULL
-    ) +
-    scale_color_brewer(palette = "PuOr") +
-    #scale_color_viridis_d() +
-    theme_bw() +
-  #facet_grid(~system) +
+    facet_wrap(~season,
+               nrow = 2) +
     theme(
       legend.position = "bottom"
     ))
 ```
 
-Average percent bottom vegetation coverage (BVC) had little variation across seasons for all estuaries, although was consistently higher in summer than winter. Charlotte Harbor had the most coverage for both seasons ranging from `r format(winterSumBVCAll[4,]$estimate, digits = 3)`% ± `r format(winterSumBVCAll[4,]$std.error, digits = 3)` in winter to `r format(summerSumBVCAll[4,]$estimate, digits = 3)`% ± `r format(summerSumBVCAll[4,]$std.error, digits = 3)` in summer. Cedar Key averaged the lowest coverage, ranging from `r format(winterSumBVCAll[2,]$estimate, digits = 3)`% ± `r format(winterSumBVCAll[2,]$std.error, digits = 3)` in winter to `r format(summerSumBVCAll[2,]$estimate, digits = 3)`% ± `r format(summerSumBVCAll[2,]$std.error, digits = 3)` in summer. Tampa Bay and Apalachicola Bay were both in the middle of these ranges for both seasons [@tbl-bvcMeans]. Over the study period, BVC significantly decreased in Cedar Key summer at a rate of `r format(BVCsummerSlope[2,]$smallYear.trend, digits = 3)`%yr^-1^ ± `r format(BVCsummerSlope[2,]$std.error, digits = 3)`, while Tampa Bay winter (positively), and in both seasons in Charlotte Harbor (positively) ([@fig-BVCPlot]; [@tbl-bvcModels]).
+Average percent bottom vegetation coverage (BVC) had little variation across seasons for all estuaries, although was consistently higher in summer than winter. Across systems and seasons, all estuaries had different mean annual percent BVC. Charlotte Harbor had the most coverage for both seasons ranging from `r format(winterSumBVCAll[4,]$estimate, digits = 3)`% ± `r format(winterSumBVCAll[4,]$std.error, digits = 3)` in winter to `r format(summerSumBVCAll[4,]$estimate, digits = 3)`% ± `r format(summerSumBVCAll[4,]$std.error, digits = 3)` in summer. Cedar Key averaged the lowest coverage, ranging from `r format(winterSumBVCAll[2,]$estimate, digits = 3)`% ± `r format(winterSumBVCAll[2,]$std.error, digits = 3)` in winter to `r format(summerSumBVCAll[2,]$estimate, digits = 3)`% ± `r format(summerSumBVCAll[2,]$std.error, digits = 3)` in summer. Tampa Bay and Apalachicola Bay were both in the middle of these ranges for both seasons [@tbl-bvcMeans]. Over the study period, BVC decreased in Cedar Key during summer at a rate of `r format(BVCsummerSlope[2,]$smallYear.trend, digits = 3)`%yr^-1^ ± `r format(BVCsummerSlope[2,]$std.error, digits = 3)`, with no change in winter. Tampa Bay BVC increased during the winter at a rate of `r format(BVCwinterSlope[3,]$smallYear.trend, digits = 3)`%yr^-1^ ± `r format(BVCwinterSlope[3,]$std.error, digits = 3)`, with no change in summer. Charlotte Harbor BVC increased during both summer and winter at rates of `r format(BVCsummerSlope[4,]$smallYear.trend, digits = 3)`%yr^-1^ ± `r format(BVCsummerSlope[4,]$std.error, digits = 3)` and `r format(BVCwinterSlope[4,]$smallYear.trend, digits = 3)`%yr^-1^ ± `r format(BVCwinterSlope[4,]$std.error, digits = 3)`, respectively. In contrast, Apalachicola Bay did not have any significant change in BVC over the study period ([@fig-BVCPlot]).
 
 ```{r}
 #| label: tbl-bvcMeans 
@@ -293,75 +358,124 @@ bvcMeans <- winterSumBVCAll  %>%
 pander(bvcMeans)
 ```
 
-```{r}
-#| label: tbl-bvcModels 
-#| echo: FALSE 
-#| message: FALSE 
-#| tbl-cap: "Coefficients of year on linear models run within each estuary. Bolded values are significant at alpha 0.05." 
-#| tbl-subcap:
-#|   - "Winter"
-#|   - "Summer"
-emphasize.strong.cells(which(winterBVCSummary < 0.05, arr.ind = TRUE)) 
-pander(winterBVCSummary)
-emphasize.strong.cells(which(summerBVCSummary < 0.05, arr.ind = TRUE)) 
-pander(summerBVCSummary)
-```
-
 ```{r BVCPlot}
 #| label: fig-BVCPlot 
 #| echo: FALSE 
 #| message: FALSE 
 #| fig-width: 6.5 
-#| fig-height: 4 
+#| fig-height: 6 
 #| fig-cap: "Bottom vegetation coverage as a percentage averaged annually and plotted over time. Error bars are ± 1 standard error."
-#| fig-subcap:
-#|   - "winter"
-#|   - "summer"
 
-(winterBVCPlot <- ggplot(winterBVC,
-                aes(x     = smallYear, 
+# (winterBVCPlot <- ggplot(winterBVC,
+#                 aes(x     = contYear, 
+#                     y     = meanBVC, 
+#                     group = system,
+#                     color = system
+#                 )) + 
+#     geom_point() +
+#     coord_cartesian(ylim = c(0, 62)) +
+#     geom_smooth(method = "lm", 
+#                 formula = y ~ x,
+#                 se = FALSE,
+#                 data = winterBVC[winterBVC$system %in% c("TB", "CH"),],
+#                 linetype = "solid") +
+#     geom_smooth(method = "lm", 
+#                 formula = y ~ x,
+#                 se = FALSE,
+#                 data = winterBVC[winterBVC$system %in% c("AP", "CK"),],
+#                 linetype = "dashed") +
+#     geom_errorbar(aes(ymin = meanBVC-seBVC, ymax = meanBVC+seBVC))+
+#     labs(#title = "Annual Water Temperature Over Time",
+#       x     = "Year",
+#       y     = "Mean annual BVC",
+#       #fill  = NULL
+#     ) +
+#     scale_color_brewer(palette = "PuOr") +
+#     #scale_color_viridis_d() +
+#     theme_bw() +
+#   #facet_grid(~system) +
+#     theme(
+#       legend.position = "bottom"
+#     ))
+# 
+# (summerBVCPlot <- ggplot(summerBVC,
+#                 aes(x     = contYear, 
+#                     y     = meanBVC, 
+#                     group = system,
+#                     color = system
+#                 )) + 
+#     geom_point() +
+#     coord_cartesian(ylim = c(0, 62)) +
+#     geom_smooth(method = "lm", 
+#                 formula = y ~ x,
+#                 se = FALSE,
+#                 data = summerBVC[summerBVC$system %in% c("CK", "CH"),],
+#                 linetype = "solid") +
+#     geom_smooth(method = "lm", 
+#                 formula = y ~ x,
+#                 se = FALSE,
+#                 data = summerBVC[summerBVC$system %in% c("AP", "TB"),],
+#                 linetype = "dashed") +
+#     geom_errorbar(aes(ymin = meanBVC-seBVC, ymax = meanBVC+seBVC))+
+#     labs(#title = "Annual Water Temperature Over Time",
+#       x     = "Year",
+#       y     = "Mean annual BVC",
+#       #fill  = NULL
+#     ) +
+#     scale_color_brewer(palette = "PuOr") +
+#     #scale_color_viridis_d() +
+#     theme_bw() +
+#   #facet_grid(~system) +
+#     theme(
+#       legend.position = "bottom"
+#     ))
+
+(fullBVCPlot <- ggplot(summerBVC,
+                aes(x     = contYear, 
                     y     = meanBVC, 
                     group = system,
                     color = system
                 )) + 
-    geom_point() +
+    geom_point(alpha = 0.4) +
+    geom_errorbar(aes(ymin = meanBVC-seBVC, ymax = meanBVC+seBVC),
+                data = summerBVC,
+                alpha = 0.4) +
+    geom_point(data = winterBVC,
+                alpha = 0.4) +
+    geom_errorbar(aes(ymin = meanBVC-seBVC, ymax = meanBVC+seBVC),
+                data = winterBVC,
+                alpha = 0.4) +
+    coord_cartesian(ylim = c(0, 62)) +
     geom_smooth(method = "lm", 
                 formula = y ~ x,
-                se = FALSE) +
-    geom_errorbar(aes(ymin = meanBVC-seBVC, ymax = meanBVC+seBVC))+
+                se = FALSE,
+                data = summerBVC[summerBVC$system %in% c("CK", "CH"),],
+                linetype = "solid") +
+    geom_smooth(method = "lm", 
+                formula = y ~ x,
+                se = FALSE,
+                data = summerBVC[summerBVC$system %in% c("AP", "TB"),],
+                linetype = "dashed") +
+    geom_smooth(method = "lm", 
+                formula = y ~ x,
+                se = FALSE,
+                data = winterBVC[winterBVC$system %in% c("TB", "CH"),],
+                linetype = "solid") +
+    geom_smooth(method = "lm", 
+                formula = y ~ x,
+                se = FALSE,
+                data = winterBVC[winterBVC$system %in% c("AP", "CK"),],
+                linetype = "dashed") +
     labs(#title = "Annual Water Temperature Over Time",
       x     = "Year",
-      y     = "Mean annual BVC",
+      y     = "Mean annual BVC (%)",
       #fill  = NULL
     ) +
     scale_color_brewer(palette = "PuOr") +
     #scale_color_viridis_d() +
     theme_bw() +
-  #facet_grid(~system) +
-    theme(
-      legend.position = "bottom"
-    ))
-
-(summerBVCPlot <- ggplot(summerBVC,
-                aes(x     = smallYear, 
-                    y     = meanBVC, 
-                    group = system,
-                    color = system
-                )) + 
-    geom_point() +
-    geom_smooth(method = "lm", 
-                formula = y ~ x,
-                se = FALSE) +
-    geom_errorbar(aes(ymin = meanBVC-seBVC, ymax = meanBVC+seBVC))+
-    labs(#title = "Annual Water Temperature Over Time",
-      x     = "Year",
-      y     = "Mean annual BVC",
-      #fill  = NULL
-    ) +
-    scale_color_brewer(palette = "PuOr") +
-    #scale_color_viridis_d() +
-    theme_bw() +
-  #facet_grid(~system) +
+    facet_wrap(~season,
+               nrow = 2) +
     theme(
       legend.position = "bottom"
     ))
@@ -1024,6 +1138,20 @@ tempMeans <- winterSumAll %>%
   mutate(std.error = format(std.error, digits = 3))
 
 pander(tempMeans)
+```
+
+```{r}
+#| label: tbl-bvcModels 
+#| echo: FALSE 
+#| message: FALSE 
+#| tbl-cap: "Coefficients of year on linear models run within each estuary. Bolded values are significant at alpha 0.05." 
+#| tbl-subcap:
+#|   - "Winter"
+#|   - "Summer"
+emphasize.strong.cells(which(winterBVCSummary < 0.05, arr.ind = TRUE)) 
+pander(winterBVCSummary)
+emphasize.strong.cells(which(summerBVCSummary < 0.05, arr.ind = TRUE)) 
+pander(summerBVCSummary)
 ```
 
 ```{r}
