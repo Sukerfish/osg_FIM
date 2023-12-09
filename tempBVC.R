@@ -443,10 +443,10 @@ summerBVC <- BVCSubset %>%
   filter(season == "summer")
 
 #separated winter
-winterLm <- lm(meanTemp ~ smallYear * system, data = winterTemp)
-winterBVCLm <- lm(meanBVC ~ smallYear * system, data = winterBVC)
-summerLm <- lm(meanTemp ~ smallYear * system, data = summerTemp)
-summerBVCLm <- lm(meanBVC ~ smallYear * system, data = summerBVC)
+winterLm <- aov(meanTemp ~ smallYear * system, data = winterTemp)
+winterBVCLm <- aov(meanBVC ~ smallYear * system, data = winterBVC)
+summerLm <- aov(meanTemp ~ smallYear * system, data = summerTemp)
+summerBVCLm <- aov(meanBVC ~ smallYear * system, data = summerBVC)
 
 #combine temps and go by month now for sinusoidal plot
 combinedTemp <- totAbModelDF %>%
