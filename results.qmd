@@ -53,7 +53,7 @@ Increased abundance of tropically-associated taxa had already been observed in n
 
 ### Data collection {#sec-data-collection}
 
-This study used data collected by the Florida Fish and Wildlife Research Institute's (FWRI) Fisheries Independent Monitoring (FIM) program. The program follows a monthly stratified random sampling design in estuaries across Florida, including four in the eastern Gulf of Mexico (from north to south: Apalachicola Bay, Cedar Key, Tampa Bay, and Charlotte Harbor; @fig-FIMsystems). Apalachicola Bay is a shallow, semi-enclosed estuary located on the northern coast of the GOM in the panhandle of Florida, USA and is within the Northern Gulf of Mexico ecoregion [@Spalding2007]. Cedar Key is located within the Suwannee River open estuary system and is also in the Northern Gulf of Mexico ecoregion. Tampa Bay is Florida's largest open water estuary and lies within the Floridian ecoregion [@Spalding2007]. Charlotte Harbor, a drowned river estuary system, is within the Floridian ecoregion [@FWRIFloridaFishandWildlifeResearchInstitute2017]. All systems are dominated by seagrass vegetation in shallow waters, except for Apalachicola Bay, where seagrass is less than 7% of bottom coverage [@FWRIFloridaFishandWildlifeResearchInstitute2017]. However, sampling gear was partly determined by habitat, where all seagrass at particular depths were sampled with the same gear type across estuaries [see also below, @FWRIFloridaFishandWildlifeResearchInstitute2017]. Finally, marsh grasses and oyster beds are dominant along shorelines in Apalachicola Bay and Cedar Key, while mangroves dominate in Charlotte Harbor, and Tampa Bay is characterized by a mix of marsh grasses, oyster beds, and mangroves [@FWRIFloridaFishandWildlifeResearchInstitute2017].
+This study used data collected by the Florida Fish and Wildlife Research Institute's (FWRI) Fisheries Independent Monitoring (FIM) program. The program follows a monthly stratified random sampling design in estuaries across Florida, including four in the eastern Gulf of Mexico (from north to south: Apalachicola Bay (AB), Cedar Key (CK), Tampa Bay (TB), and Charlotte Harbor (CH); @fig-FIMsystems). Apalachicola Bay is a shallow, semi-enclosed estuary located on the northern coast of the GOM in the panhandle of Florida, USA and is within the Northern Gulf of Mexico ecoregion [@Spalding2007]. Cedar Key is located within the Suwannee River open estuary system and is also in the Northern Gulf of Mexico ecoregion. Tampa Bay is Florida's largest open water estuary and lies within the Floridian ecoregion [@Spalding2007]. Charlotte Harbor, a drowned river estuary system, is within the Floridian ecoregion [@FWRIFloridaFishandWildlifeResearchInstitute2017]. All systems are dominated by seagrass vegetation in shallow waters, except for Apalachicola Bay, where seagrass is less than 7% of bottom coverage [@FWRIFloridaFishandWildlifeResearchInstitute2017]. However, sampling gear was partly determined by habitat, where all seagrass at particular depths were sampled with the same gear type across estuaries [see also below, @FWRIFloridaFishandWildlifeResearchInstitute2017]. Finally, marsh grasses and oyster beds are dominant along shorelines in Apalachicola Bay and Cedar Key, while mangroves dominate in Charlotte Harbor, and Tampa Bay is characterized by a mix of marsh grasses, oyster beds, and mangroves [@FWRIFloridaFishandWildlifeResearchInstitute2017].
 
 ![Locations of all estuaries in this study.](conceptFigs/FIMsystems.png){#fig-FIMsystems}
 
@@ -153,13 +153,17 @@ winterSumAll <- tidy(winterSummaryAll$lsmeans)
 summerSumAll <- tidy(summerSummaryAll$lsmeans)
 
 #pairwise slope checks
-winterSlope <- tidy(lstrends(winterLm, ~ system, var = "smallYear", contr = "revpairwise"))
-summerSlope <- tidy(lstrends(summerLm, ~ system, var = "smallYear", contr = "revpairwise"))
+winterContrasts <- lstrends(winterLm, ~ system, var = "smallYear", contr = "revpairwise")
+summerContrasts <- lstrends(summerLm, ~ system, var = "smallYear", contr = "revpairwise")
 
-winterSummary <- tidy(winterLm)
-summerSummary <- tidy(summerLm)
-winterBVCSummary <- tidy(winterBVCLm)
-summerBVCSummary <- tidy(summerBVCLm)
+winterSlope <- tidy(winterContrasts$lstrends)
+summerSlope <- tidy(summerContrasts$lstrends)
+
+winterSummary <- tidy(summary.lm(winterLm))
+summerSummary <- tidy(summary.lm(summerLm))
+
+winterBVCSummary <- tidy(summary.lm(winterBVCLm))
+summerBVCSummary <- tidy(summary.lm(summerBVCLm))
 
 #pairwise emmeans
 winterSummaryBVCAll <- lsmeans(winterBVCLm, spec = "system", contr = "revpairwise")
@@ -169,19 +173,22 @@ winterSumBVCAll <- tidy(winterSummaryBVCAll$lsmeans)
 summerSumBVCAll <- tidy(summerSummaryBVCAll$lsmeans)
 
 #pairwise slope checks
-BVCwinterSlope <- tidy(lstrends(winterBVCLm, ~ system, var = "smallYear", contr = "revpairwise"))
-BVCsummerSlope <- tidy(lstrends(summerBVCLm, ~ system, var = "smallYear", contr = "revpairwise"))
+winterBVCContrasts <- lstrends(winterBVCLm, ~ system, var = "smallYear", contr = "revpairwise")
+summerBVCContrasts <- lstrends(summerBVCLm, ~ system, var = "smallYear", contr = "revpairwise")
+
+BVCwinterSlope <- tidy(winterBVCContrasts$lstrends)
+BVCsummerSlope <- tidy(summerBVCContrasts$lstrends)
 ```
 
 In total, 17492 sampling events occurred where at least one taxa was caught and counted during summer or winter across all four estuaries. For seven sampling events, temperature data were unavailable and thus excluded from the analyses. Further, hauls that were composed solely of rare species (taxa found in ≤5% of all samples for that system and season) were removed from the analyses which reduced samples down to `r nrow(SXS_filtered)`. Overall, `r ncol(SXS_filtered_spp)` taxa in the dataset were recorded, spanning `r max(as.numeric(as.character(waterBVC_full$seasonYear)))-min(as.numeric(as.character(waterBVC_full$seasonYear)))` years of collections.
 
 ### Data Analyses {#sec-data-analyses}
 
-All analyses were conducted using the R Statistical Computing Environment v4.3.0 and an alpha of 0.05 was used for all significance testing [@R2023]. Overview analyses included running linear models on annually-summarized means of water temperature and bottom vegetation coverage. Upon first examination, the change in temperature over time was marginally significant for winter estuaries (p 0.059-0.366). However, 2010 was an anomalously cold winter (CITE) and was dropped from the winter models after visual inspection of the data (Supplemental?). Ran ANCOVA model with year as continuous and system as caetgorical... Performed post hoc contrasts for any significant terms from said ANCOVA to determine magnitude of specific differences across sytesms.
+All analyses were conducted using the R Statistical Computing Environment v4.3.0 and an alpha of 0.05 was used for all significance testing [@R2023]. Preliminary analyses included running simple linear models on annually-summarized means of water temperature and bottom vegetation coverage. Upon first examination, the change in temperature over time was marginally significant for winter estuaries (p 0.059-0.366). However, after visual inspection, the anomalously cold winter of 2010 (CITE) appeared as a distinct outlier and was dropped from the winter models (Supplemental?). From here, I ran Analysis of Covariance (ANCOVA) models with year as a continuous variable and estuarine system as a categorical predictor while including the interaction between both. I performed post-hoc contrasts for any significant terms in these models to determine the magnitude of any specific differences across systems using the *emmeans* package [@emmeans].
 
 To address if the richness and abundance of eGOM estuarine fish assemblages has changed over the study period, I modeled richness and abundance per haul across all estuaries for both the summer and winter seasons using generalized linear mixed models (GLMMs) from the R package *glmmTMB* [@glmmTMB]. Given the well-documented seasonal differences in estuarine systems [see @Hagan2003; @Strydom2015; @Schrandt2020], in this and all subsequent analyses, summer and winter are treated entirely separately. For each seine haul, I calculated the richness as the number of taxa present and total abundance as the sum of all individuals counted. In all calculations, total abundance was fourth-root transformed to reduce the effects of overly-abundant taxa, given total abundance ranged from a maximum of `r format(max(totAbModelDF$abundRaw), nsmall = 0)` to `r format(min(totAbModelDF$abundRaw), nsmall = 0)`. For each model, the response in the GLMM included either the richness or transformed abundance of each haul, with estuary (four levels) as a fixed effect and year as a random effect. To account for serial autocorrelation, an `ar1` covariance matrix was used in each model calculated from month of sampling event and within-estuary zone. Given that species richness is strongly affected by sampling effort [@Mittelbach2019], I included an offset term to account for variation in the number of seine hauls. Before examining the relationship between temperature and richness/abundance, I used permutational multivariate analysis of variance (PERMANOVA) from the R package *vegan* to examine the interaction between estuary and time, as a means to determine if there are different magnitudes and directions of temporal change among estuaries and thus if each estuary should be treated separately [@vegan].
 
-To explore whether the composition and abundance has changed over the same time period and if it may be related to water temperature, I used several techniques. First, I examined the turnover and nestedness of each system through time using the R package *betapart* [@betapart]. Then, I ran additional GLMM models for each estuary, but included random terms for Z-scored water temperature and Z-scored percent bottom vegetation coverage (BVC). In all cases, the same `ar1` covariance structure was used as before as well as an offset term for sampling effort. To explore the relationship of temperature to richness and abundance, I used multiple GLMM models wherein the formula used for each was: `response ~ (1|year_Z) + temp_Z +  bvc_Z + offset(log(n_hauls)) + ar1(yearMonth + 0|systemZone)` where `response` was either total abundance or total richness per haul. I used distance-based redundancy analysis (dbRDA) from the R package *vegan* to explore the magnitude and direction of effect of water temperature and BVC in multivariate species-space. Finally, to explore the *a priori* hypothesis of a possible "directional" change in species space over time, I used canonical analysis of principal coordinates (CAP) models from the R package *BiodiversityR* for each estuary and season [@BiodiversityR]. Following [@Dornelas2019], I further examined individual taxa for change over time. Within each estuary and season, I ran a linear model on the transformed abundance of each taxa independently and tested for significance. This was used to determine both the magnitude and direction of change at the species level, thus describing the distribution of "winners and losers" across each estuarine system. Finally, climatological association data were pulled from Fishbase using *rfishbase* [@rfishbase].
+To explore whether the composition and abundance has changed over the same time period and if it may be related to water temperature, I used several techniques. First, I examined the turnover and nestedness of each system through time using the R package *betapart* [@betapart]. Then, I ran additional GLMM models for each estuary, but included random terms for Z-scored water temperature and Z-scored percent bottom vegetation coverage (BVC). In all cases, the same `ar1` covariance structure was used as before as well as an offset term for sampling effort. To explore the relationship of temperature to richness and abundance, I used multiple GLMM models wherein the formula used for each was: `response ~ (1|year_Z) + temp_Z +  bvc_Z + offset(log(n_hauls)) + ar1(yearMonth + 0|systemZone)` where `response` was either total abundance or total richness per haul. I used distance-based redundancy analysis (dbRDA) from the R package *vegan* to explore the magnitude and direction of effect of water temperature and BVC in multivariate species-space. Finally, to explore the *a priori* hypothesis of a possible "directional" change in species space over time, I used canonical analysis of principal coordinates (CAP) models from the R package *BiodiversityR* for each estuary and season [@BiodiversityR]. Following [@Dornelas2019], I further examined individual taxa for change over time. Within each estuary and season, I ran a linear model on the transformed abundance of each taxa independently and tested for significance. This was used to determine both the magnitude and direction of change at the species level, thus describing the distribution of "winners and losers" across each estuarine system. Finally, climatological association data were pulled from Fishbase using *rfishbase* [@rfishbase]. Unless otherwise indicated, mean values reported from these analyses will be reported as mean ± one standard error.
 
 # Results {#sec-results .unnumbered}
 
@@ -214,7 +221,35 @@ Throughout the study period, water temperature was increasing during winter for 
 
 ### Habitat Parameters {#sec-habitat-parameters}
 
-Results of ANCOVA demonstrate diff in mean temp across some systems (t \>= 5.4 for all p \<0.05, table of summary.lm(ancova).). Therefore we did the contrast table, which indicated Apalachicola Bay and Cedar Key averaged `r format(winterSumAll[1,]$estimate, digits = 3)`°C ± `r format(winterSumAll[1,]$std.error, digits = 2)` during the study period, compared to `r format(winterSumAll[3,]$estimate, digits = 3)`°C ± `r format(winterSumAll[3,]$std.error, digits = 2)` for Tampa Bay and `r format(winterSumAll[4,]$estimate, digits = 3)`°C ± `r format(winterSumAll[4,]$std.error, digits = 2)` for Charlotte Harbor. However, for the summer, Charlotte Harbor averaged warmer than all other systems at `r format(summerSumAll[4,]$estimate, digits = 3)`°C ± `r format(summerSumAll[4,]$std.error, digits = 2)`. t ratios greater than X and p all less than Y. As in winter, average water temperature in Cedar Key and Apalachicola Bay were not different from one another (`r format(summerSumAll[1,]$estimate, digits = 3)`°C ± `r format(summerSumAll[1,]$std.error, digits = 2)`), although Tampa Bay was significantly different than Cedar Key, averaging `r format(summerSumAll[3,]$estimate, digits = 3)`°C ± `r format(summerSumAll[3,]$std.error, digits = 2)`. During winter, for all systems except Cedar Key, water temperature increased (SEE TABLE of CONTRASTS). Because the ANCOVA approach does not indicate where specific differences lie, CONTRASTS. Apalachicola Bay increased at a rate of `r format(winterSummary[2,]$estimate, digits = 2)`°Cyr^-1^ ± `r format(winterSummary[2,]$std.error, digits = 2)`, Tampa Bay at `r format(winterSummary[3,]$estimate, digits = 2)`°Cyr^-1^ ± `r format(winterSummary[3,]$std.error, digits = 2)`, and Charlotte Harbor at `r format(winterSummary[4,]$estimate, digits = 2)`°Cyr^-1^ ± `r format(winterSummary[4,]$std.error, digits = 2)`. During the summer, only Apalachicola Bay had a significant increase in water temperature at a mean rate of `r format(summerSlope[1,]$smallYear.trend, digits = 2)`°Cyr^-1^ ± `r format(summerSlope[1,]$std.error, digits = 2)` ([@fig-TempPlot]).
+Results of the water temperature ANCOVAs indicated a significant positive trend that was consistent among estuaries. However, it also identified differences in mean temperature across some systems (*t* ≥ `r format(winterSummary$statistic[4], digits = 4)` for all *p* ≤ 0.05; [@tbl-tempAncova]).
+
+```{r}
+#| label: tbl-tempAncova 
+#| echo: FALSE 
+#| message: FALSE 
+#| tbl-cap: "Output of ancova model." 
+#| tbl-subcap: 
+#|   - "winter"
+#|   - "summer"
+
+pander(winterSummary)
+pander(summerSummary)
+```
+
+Using post-hoc contrasts, I parsed out these differences among estuaries and seasons. For the winter season, I determined Apalachicola Bay and Cedar Key averaged `r format(winterSumAll[1,]$estimate, digits = 3)`°C ± `r format(winterSumAll[1,]$std.error, digits = 2)` during the study period, compared to `r format(winterSumAll[3,]$estimate, digits = 3)`°C ± `r format(winterSumAll[3,]$std.error, digits = 2)` for Tampa Bay and `r format(winterSumAll[4,]$estimate, digits = 3)`°C ± `r format(winterSumAll[4,]$std.error, digits = 2)` for Charlotte Harbor (*t* ratios ≥ `r format(as.data.frame(winterSummaryAll$contrasts)[6,5], digits = 4)` for all *p* ≤ 0.05; [@tbl-tempAncovaContrast]). However, for the summer, Charlotte Harbor averaged warmer than all other systems at `r format(summerSumAll[4,]$estimate, digits = 3)`°C ± `r format(summerSumAll[4,]$std.error, digits = 2)` (*t* ratios ≥ `r format(as.data.frame(summerSummaryAll$contrasts)[6,5], digits = 4)` for all *p* ≤ 0.05; [@tbl-tempAncovaContrast]). Average water temperatures in Cedar Key and Apalachicola Bay were not different from one another (`r format(summerSumAll[1,]$estimate, digits = 3)`°C ± `r format(summerSumAll[1,]$std.error, digits = 2)`), although Tampa Bay was significantly different than Cedar Key, but not Apalachicola Bay, averaging `r format(summerSumAll[3,]$estimate, digits = 3)`°C ± `r format(summerSumAll[3,]$std.error, digits = 2)`. For all systems during winter, water temperature increased at a rate of `r format(winterSummary[2,]$estimate, digits = 2)`°Cyr^-1^ ± `r format(winterSummary[2,]$std.error, digits = 2)` and we found no difference in this rate among estuaries. Similarly, during summer, water temperature increased in all systems at a rate of `r format(summerSummary[2,]$estimate, digits = 2)`°Cyr^-1^ ± `r format(summerSummary[2,]$std.error, digits = 2)` and we again found no difference in rate among estuaries ([@fig-TempPlot]).
+
+```{r}
+#| label: tbl-tempAncovaContrast 
+#| echo: FALSE 
+#| message: FALSE 
+#| tbl-cap: "Contrasts of ancova models. Tukey method applied for p-value correction." 
+#| tbl-subcap: 
+#|   - "winter"
+#|   - "summer"
+#|   
+pander(summary(winterSummaryAll$contrasts))
+pander(summary(summerSummaryAll$contrasts))
+```
 
 ```{r}
 #| label: fig-TempPlot
@@ -223,71 +258,7 @@ Results of ANCOVA demonstrate diff in mean temp across some systems (t \>= 5.4 f
 #| warning: FALSE
 #| fig-width: 6.5
 #| fig-height: 6
-#| fig-cap: "Temperature averaged annually and plotted over time. Error bars are ± 1 standard error."
-
-# (winterPlot <- ggplot(winterTemp,
-#                 aes(x     = contYear, 
-#                     y     = meanTemp, 
-#                     group = system,
-#                     color = system
-#                 )) + 
-#     geom_point() +
-#     #coord_cartesian(ylim = c(14, 23)) +
-#     geom_smooth(method = "lm", 
-#                 formula = y ~ x,
-#                 se = FALSE,
-#                 data = winterTemp[winterTemp$system %in% c("AP", "TB", "CH"),],
-#                 linetype = "solid") +
-#     geom_smooth(method = "lm", 
-#                 formula = y ~ x,
-#                 se = FALSE,
-#                 data = winterTemp[winterTemp$system %in% c("CK"),],
-#                 linetype = "dashed") +
-#     geom_errorbar(aes(ymin = meanTemp-seTemp, ymax = meanTemp+seTemp))+
-#     labs(#title = "Annual Water Temperature Over Time",
-#       x     = "Year",
-#       y     = "Mean annual water temperature (°C)",
-#       #fill  = NULL
-#     ) +
-#     scale_color_brewer(palette = "PuOr") +
-#     #scale_color_viridis_d() +
-#     theme_bw() +
-#   #facet_grid(~system) +
-#     theme(
-#       legend.position = "bottom"
-#     ))
-# 
-# (summerPlot <- ggplot(summerTemp,
-#                 aes(x     = contYear, 
-#                     y     = meanTemp, 
-#                     group = system,
-#                     color = system
-#                 )) + 
-#     geom_point() +
-#     #coord_cartesian(ylim = c(22, 31)) +
-#     geom_smooth(method = "lm", 
-#                 formula = y ~ x,
-#                 se = FALSE,
-#                 data = summerTemp[summerTemp$system %in% c("CK", "TB", "CH"),],
-#                 linetype = "dashed") +
-#     geom_smooth(method = "lm", 
-#                 formula = y ~ x,
-#                 se = FALSE,
-#                 data = summerTemp[summerTemp$system %in% c("AP"),],
-#                 linetype = "solid") +
-#     geom_errorbar(aes(ymin = meanTemp-seTemp, ymax = meanTemp+seTemp))+
-#     labs(#title = "Annual Water Temperature Over Time",
-#       x     = "Year",
-#       y     = "Mean annual water temperature (°C)",
-#       #fill  = NULL
-#     ) +
-#     scale_color_brewer(palette = "PuOr") +
-#     #scale_color_viridis_d() +
-#     theme_bw() +
-#   #facet_grid(~system) +
-#     theme(
-#       legend.position = "bottom"
-#     ))
+#| fig-cap: "Temperature averaged annually and plotted over time. Error bars are ± 1 standard error. Solid lines indicate signficant modeled trends."
 
 (seasonTempPlot <- ggplot(winterTemp,
                 aes(x     = contYear, 
@@ -314,12 +285,12 @@ Results of ANCOVA demonstrate diff in mean temp across some systems (t \>= 5.4 f
                 formula = y ~ x,
                 se = FALSE,
                 data = winterTemp[winterTemp$system %in% c("CK"),],
-                linetype = "dashed") +
+                linetype = "solid") +
         geom_smooth(method = "lm", 
                 formula = y ~ x,
                 se = FALSE,
                 data = summerTemp[summerTemp$system %in% c("CK", "TB", "CH"),],
-                linetype = "dashed") +
+                linetype = "solid") +
     geom_smooth(method = "lm", 
                 formula = y ~ x,
                 se = FALSE,
@@ -341,7 +312,35 @@ Results of ANCOVA demonstrate diff in mean temp across some systems (t \>= 5.4 f
     ))
 ```
 
-Average percent bottom vegetation coverage (BVC) had little variation across seasons for all estuaries, although was consistently higher in summer than winter. Across systems and seasons, all estuaries had different mean annual percent BVC. Charlotte Harbor had the most coverage for both seasons ranging from `r format(winterSumBVCAll[4,]$estimate, digits = 3)`% ± `r format(winterSumBVCAll[4,]$std.error, digits = 3)` in winter to `r format(summerSumBVCAll[4,]$estimate, digits = 3)`% ± `r format(summerSumBVCAll[4,]$std.error, digits = 3)` in summer. Cedar Key averaged the lowest coverage, ranging from `r format(winterSumBVCAll[2,]$estimate, digits = 3)`% ± `r format(winterSumBVCAll[2,]$std.error, digits = 3)` in winter to `r format(summerSumBVCAll[2,]$estimate, digits = 3)`% ± `r format(summerSumBVCAll[2,]$std.error, digits = 3)` in summer. Tampa Bay and Apalachicola Bay were both in the middle of these ranges for both seasons [@tbl-bvcMeans]. Over the study period, BVC decreased in Cedar Key during summer at a rate of `r format(BVCsummerSlope[2,]$smallYear.trend, digits = 3)`%yr^-1^ ± `r format(BVCsummerSlope[2,]$std.error, digits = 3)`, with no change in winter. Tampa Bay BVC increased during the winter at a rate of `r format(BVCwinterSlope[3,]$smallYear.trend, digits = 3)`%yr^-1^ ± `r format(BVCwinterSlope[3,]$std.error, digits = 3)`, with no change in summer. Charlotte Harbor BVC increased during both summer and winter at rates of `r format(BVCsummerSlope[4,]$smallYear.trend, digits = 3)`%yr^-1^ ± `r format(BVCsummerSlope[4,]$std.error, digits = 3)` and `r format(BVCwinterSlope[4,]$smallYear.trend, digits = 3)`%yr^-1^ ± `r format(BVCwinterSlope[4,]$std.error, digits = 3)`, respectively. In contrast, Apalachicola Bay did not have any significant change in BVC over the study period ([@fig-BVCPlot]).
+ANCOVA models for average percent bottom vegetation coverage (BVC) identified differences in mean annual percent BVC across all systems and seasons as well as an interaction between some systems and time [@tbl-bvcMeans]. Post-hoc analyses confirmed all systems had different average annual BVC from one another within each season. Specifically, Charlotte Harbor had the most coverage for both seasons ranging from `r format(winterSumBVCAll[4,]$estimate, digits = 3)`% ± `r format(winterSumBVCAll[4,]$std.error, digits = 3)` in winter to `r format(summerSumBVCAll[4,]$estimate, digits = 3)`% ± `r format(summerSumBVCAll[4,]$std.error, digits = 3)` in summer. Cedar Key averaged the lowest coverage, ranging from `r format(winterSumBVCAll[2,]$estimate, digits = 3)`% ± `r format(winterSumBVCAll[2,]$std.error, digits = 3)` in winter to `r format(summerSumBVCAll[2,]$estimate, digits = 3)`% ± `r format(summerSumBVCAll[2,]$std.error, digits = 3)` in summer. Tampa Bay and Apalachicola Bay were both in the middle of these ranges for both seasons [@tbl-bvcMeans]. Using post-hoc analyses to examine the trends over time for each system revealed Cedar Key was different than all other systems for the summer season, with a decrease in BVC at a rate of `r format(BVCsummerSlope[2,]$smallYear.trend, digits = 3)`%yr^-1^ ± `r format(BVCsummerSlope[2,]$std.error, digits = 3)` (magnitude of *t* ratios ≥ `r format(as.data.frame(summerBVCContrasts$contrasts)$t.ratio[3], digits = 3)` for all *p* ≤ 0.05). All other system pairs were not different from one another and had no change over time [TABLE]. The wintertime trend was more nuanced, where BVC in both Tampa Bay and Charlotte Harbor differed from the northern estuaries Apalachicola Bay and Cedar Key (magnitude of *t* ratios ≥ `r format(as.data.frame(winterBVCContrasts$contrasts)$t.ratio[2], digits = 3)` for all *p* ≤ 0.05) [TABLE]. BVC in Tampa Bay and Charlotte Harbor increased during the winter at a rate of `r format(BVCwinterSlope[3,]$smallYear.trend, digits = 3)`%yr^-1^ ± `r format(BVCwinterSlope[3,]$std.error, digits = 3)` and `r format(BVCwinterSlope[4,]$smallYear.trend, digits = 3)`%yr^-1^ ± `r format(BVCwinterSlope[4,]$std.error, digits = 3)`, respectively. Apalachicola Bay did not have any significant change in BVC over the study period ([@fig-BVCPlot]).
+
+```{r}
+#| label: tbl-bvcAncova 
+#| echo: FALSE 
+#| message: FALSE 
+#| tbl-cap: "Output of ancova model." 
+#| tbl-subcap: 
+#|   - "winter"
+#|   - "summer"
+
+pander(winterBVCSummary)
+pander(summerBVCSummary)
+```
+
+```{r}
+#| label: tbl-bvcAncovaContrast 
+#| echo: FALSE 
+#| message: FALSE 
+#| tbl-cap: "Contrasts of ancova model." 
+#| tbl-subcap: 
+#|   - "winter cont"
+#|   - "summer cont"
+
+pander(tidy(winterBVCContrasts$contrasts))
+#pander(tidy(winterBVCContrasts$lstrends))
+pander(tidy(summerBVCContrasts$contrasts))
+#pander(tidy(summerBVCContrasts$lstrends))
+```
 
 ```{r}
 #| label: tbl-bvcMeans 
@@ -365,71 +364,7 @@ pander(bvcMeans)
 #| message: FALSE 
 #| fig-width: 6.5 
 #| fig-height: 6 
-#| fig-cap: "Bottom vegetation coverage as a percentage averaged annually and plotted over time. Error bars are ± 1 standard error."
-
-# (winterBVCPlot <- ggplot(winterBVC,
-#                 aes(x     = contYear, 
-#                     y     = meanBVC, 
-#                     group = system,
-#                     color = system
-#                 )) + 
-#     geom_point() +
-#     coord_cartesian(ylim = c(0, 62)) +
-#     geom_smooth(method = "lm", 
-#                 formula = y ~ x,
-#                 se = FALSE,
-#                 data = winterBVC[winterBVC$system %in% c("TB", "CH"),],
-#                 linetype = "solid") +
-#     geom_smooth(method = "lm", 
-#                 formula = y ~ x,
-#                 se = FALSE,
-#                 data = winterBVC[winterBVC$system %in% c("AP", "CK"),],
-#                 linetype = "dashed") +
-#     geom_errorbar(aes(ymin = meanBVC-seBVC, ymax = meanBVC+seBVC))+
-#     labs(#title = "Annual Water Temperature Over Time",
-#       x     = "Year",
-#       y     = "Mean annual BVC",
-#       #fill  = NULL
-#     ) +
-#     scale_color_brewer(palette = "PuOr") +
-#     #scale_color_viridis_d() +
-#     theme_bw() +
-#   #facet_grid(~system) +
-#     theme(
-#       legend.position = "bottom"
-#     ))
-# 
-# (summerBVCPlot <- ggplot(summerBVC,
-#                 aes(x     = contYear, 
-#                     y     = meanBVC, 
-#                     group = system,
-#                     color = system
-#                 )) + 
-#     geom_point() +
-#     coord_cartesian(ylim = c(0, 62)) +
-#     geom_smooth(method = "lm", 
-#                 formula = y ~ x,
-#                 se = FALSE,
-#                 data = summerBVC[summerBVC$system %in% c("CK", "CH"),],
-#                 linetype = "solid") +
-#     geom_smooth(method = "lm", 
-#                 formula = y ~ x,
-#                 se = FALSE,
-#                 data = summerBVC[summerBVC$system %in% c("AP", "TB"),],
-#                 linetype = "dashed") +
-#     geom_errorbar(aes(ymin = meanBVC-seBVC, ymax = meanBVC+seBVC))+
-#     labs(#title = "Annual Water Temperature Over Time",
-#       x     = "Year",
-#       y     = "Mean annual BVC",
-#       #fill  = NULL
-#     ) +
-#     scale_color_brewer(palette = "PuOr") +
-#     #scale_color_viridis_d() +
-#     theme_bw() +
-#   #facet_grid(~system) +
-#     theme(
-#       legend.position = "bottom"
-#     ))
+#| fig-cap: "Bottom vegetation coverage as a percentage averaged annually and plotted over time. Error bars are ± 1 standard error. Solid lines indicate signficant modeled trends and dashed lines indicate a trend of no significance."
 
 (fullBVCPlot <- ggplot(summerBVC,
                 aes(x     = contYear, 
@@ -450,12 +385,12 @@ pander(bvcMeans)
     geom_smooth(method = "lm", 
                 formula = y ~ x,
                 se = FALSE,
-                data = summerBVC[summerBVC$system %in% c("CK", "CH"),],
+                data = summerBVC[summerBVC$system %in% c("CK"),],
                 linetype = "solid") +
     geom_smooth(method = "lm", 
                 formula = y ~ x,
                 se = FALSE,
-                data = summerBVC[summerBVC$system %in% c("AP", "TB"),],
+                data = summerBVC[summerBVC$system %in% c("AP", "TB", "CH"),],
                 linetype = "dashed") +
     geom_smooth(method = "lm", 
                 formula = y ~ x,
@@ -476,7 +411,8 @@ pander(bvcMeans)
     #scale_color_viridis_d() +
     theme_bw() +
     facet_wrap(~season,
-               nrow = 2) +
+               nrow = 2,
+               scales = "free_y") +
     theme(
       legend.position = "bottom"
     ))
