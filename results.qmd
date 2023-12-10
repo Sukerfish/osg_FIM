@@ -688,7 +688,7 @@ plot(fullRDAPlot)
 ```{r}
 #| label: CAP_processing
 #| include: FALSE
-load("./Outputs/CAPsforAll_Z_8m.RData")
+load("./Outputs/CAPsforAll_Z_infm.RData")
 
 #source https://github.com/jonpeake/forage-fish-public-code/blob/main/ForageFigures_CODE.R
 cap_pctvars <- function(cap_out){
@@ -803,36 +803,80 @@ sppvecs_list <- list()
 sppvecs_list_fix <- list()
 for(i in systemSeason_list$systemSeason){
 spp_vecs <- data.frame(CAPsforAll[[i]]$cproj) %>%
-  arrange(desc(abs(LD1))) %>%
-  slice_head(n = 3)
+  #arrange(desc(abs(LD1))) %>%
+  mutate(mag = sqrt(LD1^2 + LD2^2)) %>%
+  arrange(desc(abs(mag))) %>%
+  mutate(Scientificname = rownames(.)) %>%
+  #select(system, season, Scientificname, mag)
+  slice_head(n = 10)
 sppvecs_list_fix[[i]] <- spp_vecs
 }
-sppvecs_list_fixdf <- bind_rows(sppvecs_list_fix)
+sppvecs_list_fixdf <- bind_rows(sppvecs_list_fix, .id = "systemSeason")
+
+#spp_vecs_label <- list()
+#centroidPlots <- list()
+mainframe <- list()
+for(i in systemSeason_list$systemSeason){
+  print(i) #watch progress through list
+  
+  centers <- data.frame(CAPsforAll[[i]]$centroids)
+  
+  taxa <- sppvecs_list_fixdf %>%
+    filter(systemSeason == i) %>%
+    mutate(mag = sqrt(LD1^2 + LD2^2)) %>%
+    arrange(desc(abs(mag))) %>%
+    #select(system, season, Scientificname, mag)
+    slice_head(n = 3)
+  
+  interim <- data.frame(LD1var = round(cap_pctvars(CAPsforAll[[i]]), 2)[1],
+                        LD2var = round(cap_pctvars(CAPsforAll[[i]]), 2)[2],
+                        allVar = round(CAPsforAll[[i]]$percent, 2),
+                        axis1c = centers$axis1c,
+                        axis2c = centers$axis2c,
+                        df_env.seasonYear = centers$df_env.seasonYear,
+                        topTaxLD1 = taxa[1,2],
+                        topTaxLD2 = taxa[1,3],
+                        topTaxNam = taxa$Scientificname[1],
+                        twoTaxLD1 = taxa[2,2],
+                        twoTaxLD2 = taxa[2,3],
+                        twoTaxNam = taxa$Scientificname[2],
+                        thrTaxLD1 = taxa[1,2],
+                        thrTaxLD2 = taxa[1,3],
+                        thrTaxNam = taxa$Scientificname[3])
+  
+  mainframe[[i]] <- interim
+}
+
+centroidDf <- bind_rows(mainframe, .id = "systemSeason")
+
+stageOne <- sppvecs_list_fixdf %>%
+  select(systemSeason, Scientificname, LD1, LD2) %>%
+  ungroup() %>%
+  group_by(systemSeason) %>%
+  slice_head(n = 3)
+
+mult <- 3
 
 centroidPlots <- list()
 for(i in systemSeason_list$systemSeason){
-  print(i) #watch progress through list
-  var_CA <- round(cap_pctvars(CAPsforAll[[i]]), 2)
-  #var_CA <- round(100 * CAPsforAll[[i]][["lda.other"]][["svd"]]^2/sum(CAPsforAll[[i]][["lda.other"]][["svd"]]^2), 2)
-  site_scores <- data.frame(CAPsforAll[[i]]$x)
-  middles <- data.frame(CAPsforAll[[i]]$centroids)
-  spp_vecs <- data.frame(CAPsforAll[[i]]$cproj) %>%
-                           arrange(desc(abs(LD1))) %>%
-                           slice_head(n = 10) #grab only top 10 for axis 1 and plot
-  sppvecs_list[[i]] <- spp_vecs
-  mult <- .75
-  centroidPlots[[i]] <- ggplot(middles) + 
-    geom_vline(xintercept = 0,
+  indf <- centroidDf %>%
+    filter(systemSeason == i)
+  
+  taxdf <- stageOne %>%
+    filter(systemSeason == i)
+  
+  centroidPlots[[i]] <- ggplot(indf) +
+        geom_vline(xintercept = 0,
                colour     = "grey70",
                size       = .25) +
     geom_hline(yintercept = 0,
                colour     = "grey70",
                size       = .25) +
-    scale_x_continuous(limits       = symmetric_range(0.5+(mult)*sppvecs_list_fixdf$LD1),
-                       breaks       = c(-1,-0.5,0,0.5,1),
+    scale_x_continuous(limits       = symmetric_range(1+(mult)*sppvecs_list_fixdf$LD1),
+                       breaks       = c(-6,-3,0,3,6),
                        minor_breaks = NULL) +
-    scale_y_continuous(limits       = symmetric_range(0.5+(mult)*sppvecs_list_fixdf$LD2),
-                       breaks       = c(-1,-0.5,0,0.5,1),
+    scale_y_continuous(limits       = symmetric_range(1+(mult)*sppvecs_list_fixdf$LD2),
+                       breaks       = c(-6,-3,0,3,6),
                        minor_breaks = NULL) +
     geom_point(aes(x    = axis1c, 
                    y    = axis2c, 
@@ -841,9 +885,9 @@ for(i in systemSeason_list$systemSeason){
                stroke = 0.1,
                pch    = 21, 
                colour = "black") +
-    labs(title = paste0(i, " ", round(CAPsforAll[[i]]$percent, 2), "%"),
-         x     = paste("CA1 (",var_CA[1],"%)",sep=""),
-         y     = paste("CA2 (",var_CA[2],"%)",sep=""),
+    labs(title = paste0(i, " ", round(indf$allVar[1], 2), "%"),
+         x     = paste("CA1 (",indf$LD1var[1],"%)",sep=""),
+         y     = paste("CA2 (",indf$LD2var[1],"%)",sep=""),
          fill  = NULL) +
     scale_fill_gradient(
       low = "red",
@@ -859,7 +903,7 @@ for(i in systemSeason_list$systemSeason){
           legend.background = element_blank(),
           legend.key        = element_blank(),
           panel.grid        = element_blank()) +
-    geom_segment(data = spp_vecs,
+    geom_segment(data = taxdf,
                  aes(x    = 0,
                      xend = mult*LD1,
                      y    = 0,
@@ -867,11 +911,11 @@ for(i in systemSeason_list$systemSeason){
                  arrow = arrow(length = unit(0.1,"inches")),
                  color = "grey1",
                  size  = .75,
-                 alpha = 0.6)+
-  geom_label_repel(data = spp_vecs,
+                 alpha = 0.6) +
+  geom_label_repel(data = taxdf,
                    aes(x     = mult*LD1 + 0.2*cos(atan(LD2/LD1))*sign(LD1),
                        y     = mult*LD2 + 0.2*sin(atan(LD2/LD1))*sign(LD2),
-                       label = rownames(spp_vecs)),
+                       label = Scientificname),
                    segment.alpha = 0,
                    size          = 3.25,
                    color         = "blue",
@@ -881,25 +925,190 @@ for(i in systemSeason_list$systemSeason){
                    box.padding   = .25,
                    lineheight    = 0.4,
                    label.size    = 0.25,
-                   nudge_x       = ifelse(spp_vecs$LD1>0,0.05,-0.05),
-                   nudge_y       = ifelse(spp_vecs$LD2>-0.02,0.05,-0.05),
+                   #nudge_x       = ifelse(spp_vecs_label[[i]]$LD1>0,0.05,-0.05),
+                   #nudge_y       = ifelse(spp_vecs_label[[i]]$LD2>-0.02,0.05,-0.05),
                    force         = 0.3) +
   guides(fill = guide_legend(override.aes = list(size = 2.5),
                              keyheight    = 0.15,
                              keywidth     = 0.2))
-  
-  #ggsave(paste("./Outputs/CAPs/CAP_", i, ".tiff", sep = ""), CAPsforAll[[i]]$plots, width = 8, height = 8, dpi = 400)
+    
 }
-
-centroidCAP <- wrap_plots(centroidPlots,
+    
+    centroidCAP <- wrap_plots(centroidPlots,
            ncol = 2)
+    
+# 
+# #sppvecs_list[[i]] <- spp_vecs_label[[i]]
+#   mult <- 6
+#   centroidPlots[[i]] <- ggplot(middles) + 
+#     geom_vline(xintercept = 0,
+#                colour     = "grey70",
+#                size       = .25) +
+#     geom_hline(yintercept = 0,
+#                colour     = "grey70",
+#                size       = .25) +
+#     scale_x_continuous(limits       = symmetric_range(1+(mult)*sppvecs_list_fixdf$LD1),
+#                        breaks       = c(-6,-3,0,3,6),
+#                        minor_breaks = NULL) +
+#     scale_y_continuous(limits       = symmetric_range(1+(mult)*sppvecs_list_fixdf$LD2),
+#                        breaks       = c(-6,-3,0,3,6),
+#                        minor_breaks = NULL) +
+#     geom_point(aes(x    = axis1c, 
+#                    y    = axis2c, 
+#                    fill = as.numeric(as.character(df_env.seasonYear))),
+#                size   = 4, 
+#                stroke = 0.1,
+#                pch    = 21, 
+#                colour = "black") +
+#     labs(title = paste0(i, " ", round(CAPsforAll[[i]]$percent, 2), "%"),
+#          x     = paste("CA1 (",var_CA[1],"%)",sep=""),
+#          y     = paste("CA2 (",var_CA[2],"%)",sep=""),
+#          fill  = NULL) +
+#     scale_fill_gradient(
+#       low = "red",
+#       high = "blue",
+#       space = "Lab",
+#       na.value = "grey50",
+#       guide = "colourbar",
+#       aesthetics = "fill"
+#     ) +
+#     theme_bw() +
+#     theme(legend.text       = element_text(size=rel(0.8)),
+#           legend.position   = c(0.055,0.89),
+#           legend.background = element_blank(),
+#           legend.key        = element_blank(),
+#           panel.grid        = element_blank()) +
+#     geom_segment(data = spp_vecs_label[[i]],
+#                  aes(x    = 0,
+#                      xend = mult*LD1,
+#                      y    = 0,
+#                      yend = mult*LD2),
+#                  arrow = arrow(length = unit(0.1,"inches")),
+#                  color = "grey1",
+#                  size  = .75,
+#                  alpha = 0.6)+
+#   geom_label_repel(data = spp_vecs_label[[i]],
+#                    aes(x     = mult*LD1 + 0.2*cos(atan(LD2/LD1))*sign(LD1),
+#                        y     = mult*LD2 + 0.2*sin(atan(LD2/LD1))*sign(LD2),
+#                        label = rownames(spp_vecs_label[[i]])),
+#                    segment.alpha = 0,
+#                    size          = 3.25,
+#                    color         = "blue",
+#                    fontface      = "bold",
+#                    fill          = "white",
+#                    alpha         = 0.7,
+#                    box.padding   = .25,
+#                    lineheight    = 0.4,
+#                    label.size    = 0.25,
+#                    nudge_x       = ifelse(spp_vecs_label[[i]]$LD1>0,0.05,-0.05),
+#                    nudge_y       = ifelse(spp_vecs_label[[i]]$LD2>-0.02,0.05,-0.05),
+#                    force         = 0.3) +
+#   guides(fill = guide_legend(override.aes = list(size = 2.5),
+#                              keyheight    = 0.15,
+#                              keywidth     = 0.2))
+#   
+#   #ggsave(paste("./Outputs/CAPs/CAP_", i, ".tiff", sep = ""), CAPsforAll[[i]]$plots, width = 8, height = 8, dpi = 400)
+# }
+# 
+# spp_vecs_label <- list()
+# centroidPlots <- list()
+# for(i in systemSeason_list$systemSeason){
+#   print(i) #watch progress through list
+#   var_CA <- round(cap_pctvars(CAPsforAll[[i]]), 2)
+#   #var_CA <- round(100 * CAPsforAll[[i]][["lda.other"]][["svd"]]^2/sum(CAPsforAll[[i]][["lda.other"]][["svd"]]^2), 2)
+#   site_scores <- data.frame(CAPsforAll[[i]]$x)
+#   middles <- data.frame(CAPsforAll[[i]]$centroids)
+#   spp_vecs_label[[i]] <- sppvecs_list_fixdf %>%
+#     filter(systemSeason == i) %>%
+#     #data.frame(CAPsforAll[[i]]$cproj) %>%
+#                            # arrange(desc(abs(LD1))) %>%
+#                            # slice_head(n = 3) #grab only top 10 for axis 1 and plot
+#         mutate(mag = sqrt(LD1^2 + LD2^2)) %>%
+#   arrange(desc(abs(mag))) %>%
+#   #select(system, season, Scientificname, mag)
+#   slice_head(n = 3)
+#     
+#   sppvecs_list[[i]] <- spp_vecs_label[[i]]
+#   mult <- 6
+#   centroidPlots[[i]] <- ggplot(middles) + 
+#     geom_vline(xintercept = 0,
+#                colour     = "grey70",
+#                size       = .25) +
+#     geom_hline(yintercept = 0,
+#                colour     = "grey70",
+#                size       = .25) +
+#     scale_x_continuous(limits       = symmetric_range(1+(mult)*sppvecs_list_fixdf$LD1),
+#                        #breaks       = c(-6,-3,0,3,6),
+#                        minor_breaks = NULL) +
+#     scale_y_continuous(limits       = symmetric_range(1+(mult)*sppvecs_list_fixdf$LD2),
+#                        #breaks       = c(-6,-3,0,3,6),
+#                        minor_breaks = NULL) +
+#     geom_point(aes(x    = axis1c, 
+#                    y    = axis2c, 
+#                    fill = as.numeric(as.character(df_env.seasonYear))),
+#                size   = 4, 
+#                stroke = 0.1,
+#                pch    = 21, 
+#                colour = "black") +
+#     labs(#title = paste0(i, " ", round(CAPsforAll[[i]]$percent, 2), "%"),
+#          x     = paste("CA1 (",var_CA[1],"%)",sep=""),
+#          y     = paste("CA2 (",var_CA[2],"%)",sep=""),
+#          fill  = NULL) +
+#     scale_fill_gradient(
+#       low = "red",
+#       high = "blue",
+#       space = "Lab",
+#       na.value = "grey50",
+#       guide = "colourbar",
+#       aesthetics = "fill"
+#     ) +
+#     theme_bw() +
+#     theme(legend.text       = element_text(size=rel(0.8)),
+#           legend.position   = c(0.055,0.89),
+#           legend.background = element_blank(),
+#           legend.key        = element_blank(),
+#           panel.grid        = element_blank()) +
+#     geom_segment(data = spp_vecs_label[[i]],
+#                  aes(x    = 0,
+#                      xend = mult*LD1,
+#                      y    = 0,
+#                      yend = mult*LD2),
+#                  arrow = arrow(length = unit(0.1,"inches")),
+#                  color = "grey1",
+#                  size  = .75,
+#                  alpha = 0.6)+
+#   geom_label_repel(data = spp_vecs_label[[i]],
+#                    aes(x     = mult*LD1 + 0.2*cos(atan(LD2/LD1))*sign(LD1),
+#                        y     = mult*LD2 + 0.2*sin(atan(LD2/LD1))*sign(LD2),
+#                        label = rownames(spp_vecs_label[[i]])),
+#                    segment.alpha = 0,
+#                    size          = 3.25,
+#                    color         = "blue",
+#                    fontface      = "bold",
+#                    fill          = "white",
+#                    alpha         = 0.7,
+#                    box.padding   = .25,
+#                    lineheight    = 0.4,
+#                    label.size    = 0.25,
+#                    nudge_x       = ifelse(spp_vecs_label[[i]]$LD1>0,0.05,-0.05),
+#                    nudge_y       = ifelse(spp_vecs_label[[i]]$LD2>-0.02,0.05,-0.05),
+#                    force         = 0.3) +
+#   guides(fill = guide_legend(override.aes = list(size = 2.5),
+#                              keyheight    = 0.15,
+#                              keywidth     = 0.2))
+#   
+#   #ggsave(paste("./Outputs/CAPs/CAP_", i, ".tiff", sep = ""), CAPsforAll[[i]]$plots, width = 8, height = 8, dpi = 400)
+# }
+# 
+# centroidCAP <- wrap_plots(centroidPlots,
+#            ncol = 2)
 
 # table assembly
 spp_vec_setup <- list()
 for(i in systemSeason_list$systemSeason){
 xf <- data.frame(CAPsforAll[[i]]$cproj) %>%
   arrange(desc(abs(LD1))) %>%
-  slice_head(n = 10) %>%
+  slice_head(n = 5) %>%
   mutate(Scientificname = row.names(.)) %>%
   pivot_longer(cols = starts_with("LD"), names_to = "axisVar") %>%
   filter(axisVar %in% c("LD1", "LD2")) %>%
@@ -915,9 +1124,23 @@ topSpp <- bind_rows(spp_vec_setup)
 
 sysSpp <- topSpp %>%
   group_by(system, season) %>%
-  filter(axisVar == "LD1") %>%
-  filter(value == max(value)) %>%
-  select(system, season, Scientificname)
+  filter(axisVar %in% c("LD1","LD2")) %>%
+  pivot_wider(names_from = axisVar) %>%
+  mutate(mag = sqrt(LD1^2 + LD2^2)) %>%
+  filter(mag == max(mag)) %>%
+  select(system, season, Scientificname, mag)
+
+confuseM <- list()
+for(i in systemSeason_list$systemSeason){
+  group <- data.frame()
+     CV <- data.frame()
+     
+     group <- CAPsforAll[[i]]$group
+     CV <- CAPsforAll[[i]]$CV
+     
+ confuseM[[i]]  <- caret::confusionMatrix(data = CV, reference = group)
+}
+
 ```
 
 CAP analyses revealed little in the way of discernible yearly patterns ([@fig-centroidCAP]). All CAP analyses used 8 dimensions except Cedar Key summer which selected to 7. Only three taxa were selected as the top associated with year separation on the first canonical axis (see [@tbl-CAPtaxa]). The range of variability described by the CAP models was `r paste0(round(min(topSpp$percent),2), "%")` to `r paste0(round(max(topSpp$percent),2), "%")`.
