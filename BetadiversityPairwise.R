@@ -148,12 +148,12 @@ turnSummer <- betaTimeDF %>%
   filter(season == "Summer") %>%
   filter(Index == "Balanced")
 
-betaWinterLm <- lm(value ~ smallYear * system, data = betaWinter)
-nestWinterLm <- lm(value ~ smallYear * system, data = nestWinter)
-turnWinterLm <- lm(value ~ smallYear * system, data = turnWinter)
-betaSummerLm <- lm(value ~ smallYear * system, data = betaSummer)
-nestSummerLm <- lm(value ~ smallYear * system, data = nestSummer)
-turnSummerLm <- lm(value ~ smallYear * system, data = turnSummer)
+betaWinterLm <- aov(value ~ smallYear * system, data = betaWinter)
+nestWinterLm <- aov(value ~ smallYear * system, data = nestWinter)
+turnWinterLm <- aov(value ~ smallYear * system, data = turnWinter)
+betaSummerLm <- aov(value ~ smallYear * system, data = betaSummer)
+nestSummerLm <- aov(value ~ smallYear * system, data = nestSummer)
+turnSummerLm <- aov(value ~ smallYear * system, data = turnSummer)
 
 # ggsave(plot = betaTimePlot,
 #        filename = "./Outputs/betaTime.png",
