@@ -188,7 +188,7 @@ All analyses were conducted using the R Statistical Computing Environment v4.3.0
 
 To address if the richness and abundance of eGOM estuarine fish assemblages has changed over the study period, I modeled richness and abundance per haul across all estuaries for both the summer and winter seasons using generalized linear mixed models (GLMMs) from the R package *glmmTMB* [@glmmTMB]. Given the well-documented seasonal differences in estuarine systems [see @Hagan2003; @Strydom2015; @Schrandt2020], in this and all subsequent analyses, summer and winter are treated entirely separately. For each seine haul, I calculated the richness as the number of taxa present and total abundance as the sum of all individuals counted. In all calculations, total abundance was fourth-root transformed to reduce the effects of overly-abundant taxa, given total abundance ranged from a maximum of `r format(max(totAbModelDF$abundRaw), nsmall = 0)` to `r format(min(totAbModelDF$abundRaw), nsmall = 0)`. For each model, the response in the GLMM included either the richness or transformed abundance of each haul, with estuary (four levels) as a fixed effect and year as a random effect. To account for serial autocorrelation, an `ar1` covariance matrix was used in each model calculated from month of sampling event and within-estuary zone. Given that species richness is strongly affected by sampling effort [@Mittelbach2019], I included an offset term to account for variation in the number of seine hauls. Before examining the relationship between temperature and richness/abundance, I used permutational multivariate analysis of variance (PERMANOVA) from the R package *vegan* to examine the interaction between estuary and time, as a means to determine if there are different magnitudes and directions of temporal change among estuaries and thus if each estuary should be treated separately [@vegan].
 
-To explore whether the composition and abundance has changed over the same time period and if it may be related to water temperature, I used several techniques. First, I examined the turnover and nestedness of each system through time using the R package *betapart* [@betapart]. Then, I ran additional GLMM models for each estuary, but included random terms for Z-scored water temperature and Z-scored percent bottom vegetation coverage (BVC). In all cases, the same `ar1` covariance structure was used as before as well as an offset term for sampling effort. To explore the relationship of temperature to richness and abundance, I used multiple GLMM models wherein the formula used for each was: `response ~ (1|year_Z) + temp_Z +  bvc_Z + offset(log(n_hauls)) + ar1(yearMonth + 0|systemZone)` where `response` was either total abundance or total richness per haul. I used distance-based redundancy analysis (dbRDA) from the R package *vegan* to explore the magnitude and direction of effect of water temperature and BVC in multivariate species-space. Finally, to explore the *a priori* hypothesis of a possible "directional" change in species space over time, I used canonical analysis of principal coordinates (CAP) models from the R package *BiodiversityR* for each estuary and season [@BiodiversityR]. Following [@Dornelas2019], I further examined individual taxa for change over time. Within each estuary and season, I ran a linear model on the transformed abundance of each taxa independently and tested for significance. This was used to determine both the magnitude and direction of change at the species level, thus describing the distribution of "winners and losers" across each estuarine system. Finally, climatological association data were pulled from Fishbase using *rfishbase* [@rfishbase]. Unless otherwise indicated, mean values reported from these analyses will be reported as mean ± one standard error.
+To explore whether the composition and abundance has changed over the same time period and if it may be related to water temperature, I used several techniques. First, I examined the turnover and nestedness of each system through time using the R package *betapart* [@betapart]. Then, I ran additional GLMM models for each estuary, but included random terms for Z-scored water temperature and Z-scored percent bottom vegetation coverage (BVC). In all cases, the same `ar1` covariance structure was used as before as well as an offset term for sampling effort. To explore the relationship of temperature to richness and abundance, I used multiple GLMM models wherein the formula used for each was: `response ~ (1|year_Z) + temp_Z +  bvc_Z + offset(log(n_hauls)) + ar1(yearMonth + 0|systemZone)` where `response` was either total abundance or total richness per haul. I used distance-based redundancy analysis (dbRDA) from the R package *vegan* to explore the magnitude and direction of effect of water temperature and BVC in multivariate species-space. Finally, to explore the *a priori* hypothesis of a possible "directional" change in species space over time, I used canonical analysis of principal coordinates (CAP) models from the R package *BiodiversityR* for each estuary and season [@BiodiversityR]. Following Dornelas et al.[-@Dornelas2019], I further examined individual taxa for change over time. Within each estuary and season, I ran a linear model on the transformed abundance of each taxa independently and tested for significance. This was used to determine both the magnitude and direction of change at the species level, thus describing the distribution of "winners and losers" across each estuarine system. Finally, climatological association data were pulled from Fishbase using *rfishbase* [@rfishbase]. Unless otherwise indicated, mean values reported from these analyses will be reported as mean ± one standard error.
 
 # Results {#sec-results .unnumbered}
 
@@ -227,13 +227,14 @@ Results of the water temperature ANCOVAs indicated a significant positive trend 
 #| label: tbl-tempAncova 
 #| echo: FALSE 
 #| message: FALSE 
-#| tbl-cap: "Output of ancova model." 
+#| tbl-cap: "Output of ANOCVA models." 
 #| tbl-subcap: 
-#|   - "winter"
 #|   - "summer"
+#|   - "winter"
 
-pander(winterSummary)
 pander(summerSummary)
+pander(winterSummary)
+
 ```
 
 Using post-hoc contrasts, I parsed out these differences among estuaries and seasons. For the winter season, I determined Apalachicola Bay and Cedar Key averaged `r format(winterSumAll[1,]$estimate, digits = 3)`°C ± `r format(winterSumAll[1,]$std.error, digits = 2)` during the study period, compared to `r format(winterSumAll[3,]$estimate, digits = 3)`°C ± `r format(winterSumAll[3,]$std.error, digits = 2)` for Tampa Bay and `r format(winterSumAll[4,]$estimate, digits = 3)`°C ± `r format(winterSumAll[4,]$std.error, digits = 2)` for Charlotte Harbor (*t* ratios ≥ `r format(as.data.frame(winterSummaryAll$contrasts)[6,5], digits = 4)` for all *p* ≤ 0.05; [@tbl-tempAncovaContrast]). However, for the summer, Charlotte Harbor averaged warmer than all other systems at `r format(summerSumAll[4,]$estimate, digits = 3)`°C ± `r format(summerSumAll[4,]$std.error, digits = 2)` (*t* ratios ≥ `r format(as.data.frame(summerSummaryAll$contrasts)[6,5], digits = 4)` for all *p* ≤ 0.05; [@tbl-tempAncovaContrast]). Average water temperatures in Cedar Key and Apalachicola Bay were not different from one another (`r format(summerSumAll[1,]$estimate, digits = 3)`°C ± `r format(summerSumAll[1,]$std.error, digits = 2)`), although Tampa Bay was significantly different than Cedar Key, but not Apalachicola Bay, averaging `r format(summerSumAll[3,]$estimate, digits = 3)`°C ± `r format(summerSumAll[3,]$std.error, digits = 2)`. For all systems during winter, water temperature increased at a rate of `r format(winterSummary[2,]$estimate, digits = 2)`°Cyr^-1^ ± `r format(winterSummary[2,]$std.error, digits = 2)` and we found no difference in this rate among estuaries. Similarly, during summer, water temperature increased in all systems at a rate of `r format(summerSummary[2,]$estimate, digits = 2)`°Cyr^-1^ ± `r format(summerSummary[2,]$std.error, digits = 2)` and we again found no difference in rate among estuaries ([@fig-TempPlot]).
@@ -242,13 +243,14 @@ Using post-hoc contrasts, I parsed out these differences among estuaries and sea
 #| label: tbl-tempAncovaContrast 
 #| echo: FALSE 
 #| message: FALSE 
-#| tbl-cap: "Contrasts of ancova models. Tukey method applied for p-value correction." 
+#| tbl-cap: "Contrasts from ANCOVA models. Tukey method applied for p-value correction." 
 #| tbl-subcap: 
-#|   - "winter"
 #|   - "summer"
+#|   - "winter"
 #|   
-pander(summary(winterSummaryAll$contrasts))
 pander(summary(summerSummaryAll$contrasts))
+pander(summary(winterSummaryAll$contrasts))
+
 ```
 
 ```{r}
@@ -318,27 +320,27 @@ ANCOVA models for average percent bottom vegetation coverage (BVC) identified di
 #| label: tbl-bvcAncova 
 #| echo: FALSE 
 #| message: FALSE 
-#| tbl-cap: "Output of ancova model." 
+#| tbl-cap: "Output of ANCOVA models." 
 #| tbl-subcap: 
-#|   - "winter"
 #|   - "summer"
-
-pander(winterBVCSummary)
+#|   - "winter"
 pander(summerBVCSummary)
+pander(winterBVCSummary)
+
 ```
 
 ```{r}
 #| label: tbl-bvcAncovaContrast 
 #| echo: FALSE 
 #| message: FALSE 
-#| tbl-cap: "Contrasts of ancova model." 
+#| tbl-cap: "Contrasts from ANCOVA models. Tukey method applied for p-value correction." 
 #| tbl-subcap: 
-#|   - "winter cont"
 #|   - "summer cont"
-
+#|   - "winter cont"
+pander(tidy(summerBVCContrasts$contrasts))
 pander(tidy(winterBVCContrasts$contrasts))
 #pander(tidy(winterBVCContrasts$lstrends))
-pander(tidy(summerBVCContrasts$contrasts))
+
 #pander(tidy(summerBVCContrasts$lstrends))
 ```
 
@@ -346,12 +348,12 @@ pander(tidy(summerBVCContrasts$contrasts))
 #| label: tbl-bvcMeans 
 #| echo: FALSE 
 #| message: FALSE 
-#| tbl-cap: "Least square means of each system for both seasonal linear models. P-values for pairwise contrasts used tukey method for correction." 
+#| tbl-cap: "Least square means of each system for both seasonal linear models." 
 
-bvcMeans <- winterSumBVCAll  %>%
-  mutate(season = "winter") %>%
-  full_join(summerSumBVCAll) %>%
-  mutate(season = ifelse(!is.na(season), "winter", "summer")) %>%
+bvcMeans <- summerSumBVCAll  %>%
+  mutate(season = "summer") %>%
+  full_join(winterSumBVCAll) %>%
+  mutate(season = ifelse(!is.na(season), "summer", "winter")) %>%
   select(system, season, estimate, std.error) %>%
   mutate(std.error = format(std.error, digits = 3))
 
@@ -450,12 +452,31 @@ plot(AbundPlot_ann)
 #| cache: TRUE
 source("BetadiversityPairwise.R")
 
-betaWinterSummary <- tidy(betaWinterLm)
-betaSummerSummary <- tidy(betaSummerLm)
+overallBeta <- betaTimeDF %>%
+  filter(Index == "Overall")
+
+#pairwise emmeans
+betaWinterSummaryAll <- lsmeans(betaWinterLm, spec = "system", contr = "revpairwise")
+betaSummerSummaryAll <- lsmeans(betaSummerLm, spec = "system", contr = "revpairwise")
+
+betaWinterSumAll <- tidy(betaWinterSummaryAll$lsmeans)
+betaSummerSumAll <- tidy(betaSummerSummaryAll$lsmeans)
+
+#pairwise slope checks
+betaWinterContrasts <- lstrends(betaWinterLm, ~ system, var = "smallYear", contr = "revpairwise")
+betaSummerContrasts <- lstrends(betaSummerLm, ~ system, var = "smallYear", contr = "revpairwise")
+
+betaWinterSlope <- tidy(betaWinterContrasts$lstrends)
+betaSummerSlope <- tidy(betaSummerContrasts$lstrends)
+
+betaWinterContSlope <- tidy(betaWinterContrasts$contrasts)
+betaSummerContSlope <- tidy(betaSummerContrasts$contrasts)
+
+betaWinterSummary <- tidy(summary.lm(betaWinterLm))
+betaSummerSummary <- tidy(summary.lm(betaSummerLm))
 ```
 
-Nestedness and turnover components of Bray-Curtis pairwise dissimilarity over time reveal a general trend of stability during the summer. However, during winter, particularly in the northern estuaries (Apalachicola and Cedar Key), there is considerably higher variability in the years after 2010 ([@fig-betadiversity]). Summary: winter, overall beta is increasing over time equally for AP CK TB... a little slower for CH and only marginally. Overall beta is not changing in the summer. Turnover in winter is slowly increasing over time for all systems at same rate. But turnover is not changing in the summer. Nestedness is only changing significantly in winter in CH and it is decreasing. Not changing in the summer.
-
+Nestedness and turnover components of Bray-Curtis pairwise dissimilarity over time reveal a general trend of stability during the summer with no significant change over time among any of the estuaries. However, during winter, there is a trend of increasing dissimilarity at a rate of  through time for all estuaries [@tbl-betaModels]. In addition, during winter, particularly in the northern estuaries (Apalachicola and Cedar Key), there is considerably higher variability in the years after 2010 ([@fig-betadiversity]). Within dissimilarity overall, there are clear variations in the underlying components of betadiversity (turnover and nestedness), though they are not modeled here.
 ```{r}
 #| label: fig-betadiversity
 #| echo: FALSE
@@ -464,7 +485,7 @@ Nestedness and turnover components of Bray-Curtis pairwise dissimilarity over ti
 #| fig-height: 5
 #| fig-cap: "Partitioned betadiversity calculated pairwise with respect to the first year of available data. Balanced represents turnover and gradient represents nestedness."
 
-(betaTimePlot <- ggplot(aes(x = smallYear,
+(betaTimePlot <- ggplot(aes(x = contYear,
                             y = value,
                             color = Index),
                         data = betaTimeDF) +
@@ -477,12 +498,18 @@ Nestedness and turnover components of Bray-Curtis pairwise dissimilarity over ti
   # scale_color_viridis_d(option = "viridis") +
     geom_smooth(method = "lm",
                 formula = y ~ x,
-                se = FALSE) +
+                se = FALSE,
+                data = overallBeta[overallBeta$season %in% c("Summer"),],
+                linetype = "dashed") +
+       geom_smooth(method = "lm",
+                formula = y ~ x,
+                se = FALSE,
+                data = overallBeta[overallBeta$season %in% c("Winter"),],
+                linetype = "solid") +
   scale_color_brewer(palette = "Set1") +
   labs(#title = "Abundance-based dissimilarity over time",
        x = "Year",
-       y = "Betadiversity index",
-       color = "Component") +
+       y = "Betadiversity index") +
   theme_bw() +
   theme(legend.position="bottom"))
 ```
@@ -491,17 +518,18 @@ Nestedness and turnover components of Bray-Curtis pairwise dissimilarity over ti
 #| label: tbl-betaModels 
 #| echo: FALSE 
 #| message: FALSE 
-#| tbl-cap: "Coefficients of year on linear models run within each estuary. Bolded values are significant at alpha 0.05." 
+#| tbl-cap: "Outputs of ANCOVA models for betadiversity." 
 #| tbl-subcap:
-#|   - "Winter"
 #|   - "Summer"
-emphasize.strong.cells(which(betaWinterSummary < 0.05, arr.ind = TRUE)) 
-pander(betaWinterSummary)
+#|   - "Winter"
 emphasize.strong.cells(which(betaSummerSummary < 0.05, arr.ind = TRUE)) 
 pander(betaSummerSummary)
+emphasize.strong.cells(which(betaWinterSummary < 0.05, arr.ind = TRUE)) 
+pander(betaWinterSummary)
+
 ```
 
-Before examining the relationship between temperature and richness/abundance, I used PERMANOVA to test for any significant interaction between estuary and year. Indeed, for both seasons, the interaction between year and estuary was significant ([@tbl-fullPERMANOVA]).
+Next, I used PERMANOVA to test for any significant interaction between estuary and year in species-space. Indeed, for both seasons, the interaction between year and estuary was significant ([@tbl-fullPERMANOVA]).
 
 ```{r}
 #| label: PERMANOVA
@@ -515,13 +543,15 @@ load("bigPERMANOVAs.RData")
 #| message: FALSE
 #| tbl-cap: "Summary outputs from PERMANOVAs conducted for each season. Values in bold are significant at alpha of 0.05."
 #| tbl-subcap:
-#|   - "Winter"
 #|   - "Summer"
-emphasize.strong.cells(which(winterfAbundPERM < 0.05, arr.ind = TRUE))
-pander(winterfAbundPERM)
+#|   - "Winter"
 
 emphasize.strong.cells(which(summerfAbundPERM < 0.05, arr.ind = TRUE))
 pander(summerfAbundPERM)
+
+emphasize.strong.cells(which(winterfAbundPERM < 0.05, arr.ind = TRUE))
+pander(winterfAbundPERM)
+
 ```
 
 Total abundance was significantly affected by BVC in almost all estuaries, while the only case when temperature was significant in the summer was in Apalachicola Bay ([@tbl-abundModels]). Otherwise, temperature was significant in all estuaries in the winter. In all cases, temperature and BVC were positively correlated with total abundance, with the magnitude of the effect from BVC typically twice as large as that of temperature (where significant). The exception to this is winter in Apalachicola, where the effect of temperature is nearly twice the effect of BVC.
@@ -559,6 +589,14 @@ systemSeason_list <- SXS_filtered %>%
   select(systemSeason) %>%
   distinct()
 
+# perms <- list()
+# stageZero <- list()
+# for(i in systemSeason_list$systemSeason){
+#   print(i)
+#   perms[[i]] <- permutest(x = RDAsforAll[[i]]$rda, permutations = 999, parallel = 4)
+#   #stageZero[[i]] <- tidy(perms[[i]])
+# }
+
 RDAaxesVar <- list()
 plotsforAll <- list()
 #rdaVecslist <- list()
@@ -593,7 +631,7 @@ for(i in systemSeason_list$systemSeason){
     scale_y_continuous(limits       = symmetric_range,
                        breaks       = c(-6,-1,0,1,6),
                        minor_breaks = NULL) +
-    labs(title = i, 
+    labs(title = paste0(i, " ", round((RsquareAdj(RDAsforAll[[i]]$rda)$adj.r.squared*100), 2), "%"), 
          x     = paste("CA1 (", round(100*RDAsforAll[[i]]$rda$CCA$eig[1]/RDAsforAll[[i]]$rda$tot.chi,2), "%)", sep = ""),
          y     = paste("CA1 (", round(100*RDAsforAll[[i]]$rda$CCA$eig[2]/RDAsforAll[[i]]$rda$tot.chi,2), "%)", sep = ""))+
     scale_color_manual(values = c("blue","darkgreen"),
@@ -664,6 +702,7 @@ for(i in systemSeason_list$systemSeason){
   
   RDAaxesVar[[i]]$CA1 <- round(100*RDAsforAll[[i]]$rda$CCA$eig[1]/RDAsforAll[[i]]$rda$tot.chi,2)
   RDAaxesVar[[i]]$CA2 <- round(100*RDAsforAll[[i]]$rda$CCA$eig[2]/RDAsforAll[[i]]$rda$tot.chi,2)
+  RDAaxesVar[[i]]$fullModel <- round((RsquareAdj(RDAsforAll[[i]]$rda)$adj.r.squared*100), 2)
 }
 
 fullRDAPlot <- wrap_plots(plotsforAll,
@@ -672,7 +711,7 @@ fullRDAPlot <- wrap_plots(plotsforAll,
 RDAaxes <- bind_rows(RDAaxesVar, .id = "systemSeason")
 ```
 
-I followed up with a dbRDA. For all systems and seasons, water temperature and BVC indeed tested as significant ([@fig-RDAforAll]). The range of variation explained by the first canonical axis was `r min(RDAaxes$CA1)`% to `r max(RDAaxes$CA1)`% with the range of the second canonical axis as `r min(RDAaxes$CA2)`% to `r max(RDAaxes$CA2)`% across all models.
+I followed up with a dbRDA. For all systems and seasons, water temperature and BVC indeed tested as significant ([@fig-RDAforAll]). The range of variation explained by the models was `r min(RDAaxes$fullModel)`% to `r max(RDAaxes$fullModel)`%. The range of variation explained by the first canonical axis was `r min(RDAaxes$CA1)`% to `r max(RDAaxes$CA1)`% with the range of the second canonical axis as `r min(RDAaxes$CA2)`% to `r max(RDAaxes$CA2)`% across all models.
 
 ```{r}
 #| label: fig-RDAforAll
@@ -937,172 +976,6 @@ for(i in systemSeason_list$systemSeason){
     centroidCAP <- wrap_plots(centroidPlots,
            ncol = 2)
     
-# 
-# #sppvecs_list[[i]] <- spp_vecs_label[[i]]
-#   mult <- 6
-#   centroidPlots[[i]] <- ggplot(middles) + 
-#     geom_vline(xintercept = 0,
-#                colour     = "grey70",
-#                size       = .25) +
-#     geom_hline(yintercept = 0,
-#                colour     = "grey70",
-#                size       = .25) +
-#     scale_x_continuous(limits       = symmetric_range(1+(mult)*sppvecs_list_fixdf$LD1),
-#                        breaks       = c(-6,-3,0,3,6),
-#                        minor_breaks = NULL) +
-#     scale_y_continuous(limits       = symmetric_range(1+(mult)*sppvecs_list_fixdf$LD2),
-#                        breaks       = c(-6,-3,0,3,6),
-#                        minor_breaks = NULL) +
-#     geom_point(aes(x    = axis1c, 
-#                    y    = axis2c, 
-#                    fill = as.numeric(as.character(df_env.seasonYear))),
-#                size   = 4, 
-#                stroke = 0.1,
-#                pch    = 21, 
-#                colour = "black") +
-#     labs(title = paste0(i, " ", round(CAPsforAll[[i]]$percent, 2), "%"),
-#          x     = paste("CA1 (",var_CA[1],"%)",sep=""),
-#          y     = paste("CA2 (",var_CA[2],"%)",sep=""),
-#          fill  = NULL) +
-#     scale_fill_gradient(
-#       low = "red",
-#       high = "blue",
-#       space = "Lab",
-#       na.value = "grey50",
-#       guide = "colourbar",
-#       aesthetics = "fill"
-#     ) +
-#     theme_bw() +
-#     theme(legend.text       = element_text(size=rel(0.8)),
-#           legend.position   = c(0.055,0.89),
-#           legend.background = element_blank(),
-#           legend.key        = element_blank(),
-#           panel.grid        = element_blank()) +
-#     geom_segment(data = spp_vecs_label[[i]],
-#                  aes(x    = 0,
-#                      xend = mult*LD1,
-#                      y    = 0,
-#                      yend = mult*LD2),
-#                  arrow = arrow(length = unit(0.1,"inches")),
-#                  color = "grey1",
-#                  size  = .75,
-#                  alpha = 0.6)+
-#   geom_label_repel(data = spp_vecs_label[[i]],
-#                    aes(x     = mult*LD1 + 0.2*cos(atan(LD2/LD1))*sign(LD1),
-#                        y     = mult*LD2 + 0.2*sin(atan(LD2/LD1))*sign(LD2),
-#                        label = rownames(spp_vecs_label[[i]])),
-#                    segment.alpha = 0,
-#                    size          = 3.25,
-#                    color         = "blue",
-#                    fontface      = "bold",
-#                    fill          = "white",
-#                    alpha         = 0.7,
-#                    box.padding   = .25,
-#                    lineheight    = 0.4,
-#                    label.size    = 0.25,
-#                    nudge_x       = ifelse(spp_vecs_label[[i]]$LD1>0,0.05,-0.05),
-#                    nudge_y       = ifelse(spp_vecs_label[[i]]$LD2>-0.02,0.05,-0.05),
-#                    force         = 0.3) +
-#   guides(fill = guide_legend(override.aes = list(size = 2.5),
-#                              keyheight    = 0.15,
-#                              keywidth     = 0.2))
-#   
-#   #ggsave(paste("./Outputs/CAPs/CAP_", i, ".tiff", sep = ""), CAPsforAll[[i]]$plots, width = 8, height = 8, dpi = 400)
-# }
-# 
-# spp_vecs_label <- list()
-# centroidPlots <- list()
-# for(i in systemSeason_list$systemSeason){
-#   print(i) #watch progress through list
-#   var_CA <- round(cap_pctvars(CAPsforAll[[i]]), 2)
-#   #var_CA <- round(100 * CAPsforAll[[i]][["lda.other"]][["svd"]]^2/sum(CAPsforAll[[i]][["lda.other"]][["svd"]]^2), 2)
-#   site_scores <- data.frame(CAPsforAll[[i]]$x)
-#   middles <- data.frame(CAPsforAll[[i]]$centroids)
-#   spp_vecs_label[[i]] <- sppvecs_list_fixdf %>%
-#     filter(systemSeason == i) %>%
-#     #data.frame(CAPsforAll[[i]]$cproj) %>%
-#                            # arrange(desc(abs(LD1))) %>%
-#                            # slice_head(n = 3) #grab only top 10 for axis 1 and plot
-#         mutate(mag = sqrt(LD1^2 + LD2^2)) %>%
-#   arrange(desc(abs(mag))) %>%
-#   #select(system, season, Scientificname, mag)
-#   slice_head(n = 3)
-#     
-#   sppvecs_list[[i]] <- spp_vecs_label[[i]]
-#   mult <- 6
-#   centroidPlots[[i]] <- ggplot(middles) + 
-#     geom_vline(xintercept = 0,
-#                colour     = "grey70",
-#                size       = .25) +
-#     geom_hline(yintercept = 0,
-#                colour     = "grey70",
-#                size       = .25) +
-#     scale_x_continuous(limits       = symmetric_range(1+(mult)*sppvecs_list_fixdf$LD1),
-#                        #breaks       = c(-6,-3,0,3,6),
-#                        minor_breaks = NULL) +
-#     scale_y_continuous(limits       = symmetric_range(1+(mult)*sppvecs_list_fixdf$LD2),
-#                        #breaks       = c(-6,-3,0,3,6),
-#                        minor_breaks = NULL) +
-#     geom_point(aes(x    = axis1c, 
-#                    y    = axis2c, 
-#                    fill = as.numeric(as.character(df_env.seasonYear))),
-#                size   = 4, 
-#                stroke = 0.1,
-#                pch    = 21, 
-#                colour = "black") +
-#     labs(#title = paste0(i, " ", round(CAPsforAll[[i]]$percent, 2), "%"),
-#          x     = paste("CA1 (",var_CA[1],"%)",sep=""),
-#          y     = paste("CA2 (",var_CA[2],"%)",sep=""),
-#          fill  = NULL) +
-#     scale_fill_gradient(
-#       low = "red",
-#       high = "blue",
-#       space = "Lab",
-#       na.value = "grey50",
-#       guide = "colourbar",
-#       aesthetics = "fill"
-#     ) +
-#     theme_bw() +
-#     theme(legend.text       = element_text(size=rel(0.8)),
-#           legend.position   = c(0.055,0.89),
-#           legend.background = element_blank(),
-#           legend.key        = element_blank(),
-#           panel.grid        = element_blank()) +
-#     geom_segment(data = spp_vecs_label[[i]],
-#                  aes(x    = 0,
-#                      xend = mult*LD1,
-#                      y    = 0,
-#                      yend = mult*LD2),
-#                  arrow = arrow(length = unit(0.1,"inches")),
-#                  color = "grey1",
-#                  size  = .75,
-#                  alpha = 0.6)+
-#   geom_label_repel(data = spp_vecs_label[[i]],
-#                    aes(x     = mult*LD1 + 0.2*cos(atan(LD2/LD1))*sign(LD1),
-#                        y     = mult*LD2 + 0.2*sin(atan(LD2/LD1))*sign(LD2),
-#                        label = rownames(spp_vecs_label[[i]])),
-#                    segment.alpha = 0,
-#                    size          = 3.25,
-#                    color         = "blue",
-#                    fontface      = "bold",
-#                    fill          = "white",
-#                    alpha         = 0.7,
-#                    box.padding   = .25,
-#                    lineheight    = 0.4,
-#                    label.size    = 0.25,
-#                    nudge_x       = ifelse(spp_vecs_label[[i]]$LD1>0,0.05,-0.05),
-#                    nudge_y       = ifelse(spp_vecs_label[[i]]$LD2>-0.02,0.05,-0.05),
-#                    force         = 0.3) +
-#   guides(fill = guide_legend(override.aes = list(size = 2.5),
-#                              keyheight    = 0.15,
-#                              keywidth     = 0.2))
-#   
-#   #ggsave(paste("./Outputs/CAPs/CAP_", i, ".tiff", sep = ""), CAPsforAll[[i]]$plots, width = 8, height = 8, dpi = 400)
-# }
-# 
-# centroidCAP <- wrap_plots(centroidPlots,
-#            ncol = 2)
-
 # table assembly
 spp_vec_setup <- list()
 for(i in systemSeason_list$systemSeason){
@@ -1143,13 +1016,13 @@ for(i in systemSeason_list$systemSeason){
 
 ```
 
-CAP analyses revealed little in the way of discernible yearly patterns ([@fig-centroidCAP]). All CAP analyses used 8 dimensions except Cedar Key summer which selected to 7. Only three taxa were selected as the top associated with year separation on the first canonical axis (see [@tbl-CAPtaxa]). The range of variability described by the CAP models was `r paste0(round(min(topSpp$percent),2), "%")` to `r paste0(round(max(topSpp$percent),2), "%")`.
+CAP analyses revealed subtle shifts in yearly centroids over time in species-space. For most systems, this was gradual, with Cedar Key summer appearing to have a distinct separation of two groups of years on the first axis of variation ([@fig-centroidCAP]). Only five taxa were selected as the top associated with year separation on the first canonical axis (see [@tbl-CAPtaxa]). The range of variability described by the CAP models was `r paste0(round(min(topSpp$percent),2), "%")` to `r paste0(round(max(topSpp$percent),2), "%")`.
 
 ```{r}
 #| label: tbl-CAPtaxa
 #| echo: FALSE
 #| message: FALSE
-#| tbl-cap: "Top taxon identified by CAP driving group separation on the first axis in each estuary and season."
+#| tbl-cap: "Taxon with the greatest magnitude vector as measured on the first two axis of variation."
 pander(sysSpp)
 ```
 
@@ -1160,7 +1033,7 @@ pander(sysSpp)
 #| warning: FALSE
 #| fig-width: 6.5
 #| fig-height: 9
-#| fig-cap: "Canonical analysis of principal coordinates ordination plots. Shading of markers indicates year for that group, with red markers indicating centroids of the oldest years in the data and blue indicating the most recent years. Percentages next to subplot title indicate total variability captured by the model. Top 10 taxa associated with canonical axes scores plotted as vectors (still need better labels). Canonical axis (CA) percentages indicate the among-group variation captured in each axis."
+#| fig-cap: "Canonical analysis of principal coordinates ordination plots. Shading of markers indicates year for that group, with red markers indicating centroids of the oldest years in the data and blue indicating the most recent years. Percentages next to subplot title indicate total variability captured by the model. Top three taxa associated with canonical axes scores plotted as vectors. Canonical axis (CA) percentages indicate the among-group variation captured in each axis."
 
 plot(centroidCAP)
 ```

@@ -192,7 +192,7 @@ div.csl-indent {
 <h3 class="anchored" data-anchor-id="sec-data-analyses">Data Analyses</h3>
 <p>All analyses were conducted using the R Statistical Computing Environment v4.3.0 and an alpha of 0.05 was used for all significance testing <span class="citation" data-cites="R2023">(<a href="#ref-R2023" role="doc-biblioref">R Core Team 2023</a>)</span>. Preliminary analyses included running simple linear models on annually-summarized means of water temperature and bottom vegetation coverage. Upon first examination, the change in temperature over time was marginally significant for winter estuaries (p 0.059-0.366). However, after visual inspection, the anomalously cold winter of 2010 (CITE) appeared as a distinct outlier and was dropped from the winter models (Supplemental?). From here, I ran Analysis of Covariance (ANCOVA) models with year as a continuous variable and estuarine system as a categorical predictor while including the interaction between both. I performed post-hoc contrasts for any significant terms in these models to determine the magnitude of any specific differences across systems using the <em>emmeans</em> package <span class="citation" data-cites="emmeans">(<a href="#ref-emmeans" role="doc-biblioref">Lenth 2023</a>)</span>.</p>
 <p>To address if the richness and abundance of eGOM estuarine fish assemblages has changed over the study period, I modeled richness and abundance per haul across all estuaries for both the summer and winter seasons using generalized linear mixed models (GLMMs) from the R package <em>glmmTMB</em> <span class="citation" data-cites="glmmTMB">(<a href="#ref-glmmTMB" role="doc-biblioref">Brooks et al. 2017</a>)</span>. Given the well-documented seasonal differences in estuarine systems <span class="citation" data-cites="Hagan2003 Strydom2015 Schrandt2020">(see <a href="#ref-Hagan2003" role="doc-biblioref">Hagan and Able 2003</a>; <a href="#ref-Strydom2015" role="doc-biblioref">Strydom 2015</a>; <a href="#ref-Schrandt2020" role="doc-biblioref">Schrandt and MacDonald 2020</a>)</span>, in this and all subsequent analyses, summer and winter are treated entirely separately. For each seine haul, I calculated the richness as the number of taxa present and total abundance as the sum of all individuals counted. In all calculations, total abundance was fourth-root transformed to reduce the effects of overly-abundant taxa, given total abundance ranged from a maximum of 104502 to 1. For each model, the response in the GLMM included either the richness or transformed abundance of each haul, with estuary (four levels) as a fixed effect and year as a random effect. To account for serial autocorrelation, an <code>ar1</code> covariance matrix was used in each model calculated from month of sampling event and within-estuary zone. Given that species richness is strongly affected by sampling effort <span class="citation" data-cites="Mittelbach2019">(<a href="#ref-Mittelbach2019" role="doc-biblioref">Mittelbach and McGill 2019</a>)</span>, I included an offset term to account for variation in the number of seine hauls. Before examining the relationship between temperature and richness/abundance, I used permutational multivariate analysis of variance (PERMANOVA) from the R package <em>vegan</em> to examine the interaction between estuary and time, as a means to determine if there are different magnitudes and directions of temporal change among estuaries and thus if each estuary should be treated separately <span class="citation" data-cites="vegan">(<a href="#ref-vegan" role="doc-biblioref">Oksanen et al. 2022</a>)</span>.</p>
-<p>To explore whether the composition and abundance has changed over the same time period and if it may be related to water temperature, I used several techniques. First, I examined the turnover and nestedness of each system through time using the R package <em>betapart</em> <span class="citation" data-cites="betapart">(<a href="#ref-betapart" role="doc-biblioref">Baselga et al. 2023</a>)</span>. Then, I ran additional GLMM models for each estuary, but included random terms for Z-scored water temperature and Z-scored percent bottom vegetation coverage (BVC). In all cases, the same <code>ar1</code> covariance structure was used as before as well as an offset term for sampling effort. To explore the relationship of temperature to richness and abundance, I used multiple GLMM models wherein the formula used for each was: <code>response ~ (1|year_Z) + temp_Z +  bvc_Z + offset(log(n_hauls)) + ar1(yearMonth + 0|systemZone)</code> where <code>response</code> was either total abundance or total richness per haul. I used distance-based redundancy analysis (dbRDA) from the R package <em>vegan</em> to explore the magnitude and direction of effect of water temperature and BVC in multivariate species-space. Finally, to explore the <em>a priori</em> hypothesis of a possible “directional” change in species space over time, I used canonical analysis of principal coordinates (CAP) models from the R package <em>BiodiversityR</em> for each estuary and season <span class="citation" data-cites="BiodiversityR">(<a href="#ref-BiodiversityR" role="doc-biblioref">Kindt and Coe 2005</a>)</span>. Following <span class="citation" data-cites="Dornelas2019">(<a href="#ref-Dornelas2019" role="doc-biblioref">Dornelas et al. 2019</a>)</span>, I further examined individual taxa for change over time. Within each estuary and season, I ran a linear model on the transformed abundance of each taxa independently and tested for significance. This was used to determine both the magnitude and direction of change at the species level, thus describing the distribution of “winners and losers” across each estuarine system. Finally, climatological association data were pulled from Fishbase using <em>rfishbase</em> <span class="citation" data-cites="rfishbase">(<a href="#ref-rfishbase" role="doc-biblioref">Boettiger, Temple Lang, and Wainwright 2012</a>)</span>. Unless otherwise indicated, mean values reported from these analyses will be reported as mean ± one standard error.</p>
+<p>To explore whether the composition and abundance has changed over the same time period and if it may be related to water temperature, I used several techniques. First, I examined the turnover and nestedness of each system through time using the R package <em>betapart</em> <span class="citation" data-cites="betapart">(<a href="#ref-betapart" role="doc-biblioref">Baselga et al. 2023</a>)</span>. Then, I ran additional GLMM models for each estuary, but included random terms for Z-scored water temperature and Z-scored percent bottom vegetation coverage (BVC). In all cases, the same <code>ar1</code> covariance structure was used as before as well as an offset term for sampling effort. To explore the relationship of temperature to richness and abundance, I used multiple GLMM models wherein the formula used for each was: <code>response ~ (1|year_Z) + temp_Z +  bvc_Z + offset(log(n_hauls)) + ar1(yearMonth + 0|systemZone)</code> where <code>response</code> was either total abundance or total richness per haul. I used distance-based redundancy analysis (dbRDA) from the R package <em>vegan</em> to explore the magnitude and direction of effect of water temperature and BVC in multivariate species-space. Finally, to explore the <em>a priori</em> hypothesis of a possible “directional” change in species space over time, I used canonical analysis of principal coordinates (CAP) models from the R package <em>BiodiversityR</em> for each estuary and season <span class="citation" data-cites="BiodiversityR">(<a href="#ref-BiodiversityR" role="doc-biblioref">Kindt and Coe 2005</a>)</span>. Following Dornelas et al.<span class="citation" data-cites="Dornelas2019">(<a href="#ref-Dornelas2019" role="doc-biblioref">2019</a>)</span>, I further examined individual taxa for change over time. Within each estuary and season, I ran a linear model on the transformed abundance of each taxa independently and tested for significance. This was used to determine both the magnitude and direction of change at the species level, thus describing the distribution of “winners and losers” across each estuarine system. Finally, climatological association data were pulled from Fishbase using <em>rfishbase</em> <span class="citation" data-cites="rfishbase">(<a href="#ref-rfishbase" role="doc-biblioref">Boettiger, Temple Lang, and Wainwright 2012</a>)</span>. Unless otherwise indicated, mean values reported from these analyses will be reported as mean ± one standard error.</p>
 </section>
 </section>
 <section id="sec-results" class="level1 unnumbered">
@@ -206,93 +206,12 @@ div.csl-indent {
 <p>Results of the water temperature ANCOVAs indicated a significant positive trend that was consistent among estuaries. However, it also identified differences in mean temperature across some systems (<em>t</em> ≥ 5.453 for all <em>p</em> ≤ 0.05; <a href="#tbl-tempAncova">Table&nbsp;2</a>).</p>
 <div id="tbl-tempAncova" class="cell tbl-parent quarto-layout-panel anchored">
 <div class="panel-caption table-caption">
-<p>Table&nbsp;2: Output of ancova model.</p>
+<p>Table&nbsp;2: Output of ANOCVA models.</p>
 </div>
 <div class="quarto-layout-row quarto-layout-valign-top">
 <div id="tbl-tempAncova-1" class="quarto-layout-cell quarto-layout-cell-subref anchored" data-ref-parent="tbl-tempAncova" style="flex-basis: 100.0%;justify-content: center;">
 <table class="table table-sm table-striped small">
-<caption>(a) winter</caption>
-<colgroup>
-<col style="width: 29%">
-<col style="width: 16%">
-<col style="width: 16%">
-<col style="width: 16%">
-<col style="width: 16%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: center;">term</th>
-<th style="text-align: center;">estimate</th>
-<th style="text-align: center;">std.error</th>
-<th style="text-align: center;">statistic</th>
-<th style="text-align: center;">p.value</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: center;">(Intercept)</td>
-<td style="text-align: center;">15.05</td>
-<td style="text-align: center;">0.4893</td>
-<td style="text-align: center;">30.76</td>
-<td style="text-align: center;">6.652e-44</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">smallYear</td>
-<td style="text-align: center;">0.07568</td>
-<td style="text-align: center;">0.03532</td>
-<td style="text-align: center;">2.143</td>
-<td style="text-align: center;">0.03543</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">systemCK</td>
-<td style="text-align: center;">0.8862</td>
-<td style="text-align: center;">0.692</td>
-<td style="text-align: center;">1.281</td>
-<td style="text-align: center;">0.2043</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">systemTB</td>
-<td style="text-align: center;">3.342</td>
-<td style="text-align: center;">0.6128</td>
-<td style="text-align: center;">5.453</td>
-<td style="text-align: center;">6.244e-07</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">systemCH</td>
-<td style="text-align: center;">5.043</td>
-<td style="text-align: center;">0.6128</td>
-<td style="text-align: center;">8.229</td>
-<td style="text-align: center;">4.78e-12</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">smallYear:systemCK</td>
-<td style="text-align: center;">-0.03396</td>
-<td style="text-align: center;">0.04995</td>
-<td style="text-align: center;">-0.6799</td>
-<td style="text-align: center;">0.4987</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">smallYear:systemTB</td>
-<td style="text-align: center;">-0.01058</td>
-<td style="text-align: center;">0.04548</td>
-<td style="text-align: center;">-0.2326</td>
-<td style="text-align: center;">0.8167</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">smallYear:systemCH</td>
-<td style="text-align: center;">-0.008819</td>
-<td style="text-align: center;">0.04548</td>
-<td style="text-align: center;">-0.1939</td>
-<td style="text-align: center;">0.8468</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="quarto-layout-row quarto-layout-valign-top">
-<div id="tbl-tempAncova-2" class="quarto-layout-cell quarto-layout-cell-subref anchored" data-ref-parent="tbl-tempAncova" style="flex-basis: 100.0%;justify-content: center;">
-<table class="table table-sm table-striped small">
-<caption>(b) summer</caption>
+<caption>(a) summer</caption>
 <colgroup>
 <col style="width: 29%">
 <col style="width: 15%">
@@ -370,91 +289,97 @@ div.csl-indent {
 </table>
 </div>
 </div>
-</div>
-<p>Using post-hoc contrasts, I parsed out these differences among estuaries and seasons. For the winter season, I determined Apalachicola Bay and Cedar Key averaged 15.9°C ± 0.21 during the study period, compared to 19.2°C ± 0.2 for Tampa Bay and 20.9°C ± 0.2 for Charlotte Harbor (<em>t</em> ratios ≥ 6.233 for all <em>p</em> ≤ 0.05; <a href="#tbl-tempAncovaContrast">Table&nbsp;3</a>). However, for the summer, Charlotte Harbor averaged warmer than all other systems at 30.2°C ± 0.085 (<em>t</em> ratios ≥ 3.238 for all <em>p</em> ≤ 0.05; <a href="#tbl-tempAncovaContrast">Table&nbsp;3</a>). Average water temperatures in Cedar Key and Apalachicola Bay were not different from one another (29.5°C ± 0.092), although Tampa Bay was significantly different than Cedar Key, but not Apalachicola Bay, averaging 29.8°C ± 0.085. For all systems during winter, water temperature increased at a rate of 0.076°Cyr<sup>-1</sup> ± 0.035 and we found no difference in this rate among estuaries. Similarly, during summer, water temperature increased in all systems at a rate of 0.035°Cyr<sup>-1</sup> ± 0.016 and we again found no difference in rate among estuaries (<a href="#fig-TempPlot">Figure&nbsp;2</a>).</p>
-<div id="tbl-tempAncovaContrast" class="cell tbl-parent quarto-layout-panel anchored">
-<div class="panel-caption table-caption">
-<p>Table&nbsp;3: Contrasts of ancova models. Tukey method applied for p-value correction.</p>
-</div>
 <div class="quarto-layout-row quarto-layout-valign-top">
-<div id="tbl-tempAncovaContrast-1" class="quarto-layout-cell quarto-layout-cell-subref anchored" data-ref-parent="tbl-tempAncovaContrast" style="flex-basis: 100.0%;justify-content: center;">
+<div id="tbl-tempAncova-2" class="quarto-layout-cell quarto-layout-cell-subref anchored" data-ref-parent="tbl-tempAncova" style="flex-basis: 100.0%;justify-content: center;">
 <table class="table table-sm table-striped small">
-<caption>(a) winter</caption>
+<caption>(b) winter</caption>
 <colgroup>
-<col style="width: 15%">
-<col style="width: 15%">
-<col style="width: 12%">
-<col style="width: 6%">
-<col style="width: 13%">
+<col style="width: 29%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
 <col style="width: 16%">
 </colgroup>
 <thead>
 <tr class="header">
-<th style="text-align: center;">contrast</th>
+<th style="text-align: center;">term</th>
 <th style="text-align: center;">estimate</th>
-<th style="text-align: center;">SE</th>
-<th style="text-align: center;">df</th>
-<th style="text-align: center;">t.ratio</th>
+<th style="text-align: center;">std.error</th>
+<th style="text-align: center;">statistic</th>
 <th style="text-align: center;">p.value</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: center;">CK - AP</td>
-<td style="text-align: center;">0.4894</td>
-<td style="text-align: center;">0.2985</td>
-<td style="text-align: center;">74</td>
-<td style="text-align: center;">1.64</td>
-<td style="text-align: center;">0.3631</td>
+<td style="text-align: center;">(Intercept)</td>
+<td style="text-align: center;">15.05</td>
+<td style="text-align: center;">0.4893</td>
+<td style="text-align: center;">30.76</td>
+<td style="text-align: center;">6.652e-44</td>
 </tr>
 <tr class="even">
-<td style="text-align: center;">TB - AP</td>
-<td style="text-align: center;">3.219</td>
-<td style="text-align: center;">0.2875</td>
-<td style="text-align: center;">74</td>
-<td style="text-align: center;">11.19</td>
-<td style="text-align: center;">0</td>
+<td style="text-align: center;">smallYear</td>
+<td style="text-align: center;">0.07568</td>
+<td style="text-align: center;">0.03532</td>
+<td style="text-align: center;">2.143</td>
+<td style="text-align: center;">0.03543</td>
 </tr>
 <tr class="odd">
-<td style="text-align: center;">TB - CK</td>
-<td style="text-align: center;">2.729</td>
-<td style="text-align: center;">0.2875</td>
-<td style="text-align: center;">74</td>
-<td style="text-align: center;">9.492</td>
-<td style="text-align: center;">0</td>
+<td style="text-align: center;">systemCK</td>
+<td style="text-align: center;">0.8862</td>
+<td style="text-align: center;">0.692</td>
+<td style="text-align: center;">1.281</td>
+<td style="text-align: center;">0.2043</td>
 </tr>
 <tr class="even">
-<td style="text-align: center;">CH - AP</td>
-<td style="text-align: center;">4.94</td>
-<td style="text-align: center;">0.2875</td>
-<td style="text-align: center;">74</td>
-<td style="text-align: center;">17.18</td>
-<td style="text-align: center;">0</td>
+<td style="text-align: center;">systemTB</td>
+<td style="text-align: center;">3.342</td>
+<td style="text-align: center;">0.6128</td>
+<td style="text-align: center;">5.453</td>
+<td style="text-align: center;">6.244e-07</td>
 </tr>
 <tr class="odd">
-<td style="text-align: center;">CH - CK</td>
-<td style="text-align: center;">4.451</td>
-<td style="text-align: center;">0.2875</td>
-<td style="text-align: center;">74</td>
-<td style="text-align: center;">15.48</td>
-<td style="text-align: center;">0</td>
+<td style="text-align: center;">systemCH</td>
+<td style="text-align: center;">5.043</td>
+<td style="text-align: center;">0.6128</td>
+<td style="text-align: center;">8.229</td>
+<td style="text-align: center;">4.78e-12</td>
 </tr>
 <tr class="even">
-<td style="text-align: center;">CH - TB</td>
-<td style="text-align: center;">1.721</td>
-<td style="text-align: center;">0.2762</td>
-<td style="text-align: center;">74</td>
-<td style="text-align: center;">6.233</td>
-<td style="text-align: center;">1.515e-07</td>
+<td style="text-align: center;">smallYear:systemCK</td>
+<td style="text-align: center;">-0.03396</td>
+<td style="text-align: center;">0.04995</td>
+<td style="text-align: center;">-0.6799</td>
+<td style="text-align: center;">0.4987</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">smallYear:systemTB</td>
+<td style="text-align: center;">-0.01058</td>
+<td style="text-align: center;">0.04548</td>
+<td style="text-align: center;">-0.2326</td>
+<td style="text-align: center;">0.8167</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">smallYear:systemCH</td>
+<td style="text-align: center;">-0.008819</td>
+<td style="text-align: center;">0.04548</td>
+<td style="text-align: center;">-0.1939</td>
+<td style="text-align: center;">0.8468</td>
 </tr>
 </tbody>
 </table>
 </div>
 </div>
+</div>
+<p>Using post-hoc contrasts, I parsed out these differences among estuaries and seasons. For the winter season, I determined Apalachicola Bay and Cedar Key averaged 15.9°C ± 0.21 during the study period, compared to 19.2°C ± 0.2 for Tampa Bay and 20.9°C ± 0.2 for Charlotte Harbor (<em>t</em> ratios ≥ 6.233 for all <em>p</em> ≤ 0.05; <a href="#tbl-tempAncovaContrast">Table&nbsp;3</a>). However, for the summer, Charlotte Harbor averaged warmer than all other systems at 30.2°C ± 0.085 (<em>t</em> ratios ≥ 3.238 for all <em>p</em> ≤ 0.05; <a href="#tbl-tempAncovaContrast">Table&nbsp;3</a>). Average water temperatures in Cedar Key and Apalachicola Bay were not different from one another (29.5°C ± 0.092), although Tampa Bay was significantly different than Cedar Key, but not Apalachicola Bay, averaging 29.8°C ± 0.085. For all systems during winter, water temperature increased at a rate of 0.076°Cyr<sup>-1</sup> ± 0.035 and we found no difference in this rate among estuaries. Similarly, during summer, water temperature increased in all systems at a rate of 0.035°Cyr<sup>-1</sup> ± 0.016 and we again found no difference in rate among estuaries (<a href="#fig-TempPlot">Figure&nbsp;2</a>).</p>
+<div id="tbl-tempAncovaContrast" class="cell tbl-parent quarto-layout-panel anchored">
+<div class="panel-caption table-caption">
+<p>Table&nbsp;3: Contrasts from ANCOVA models. Tukey method applied for p-value correction.</p>
+</div>
 <div class="quarto-layout-row quarto-layout-valign-top">
-<div id="tbl-tempAncovaContrast-2" class="quarto-layout-cell quarto-layout-cell-subref anchored" data-ref-parent="tbl-tempAncovaContrast" style="flex-basis: 100.0%;justify-content: center;">
+<div id="tbl-tempAncovaContrast-1" class="quarto-layout-cell quarto-layout-cell-subref anchored" data-ref-parent="tbl-tempAncovaContrast" style="flex-basis: 100.0%;justify-content: center;">
 <table class="table table-sm table-striped small">
-<caption>(b) summer</caption>
+<caption>(a) summer</caption>
 <colgroup>
 <col style="width: 15%">
 <col style="width: 15%">
@@ -526,6 +451,81 @@ div.csl-indent {
 </table>
 </div>
 </div>
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div id="tbl-tempAncovaContrast-2" class="quarto-layout-cell quarto-layout-cell-subref anchored" data-ref-parent="tbl-tempAncovaContrast" style="flex-basis: 100.0%;justify-content: center;">
+<table class="table table-sm table-striped small">
+<caption>(b) winter</caption>
+<colgroup>
+<col style="width: 15%">
+<col style="width: 15%">
+<col style="width: 12%">
+<col style="width: 6%">
+<col style="width: 13%">
+<col style="width: 16%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">contrast</th>
+<th style="text-align: center;">estimate</th>
+<th style="text-align: center;">SE</th>
+<th style="text-align: center;">df</th>
+<th style="text-align: center;">t.ratio</th>
+<th style="text-align: center;">p.value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">CK - AP</td>
+<td style="text-align: center;">0.4894</td>
+<td style="text-align: center;">0.2985</td>
+<td style="text-align: center;">74</td>
+<td style="text-align: center;">1.64</td>
+<td style="text-align: center;">0.3631</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">TB - AP</td>
+<td style="text-align: center;">3.219</td>
+<td style="text-align: center;">0.2875</td>
+<td style="text-align: center;">74</td>
+<td style="text-align: center;">11.19</td>
+<td style="text-align: center;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">TB - CK</td>
+<td style="text-align: center;">2.729</td>
+<td style="text-align: center;">0.2875</td>
+<td style="text-align: center;">74</td>
+<td style="text-align: center;">9.492</td>
+<td style="text-align: center;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">CH - AP</td>
+<td style="text-align: center;">4.94</td>
+<td style="text-align: center;">0.2875</td>
+<td style="text-align: center;">74</td>
+<td style="text-align: center;">17.18</td>
+<td style="text-align: center;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">CH - CK</td>
+<td style="text-align: center;">4.451</td>
+<td style="text-align: center;">0.2875</td>
+<td style="text-align: center;">74</td>
+<td style="text-align: center;">15.48</td>
+<td style="text-align: center;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">CH - TB</td>
+<td style="text-align: center;">1.721</td>
+<td style="text-align: center;">0.2762</td>
+<td style="text-align: center;">74</td>
+<td style="text-align: center;">6.233</td>
+<td style="text-align: center;">1.515e-07</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 <div class="cell">
 <div class="cell-output-display">
@@ -540,93 +540,12 @@ div.csl-indent {
 <p>ANCOVA models for average percent bottom vegetation coverage (BVC) identified differences in mean annual percent BVC across all systems and seasons as well as an interaction between some systems and time <a href="#tbl-bvcMeans">Table&nbsp;6</a>. Post-hoc analyses confirmed all systems had different average annual BVC from one another within each season. Specifically, Charlotte Harbor had the most coverage for both seasons ranging from 46.4% ± 0.771 in winter to 49.7% ± 0.755 in summer. Cedar Key averaged the lowest coverage, ranging from 9.09% ± 0.831 in winter to 13.6% ± 0.813 in summer. Tampa Bay and Apalachicola Bay were both in the middle of these ranges for both seasons <a href="#tbl-bvcMeans">Table&nbsp;6</a>. Using post-hoc analyses to examine the trends over time for each system revealed Cedar Key was different than all other systems for the summer season, with a decrease in BVC at a rate of -0.441%yr<sup>-1</sup> ± 0.14 (magnitude of <em>t</em> ratios ≥ 2.81 for all <em>p</em> ≤ 0.05). All other system pairs were not different from one another and had no change over time [TABLE]. The wintertime trend was more nuanced, where BVC in both Tampa Bay and Charlotte Harbor differed from the northern estuaries Apalachicola Bay and Cedar Key (magnitude of <em>t</em> ratios ≥ 3.05 for all <em>p</em> ≤ 0.05) [TABLE]. BVC in Tampa Bay and Charlotte Harbor increased during the winter at a rate of 0.404%yr<sup>-1</sup> ± 0.116 and 0.486%yr<sup>-1</sup> ± 0.116, respectively. Apalachicola Bay did not have any significant change in BVC over the study period (<a href="#fig-BVCPlot">Figure&nbsp;3</a>).</p>
 <div id="tbl-bvcAncova" class="cell tbl-parent quarto-layout-panel anchored">
 <div class="panel-caption table-caption">
-<p>Table&nbsp;4: Output of ancova model.</p>
+<p>Table&nbsp;4: Output of ANCOVA models.</p>
 </div>
 <div class="quarto-layout-row quarto-layout-valign-top">
 <div id="tbl-bvcAncova-1" class="quarto-layout-cell quarto-layout-cell-subref anchored" data-ref-parent="tbl-bvcAncova" style="flex-basis: 100.0%;justify-content: center;">
 <table class="table table-sm table-striped small">
-<caption>(a) winter</caption>
-<colgroup>
-<col style="width: 29%">
-<col style="width: 15%">
-<col style="width: 16%">
-<col style="width: 16%">
-<col style="width: 16%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: center;">term</th>
-<th style="text-align: center;">estimate</th>
-<th style="text-align: center;">std.error</th>
-<th style="text-align: center;">statistic</th>
-<th style="text-align: center;">p.value</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: center;">(Intercept)</td>
-<td style="text-align: center;">28.29</td>
-<td style="text-align: center;">1.964</td>
-<td style="text-align: center;">14.4</td>
-<td style="text-align: center;">1.112e-23</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">smallYear</td>
-<td style="text-align: center;">-0.1554</td>
-<td style="text-align: center;">0.1427</td>
-<td style="text-align: center;">-1.089</td>
-<td style="text-align: center;">0.2794</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">systemCK</td>
-<td style="text-align: center;">-16.66</td>
-<td style="text-align: center;">2.777</td>
-<td style="text-align: center;">-5.997</td>
-<td style="text-align: center;">5.91e-08</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">systemTB</td>
-<td style="text-align: center;">8.181</td>
-<td style="text-align: center;">2.462</td>
-<td style="text-align: center;">3.322</td>
-<td style="text-align: center;">0.001361</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">systemCH</td>
-<td style="text-align: center;">12.4</td>
-<td style="text-align: center;">2.462</td>
-<td style="text-align: center;">5.037</td>
-<td style="text-align: center;">2.981e-06</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">smallYear:systemCK</td>
-<td style="text-align: center;">-0.06177</td>
-<td style="text-align: center;">0.2018</td>
-<td style="text-align: center;">-0.3061</td>
-<td style="text-align: center;">0.7603</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">smallYear:systemTB</td>
-<td style="text-align: center;">0.5595</td>
-<td style="text-align: center;">0.1836</td>
-<td style="text-align: center;">3.047</td>
-<td style="text-align: center;">0.003156</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">smallYear:systemCH</td>
-<td style="text-align: center;">0.6418</td>
-<td style="text-align: center;">0.1836</td>
-<td style="text-align: center;">3.494</td>
-<td style="text-align: center;">0.0007863</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="quarto-layout-row quarto-layout-valign-top">
-<div id="tbl-bvcAncova-2" class="quarto-layout-cell quarto-layout-cell-subref anchored" data-ref-parent="tbl-bvcAncova" style="flex-basis: 100.0%;justify-content: center;">
-<table class="table table-sm table-striped small">
-<caption>(b) summer</caption>
+<caption>(a) summer</caption>
 <colgroup>
 <col style="width: 29%">
 <col style="width: 15%">
@@ -704,106 +623,96 @@ div.csl-indent {
 </table>
 </div>
 </div>
-</div>
-<div id="tbl-bvcAncovaContrast" class="cell tbl-parent quarto-layout-panel anchored">
-<div class="panel-caption table-caption">
-<p>Table&nbsp;5: Contrasts of ancova model.</p>
-</div>
 <div class="quarto-layout-row quarto-layout-valign-top">
-<div id="tbl-bvcAncovaContrast-1" class="quarto-layout-cell quarto-layout-cell-subref anchored" data-ref-parent="tbl-bvcAncovaContrast" style="flex-basis: 100.0%;justify-content: center;">
+<div id="tbl-bvcAncova-2" class="quarto-layout-cell quarto-layout-cell-subref anchored" data-ref-parent="tbl-bvcAncova" style="flex-basis: 100.0%;justify-content: center;">
 <table class="table table-sm table-striped small">
-<caption>(a) winter cont</caption>
+<caption>(b) winter</caption>
 <colgroup>
-<col style="width: 10%">
-<col style="width: 12%">
-<col style="width: 14%">
-<col style="width: 12%">
-<col style="width: 13%">
-<col style="width: 5%">
-<col style="width: 13%">
+<col style="width: 29%">
+<col style="width: 15%">
+<col style="width: 16%">
+<col style="width: 16%">
 <col style="width: 16%">
 </colgroup>
 <thead>
 <tr class="header">
 <th style="text-align: center;">term</th>
-<th style="text-align: center;">contrast</th>
-<th style="text-align: center;">null.value</th>
 <th style="text-align: center;">estimate</th>
 <th style="text-align: center;">std.error</th>
-<th style="text-align: center;">df</th>
 <th style="text-align: center;">statistic</th>
-<th style="text-align: center;">adj.p.value</th>
+<th style="text-align: center;">p.value</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: center;">system</td>
-<td style="text-align: center;">CK - AP</td>
-<td style="text-align: center;">0</td>
+<td style="text-align: center;">(Intercept)</td>
+<td style="text-align: center;">28.29</td>
+<td style="text-align: center;">1.964</td>
+<td style="text-align: center;">14.4</td>
+<td style="text-align: center;">1.112e-23</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">smallYear</td>
+<td style="text-align: center;">-0.1554</td>
+<td style="text-align: center;">0.1427</td>
+<td style="text-align: center;">-1.089</td>
+<td style="text-align: center;">0.2794</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">systemCK</td>
+<td style="text-align: center;">-16.66</td>
+<td style="text-align: center;">2.777</td>
+<td style="text-align: center;">-5.997</td>
+<td style="text-align: center;">5.91e-08</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">systemTB</td>
+<td style="text-align: center;">8.181</td>
+<td style="text-align: center;">2.462</td>
+<td style="text-align: center;">3.322</td>
+<td style="text-align: center;">0.001361</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">systemCH</td>
+<td style="text-align: center;">12.4</td>
+<td style="text-align: center;">2.462</td>
+<td style="text-align: center;">5.037</td>
+<td style="text-align: center;">2.981e-06</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">smallYear:systemCK</td>
 <td style="text-align: center;">-0.06177</td>
 <td style="text-align: center;">0.2018</td>
-<td style="text-align: center;">78</td>
 <td style="text-align: center;">-0.3061</td>
-<td style="text-align: center;">0.99</td>
+<td style="text-align: center;">0.7603</td>
 </tr>
-<tr class="even">
-<td style="text-align: center;">system</td>
-<td style="text-align: center;">TB - AP</td>
-<td style="text-align: center;">0</td>
+<tr class="odd">
+<td style="text-align: center;">smallYear:systemTB</td>
 <td style="text-align: center;">0.5595</td>
 <td style="text-align: center;">0.1836</td>
-<td style="text-align: center;">78</td>
 <td style="text-align: center;">3.047</td>
-<td style="text-align: center;">0.01633</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">system</td>
-<td style="text-align: center;">TB - CK</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0.6213</td>
-<td style="text-align: center;">0.1836</td>
-<td style="text-align: center;">78</td>
-<td style="text-align: center;">3.383</td>
-<td style="text-align: center;">0.006062</td>
+<td style="text-align: center;">0.003156</td>
 </tr>
 <tr class="even">
-<td style="text-align: center;">system</td>
-<td style="text-align: center;">CH - AP</td>
-<td style="text-align: center;">0</td>
+<td style="text-align: center;">smallYear:systemCH</td>
 <td style="text-align: center;">0.6418</td>
 <td style="text-align: center;">0.1836</td>
-<td style="text-align: center;">78</td>
 <td style="text-align: center;">3.494</td>
-<td style="text-align: center;">0.004291</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">system</td>
-<td style="text-align: center;">CH - CK</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0.7035</td>
-<td style="text-align: center;">0.1836</td>
-<td style="text-align: center;">78</td>
-<td style="text-align: center;">3.831</td>
-<td style="text-align: center;">0.00144</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">system</td>
-<td style="text-align: center;">CH - TB</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0.08222</td>
-<td style="text-align: center;">0.1635</td>
-<td style="text-align: center;">78</td>
-<td style="text-align: center;">0.5027</td>
-<td style="text-align: center;">0.9582</td>
+<td style="text-align: center;">0.0007863</td>
 </tr>
 </tbody>
 </table>
 </div>
 </div>
+</div>
+<div id="tbl-bvcAncovaContrast" class="cell tbl-parent quarto-layout-panel anchored">
+<div class="panel-caption table-caption">
+<p>Table&nbsp;5: Contrasts from ANCOVA models. Tukey method applied for p-value correction.</p>
+</div>
 <div class="quarto-layout-row quarto-layout-valign-top">
-<div id="tbl-bvcAncovaContrast-2" class="quarto-layout-cell quarto-layout-cell-subref anchored" data-ref-parent="tbl-bvcAncovaContrast" style="flex-basis: 100.0%;justify-content: center;">
+<div id="tbl-bvcAncovaContrast-1" class="quarto-layout-cell quarto-layout-cell-subref anchored" data-ref-parent="tbl-bvcAncovaContrast" style="flex-basis: 100.0%;justify-content: center;">
 <table class="table table-sm table-striped small">
-<caption>(b) summer cont</caption>
+<caption>(a) summer cont</caption>
 <colgroup>
 <col style="width: 10%">
 <col style="width: 12%">
@@ -891,12 +800,103 @@ div.csl-indent {
 </table>
 </div>
 </div>
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div id="tbl-bvcAncovaContrast-2" class="quarto-layout-cell quarto-layout-cell-subref anchored" data-ref-parent="tbl-bvcAncovaContrast" style="flex-basis: 100.0%;justify-content: center;">
+<table class="table table-sm table-striped small">
+<caption>(b) winter cont</caption>
+<colgroup>
+<col style="width: 10%">
+<col style="width: 12%">
+<col style="width: 14%">
+<col style="width: 12%">
+<col style="width: 13%">
+<col style="width: 5%">
+<col style="width: 13%">
+<col style="width: 16%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">term</th>
+<th style="text-align: center;">contrast</th>
+<th style="text-align: center;">null.value</th>
+<th style="text-align: center;">estimate</th>
+<th style="text-align: center;">std.error</th>
+<th style="text-align: center;">df</th>
+<th style="text-align: center;">statistic</th>
+<th style="text-align: center;">adj.p.value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">system</td>
+<td style="text-align: center;">CK - AP</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">-0.06177</td>
+<td style="text-align: center;">0.2018</td>
+<td style="text-align: center;">78</td>
+<td style="text-align: center;">-0.3061</td>
+<td style="text-align: center;">0.99</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">system</td>
+<td style="text-align: center;">TB - AP</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0.5595</td>
+<td style="text-align: center;">0.1836</td>
+<td style="text-align: center;">78</td>
+<td style="text-align: center;">3.047</td>
+<td style="text-align: center;">0.01633</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">system</td>
+<td style="text-align: center;">TB - CK</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0.6213</td>
+<td style="text-align: center;">0.1836</td>
+<td style="text-align: center;">78</td>
+<td style="text-align: center;">3.383</td>
+<td style="text-align: center;">0.006062</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">system</td>
+<td style="text-align: center;">CH - AP</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0.6418</td>
+<td style="text-align: center;">0.1836</td>
+<td style="text-align: center;">78</td>
+<td style="text-align: center;">3.494</td>
+<td style="text-align: center;">0.004291</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">system</td>
+<td style="text-align: center;">CH - CK</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0.7035</td>
+<td style="text-align: center;">0.1836</td>
+<td style="text-align: center;">78</td>
+<td style="text-align: center;">3.831</td>
+<td style="text-align: center;">0.00144</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">system</td>
+<td style="text-align: center;">CH - TB</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0.08222</td>
+<td style="text-align: center;">0.1635</td>
+<td style="text-align: center;">78</td>
+<td style="text-align: center;">0.5027</td>
+<td style="text-align: center;">0.9582</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 <div class="cell">
 <div class="cell-output-display">
 <div id="tbl-bvcMeans" class="anchored">
 <table class="table table-sm table-striped small">
-<caption>Table&nbsp;6: Least square means of each system for both seasonal linear models. P-values for pairwise contrasts used tukey method for correction.</caption>
+<caption>Table&nbsp;6: Least square means of each system for both seasonal linear models.</caption>
 <colgroup>
 <col style="width: 12%">
 <col style="width: 12%">
@@ -912,30 +912,6 @@ div.csl-indent {
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
-<td style="text-align: center;">AP</td>
-<td style="text-align: center;">winter</td>
-<td style="text-align: center;">26.47</td>
-<td style="text-align: center;">0.831</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">CK</td>
-<td style="text-align: center;">winter</td>
-<td style="text-align: center;">9.092</td>
-<td style="text-align: center;">0.831</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">TB</td>
-<td style="text-align: center;">winter</td>
-<td style="text-align: center;">41.2</td>
-<td style="text-align: center;">0.771</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">CH</td>
-<td style="text-align: center;">winter</td>
-<td style="text-align: center;">46.38</td>
-<td style="text-align: center;">0.771</td>
-</tr>
 <tr class="odd">
 <td style="text-align: center;">AP</td>
 <td style="text-align: center;">summer</td>
@@ -959,6 +935,30 @@ div.csl-indent {
 <td style="text-align: center;">summer</td>
 <td style="text-align: center;">49.74</td>
 <td style="text-align: center;">0.755</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">AP</td>
+<td style="text-align: center;">winter</td>
+<td style="text-align: center;">26.47</td>
+<td style="text-align: center;">0.831</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">CK</td>
+<td style="text-align: center;">winter</td>
+<td style="text-align: center;">9.092</td>
+<td style="text-align: center;">0.831</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">TB</td>
+<td style="text-align: center;">winter</td>
+<td style="text-align: center;">41.2</td>
+<td style="text-align: center;">0.771</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">CH</td>
+<td style="text-align: center;">winter</td>
+<td style="text-align: center;">46.38</td>
+<td style="text-align: center;">0.771</td>
 </tr>
 </tbody>
 </table>
@@ -1000,7 +1000,7 @@ div.csl-indent {
 </div>
 </div>
 </div>
-<p>Nestedness and turnover components of Bray-Curtis pairwise dissimilarity over time reveal a general trend of stability during the summer. However, during winter, particularly in the northern estuaries (Apalachicola and Cedar Key), there is considerably higher variability in the years after 2010 (<a href="#fig-betadiversity">Figure&nbsp;6</a>). Summary: winter, overall beta is increasing over time equally for AP CK TB… a little slower for CH and only marginally. Overall beta is not changing in the summer. Turnover in winter is slowly increasing over time for all systems at same rate. But turnover is not changing in the summer. Nestedness is only changing significantly in winter in CH and it is decreasing. Not changing in the summer.</p>
+<p>Nestedness and turnover components of Bray-Curtis pairwise dissimilarity over time reveal a general trend of stability during the summer with no significant change over time among any of the estuaries. However, during winter, there is a trend of increasing dissimilarity at a rate of through time for all estuaries <a href="#tbl-betaModels">Table&nbsp;7</a>. Of note, during winter, particularly in the northern estuaries (Apalachicola and Cedar Key), there is considerably higher variability in the years after 2010 (<a href="#fig-betadiversity">Figure&nbsp;6</a>). Within dissimilarity overall, there are clear variations in the underlying components of betadiversity (turnover and nestedness), though they are not modeled here.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-betadiversity" class="quarto-figure quarto-figure-center anchored">
@@ -1013,93 +1013,12 @@ div.csl-indent {
 </div>
 <div id="tbl-betaModels" class="cell tbl-parent quarto-layout-panel anchored">
 <div class="panel-caption table-caption">
-<p>Table&nbsp;7: Coefficients of year on linear models run within each estuary. Bolded values are significant at alpha 0.05.</p>
+<p>Table&nbsp;7: Outputs of ANCOVA models for betadiversity.</p>
 </div>
 <div class="quarto-layout-row quarto-layout-valign-top">
 <div id="tbl-betaModels-1" class="quarto-layout-cell quarto-layout-cell-subref anchored" data-ref-parent="tbl-betaModels" style="flex-basis: 100.0%;justify-content: center;">
 <table class="table table-sm table-striped small">
-<caption>(a) Winter</caption>
-<colgroup>
-<col style="width: 25%">
-<col style="width: 19%">
-<col style="width: 18%">
-<col style="width: 17%">
-<col style="width: 19%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: center;">term</th>
-<th style="text-align: center;">estimate</th>
-<th style="text-align: center;">std.error</th>
-<th style="text-align: center;">statistic</th>
-<th style="text-align: center;">p.value</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: center;"><strong>(Intercept)</strong></td>
-<td style="text-align: center;">0.2199</td>
-<td style="text-align: center;"><strong>0.03009</strong></td>
-<td style="text-align: center;">7.309</td>
-<td style="text-align: center;"><strong>2.6e-10</strong></td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">smallYear</td>
-<td style="text-align: center;"><strong>0.008634</strong></td>
-<td style="text-align: center;"><strong>0.002281</strong></td>
-<td style="text-align: center;">3.785</td>
-<td style="text-align: center;"><strong>0.0003098</strong></td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">systemCK</td>
-<td style="text-align: center;"><strong>0.01735</strong></td>
-<td style="text-align: center;"><strong>0.04255</strong></td>
-<td style="text-align: center;">0.4077</td>
-<td style="text-align: center;">0.6847</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">systemTB</td>
-<td style="text-align: center;"><strong>0.02105</strong></td>
-<td style="text-align: center;"><strong>0.03754</strong></td>
-<td style="text-align: center;">0.5607</td>
-<td style="text-align: center;">0.5767</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">systemCH</td>
-<td style="text-align: center;"><strong>-0.01277</strong></td>
-<td style="text-align: center;"><strong>0.03754</strong></td>
-<td style="text-align: center;"><strong>-0.3402</strong></td>
-<td style="text-align: center;">0.7346</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">smallYear:systemCK</td>
-<td style="text-align: center;"><strong>-0.004171</strong></td>
-<td style="text-align: center;"><strong>0.003226</strong></td>
-<td style="text-align: center;"><strong>-1.293</strong></td>
-<td style="text-align: center;">0.2</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">smallYear:systemTB</td>
-<td style="text-align: center;"><strong>-0.004698</strong></td>
-<td style="text-align: center;"><strong>0.002924</strong></td>
-<td style="text-align: center;"><strong>-1.607</strong></td>
-<td style="text-align: center;">0.1124</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">smallYear:systemCH</td>
-<td style="text-align: center;"><strong>-0.006108</strong></td>
-<td style="text-align: center;"><strong>0.002924</strong></td>
-<td style="text-align: center;"><strong>-2.089</strong></td>
-<td style="text-align: center;"><strong>0.04018</strong></td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="quarto-layout-row quarto-layout-valign-top">
-<div id="tbl-betaModels-2" class="quarto-layout-cell quarto-layout-cell-subref anchored" data-ref-parent="tbl-betaModels" style="flex-basis: 100.0%;justify-content: center;">
-<table class="table table-sm table-striped small">
-<caption>(b) Summer</caption>
+<caption>(a) Summer</caption>
 <colgroup>
 <col style="width: 25%">
 <col style="width: 20%">
@@ -1177,8 +1096,89 @@ div.csl-indent {
 </table>
 </div>
 </div>
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div id="tbl-betaModels-2" class="quarto-layout-cell quarto-layout-cell-subref anchored" data-ref-parent="tbl-betaModels" style="flex-basis: 100.0%;justify-content: center;">
+<table class="table table-sm table-striped small">
+<caption>(b) Winter</caption>
+<colgroup>
+<col style="width: 25%">
+<col style="width: 19%">
+<col style="width: 18%">
+<col style="width: 17%">
+<col style="width: 19%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">term</th>
+<th style="text-align: center;">estimate</th>
+<th style="text-align: center;">std.error</th>
+<th style="text-align: center;">statistic</th>
+<th style="text-align: center;">p.value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"><strong>(Intercept)</strong></td>
+<td style="text-align: center;">0.2199</td>
+<td style="text-align: center;"><strong>0.03009</strong></td>
+<td style="text-align: center;">7.309</td>
+<td style="text-align: center;"><strong>2.6e-10</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">smallYear</td>
+<td style="text-align: center;"><strong>0.008634</strong></td>
+<td style="text-align: center;"><strong>0.002281</strong></td>
+<td style="text-align: center;">3.785</td>
+<td style="text-align: center;"><strong>0.0003098</strong></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">systemCK</td>
+<td style="text-align: center;"><strong>0.01735</strong></td>
+<td style="text-align: center;"><strong>0.04255</strong></td>
+<td style="text-align: center;">0.4077</td>
+<td style="text-align: center;">0.6847</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">systemTB</td>
+<td style="text-align: center;"><strong>0.02105</strong></td>
+<td style="text-align: center;"><strong>0.03754</strong></td>
+<td style="text-align: center;">0.5607</td>
+<td style="text-align: center;">0.5767</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">systemCH</td>
+<td style="text-align: center;"><strong>-0.01277</strong></td>
+<td style="text-align: center;"><strong>0.03754</strong></td>
+<td style="text-align: center;"><strong>-0.3402</strong></td>
+<td style="text-align: center;">0.7346</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">smallYear:systemCK</td>
+<td style="text-align: center;"><strong>-0.004171</strong></td>
+<td style="text-align: center;"><strong>0.003226</strong></td>
+<td style="text-align: center;"><strong>-1.293</strong></td>
+<td style="text-align: center;">0.2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">smallYear:systemTB</td>
+<td style="text-align: center;"><strong>-0.004698</strong></td>
+<td style="text-align: center;"><strong>0.002924</strong></td>
+<td style="text-align: center;"><strong>-1.607</strong></td>
+<td style="text-align: center;">0.1124</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">smallYear:systemCH</td>
+<td style="text-align: center;"><strong>-0.006108</strong></td>
+<td style="text-align: center;"><strong>0.002924</strong></td>
+<td style="text-align: center;"><strong>-2.089</strong></td>
+<td style="text-align: center;"><strong>0.04018</strong></td>
+</tr>
+</tbody>
+</table>
 </div>
-<p>Before examining the relationship between temperature and richness/abundance, I used PERMANOVA to test for any significant interaction between estuary and year. Indeed, for both seasons, the interaction between year and estuary was significant (<a href="#tbl-fullPERMANOVA">Table&nbsp;8</a>).</p>
+</div>
+</div>
+<p>Next, I used PERMANOVA to test for any significant interaction between estuary and year in species-space. Indeed, for both seasons, the interaction between year and estuary was significant (<a href="#tbl-fullPERMANOVA">Table&nbsp;8</a>).</p>
 <div id="tbl-fullPERMANOVA" class="cell tbl-parent quarto-layout-panel anchored">
 <div class="panel-caption table-caption">
 <p>Table&nbsp;8: Summary outputs from PERMANOVAs conducted for each season. Values in bold are significant at alpha of 0.05.</p>
@@ -1186,74 +1186,7 @@ div.csl-indent {
 <div class="quarto-layout-row quarto-layout-valign-top">
 <div id="tbl-fullPERMANOVA-1" class="quarto-layout-cell quarto-layout-cell-subref anchored" data-ref-parent="tbl-fullPERMANOVA" style="flex-basis: 100.0%;justify-content: center;">
 <table class="table table-sm table-striped small">
-<caption>(a) Winter</caption>
-<colgroup>
-<col style="width: 31%">
-<col style="width: 9%">
-<col style="width: 14%">
-<col style="width: 18%">
-<col style="width: 10%">
-<col style="width: 15%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: center;">&nbsp;</th>
-<th style="text-align: center;">Df</th>
-<th style="text-align: center;">SumOfSqs</th>
-<th style="text-align: center;">R2</th>
-<th style="text-align: center;">F</th>
-<th style="text-align: center;">Pr(&gt;F)</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: center;"><strong>system</strong></td>
-<td style="text-align: center;">3</td>
-<td style="text-align: center;">173.6</td>
-<td style="text-align: center;"><strong>0.04944</strong></td>
-<td style="text-align: center;">148.1</td>
-<td style="text-align: center;"><strong>0.001</strong></td>
-</tr>
-<tr class="even">
-<td style="text-align: center;"><strong>seasonYear</strong></td>
-<td style="text-align: center;">22</td>
-<td style="text-align: center;">55.81</td>
-<td style="text-align: center;"><strong>0.0159</strong></td>
-<td style="text-align: center;">6.493</td>
-<td style="text-align: center;"><strong>0.001</strong></td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;"><strong>system:seasonYear</strong></td>
-<td style="text-align: center;">60</td>
-<td style="text-align: center;">58.78</td>
-<td style="text-align: center;"><strong>0.01674</strong></td>
-<td style="text-align: center;">2.507</td>
-<td style="text-align: center;"><strong>0.001</strong></td>
-</tr>
-<tr class="even">
-<td style="text-align: center;"><strong>Residual</strong></td>
-<td style="text-align: center;">8249</td>
-<td style="text-align: center;">3223</td>
-<td style="text-align: center;">0.9179</td>
-<td style="text-align: center;">NA</td>
-<td style="text-align: center;">NA</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;"><strong>Total</strong></td>
-<td style="text-align: center;">8334</td>
-<td style="text-align: center;">3511</td>
-<td style="text-align: center;">1</td>
-<td style="text-align: center;">NA</td>
-<td style="text-align: center;">NA</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="quarto-layout-row quarto-layout-valign-top">
-<div id="tbl-fullPERMANOVA-2" class="quarto-layout-cell quarto-layout-cell-subref anchored" data-ref-parent="tbl-fullPERMANOVA" style="flex-basis: 100.0%;justify-content: center;">
-<table class="table table-sm table-striped small">
-<caption>(b) Summer</caption>
+<caption>(a) Summer</caption>
 <colgroup>
 <col style="width: 31%">
 <col style="width: 9%">
@@ -1309,6 +1242,73 @@ div.csl-indent {
 <td style="text-align: center;"><strong>Total</strong></td>
 <td style="text-align: center;">8918</td>
 <td style="text-align: center;">1179</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">NA</td>
+<td style="text-align: center;">NA</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div id="tbl-fullPERMANOVA-2" class="quarto-layout-cell quarto-layout-cell-subref anchored" data-ref-parent="tbl-fullPERMANOVA" style="flex-basis: 100.0%;justify-content: center;">
+<table class="table table-sm table-striped small">
+<caption>(b) Winter</caption>
+<colgroup>
+<col style="width: 31%">
+<col style="width: 9%">
+<col style="width: 14%">
+<col style="width: 18%">
+<col style="width: 10%">
+<col style="width: 15%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">&nbsp;</th>
+<th style="text-align: center;">Df</th>
+<th style="text-align: center;">SumOfSqs</th>
+<th style="text-align: center;">R2</th>
+<th style="text-align: center;">F</th>
+<th style="text-align: center;">Pr(&gt;F)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"><strong>system</strong></td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">173.6</td>
+<td style="text-align: center;"><strong>0.04944</strong></td>
+<td style="text-align: center;">148.1</td>
+<td style="text-align: center;"><strong>0.001</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><strong>seasonYear</strong></td>
+<td style="text-align: center;">22</td>
+<td style="text-align: center;">55.81</td>
+<td style="text-align: center;"><strong>0.0159</strong></td>
+<td style="text-align: center;">6.493</td>
+<td style="text-align: center;"><strong>0.001</strong></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><strong>system:seasonYear</strong></td>
+<td style="text-align: center;">60</td>
+<td style="text-align: center;">58.78</td>
+<td style="text-align: center;"><strong>0.01674</strong></td>
+<td style="text-align: center;">2.507</td>
+<td style="text-align: center;"><strong>0.001</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><strong>Residual</strong></td>
+<td style="text-align: center;">8249</td>
+<td style="text-align: center;">3223</td>
+<td style="text-align: center;">0.9179</td>
+<td style="text-align: center;">NA</td>
+<td style="text-align: center;">NA</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><strong>Total</strong></td>
+<td style="text-align: center;">8334</td>
+<td style="text-align: center;">3511</td>
 <td style="text-align: center;">1</td>
 <td style="text-align: center;">NA</td>
 <td style="text-align: center;">NA</td>
@@ -1469,7 +1469,7 @@ div.csl-indent {
 </section>
 <section id="sec-constrained-analyses" class="level3">
 <h3 class="anchored" data-anchor-id="sec-constrained-analyses">Constrained Analyses</h3>
-<p>I followed up with a dbRDA. For all systems and seasons, water temperature and BVC indeed tested as significant (<a href="#fig-RDAforAll">Figure&nbsp;7</a>). The range of variation explained by the first canonical axis was 1.22% to 5.08% with the range of the second canonical axis as 0.08% to 0.91% across all models.</p>
+<p>I followed up with a dbRDA. For all systems and seasons, water temperature and BVC indeed tested as significant (<a href="#fig-RDAforAll">Figure&nbsp;7</a>). The range of variation explained by the models was 1.92% to 5.1%. The range of variation explained by the first canonical axis was 1.22% to 5.08% with the range of the second canonical axis as 0.08% to 0.91% across all models.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-RDAforAll" class="quarto-figure quarto-figure-center anchored">
@@ -1480,12 +1480,12 @@ div.csl-indent {
 </div>
 </div>
 </div>
-<p>CAP analyses revealed little in the way of discernible yearly patterns (<a href="#fig-centroidCAP">Figure&nbsp;8</a>). All CAP analyses used 8 dimensions except Cedar Key summer which selected to 7. Only three taxa were selected as the top associated with year separation on the first canonical axis (see <a href="#tbl-CAPtaxa">Table&nbsp;11</a>). The range of variability described by the CAP models was 12.24% to 20.74%.</p>
+<p>CAP analyses revealed subtle shifts in yearly centroids over time in species-space. For most systems, this was gradual, with Cedar Key summer appearing to have a distinct separation of two groups of years on the first axis of variation (<a href="#fig-centroidCAP">Figure&nbsp;8</a>). Only five taxa were selected as the top associated with year separation on the first canonical axis (see <a href="#tbl-CAPtaxa">Table&nbsp;11</a>). The range of variability described by the CAP models was 12.24% to 20.74%.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="tbl-CAPtaxa" class="anchored">
 <table class="table table-sm table-striped small">
-<caption>Table&nbsp;11: Top taxon identified by CAP driving group separation on the first axis in each estuary and season.</caption>
+<caption>Table&nbsp;11: Taxon with the greatest magnitude vector as measured on the first two axis of variation.</caption>
 <colgroup>
 <col style="width: 12%">
 <col style="width: 12%">
@@ -1559,7 +1559,7 @@ div.csl-indent {
 <div id="fig-centroidCAP" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
 <p><img src="results_files/figure-html/fig-centroidCAP-1.png" class="img-fluid figure-img" width="624"></p>
-<figcaption class="figure-caption">Figure&nbsp;8: Canonical analysis of principal coordinates ordination plots. Shading of markers indicates year for that group, with red markers indicating centroids of the oldest years in the data and blue indicating the most recent years. Percentages next to subplot title indicate total variability captured by the model. Top 10 taxa associated with canonical axes scores plotted as vectors (still need better labels). Canonical axis (CA) percentages indicate the among-group variation captured in each axis.</figcaption>
+<figcaption class="figure-caption">Figure&nbsp;8: Canonical analysis of principal coordinates ordination plots. Shading of markers indicates year for that group, with red markers indicating centroids of the oldest years in the data and blue indicating the most recent years. Percentages next to subplot title indicate total variability captured by the model. Top three taxa associated with canonical axes scores plotted as vectors. Canonical axis (CA) percentages indicate the among-group variation captured in each axis.</figcaption>
 </figure>
 </div>
 </div>
