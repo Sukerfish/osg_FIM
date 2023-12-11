@@ -1101,9 +1101,37 @@ pander(sysSpp)
 plot(centroidCAP)
 ```
 
+
+```{r}
+#| label: CK postTest
+#| include: FALSE
+#| cache: TRUE
+source("CKpostTest.R")
+```
+
+Post analysis of Cedar Key summer biodiversity data included a factor identifying the separation observed in the CAP model. Visual inspection indicated the earlier group as bounded by 2001 to 2010 (inclusive) ([@fig-CK_summerCAP]). PERMANOVA indicated the earlier years are indeed significantly different than the later years (*F*-ratio `r format(as.data.frame(postTest)$F[1], digits = 4)` *p* < 0.001 [@tbl-CKpost]).
+
+```{r}
+#| label: tbl-CKpost
+#| echo: FALSE
+#| message: FALSE
+#| tbl-cap: "Post analysis using PERMANOVA informed by CAP on Cedar Key summer abundance data."
+pander(postTest)
+```
+```{r}
+#| label: fig-CK_summerCAP
+#| echo: FALSE
+#| message: FALSE
+#| warning: FALSE
+#| fig-width: 5
+#| fig-height: 5
+#| fig-cap: "Canonical analysis of principal coordinates ordination plot. Shading of markers indicates year for that group, with red markers indicating centroids of the oldest years in the data and blue indicating the most recent years. Percentages next to subplot title indicate total variability captured by the model. Top three taxa associated with canonical axes scores plotted as vectors. Canonical axis (CA) percentages indicate the among-group variation captured in each axis."
+
+plot(centroidPlots$CK_summer)
+```
 ### Univariate Analyses {#sec-univariate-analyses}
 
-Following Dornelas et al.[-@Dornelas2019], linear models were applied to the average annual abundance of each taxa through time and the slope of each was used for further examination. The majority of taxa are not undergoing significant change over time with a large group centered around zero ([@fig-winnersLosers]). Generally, the number of taxa changing significantly is fairly well balanced across estuaries within summer. However, the greatest difference occurs in winter ([@tbl-sigTaxa]), with an average of `r format(winDiff$meanDiff, nsmall = 2)` more taxa undergoing positive significant change across all systems. Meanwhile, on average in the summer, `r format(abs(sumDiff$meanDiff), nsmall = 2)` more taxa is undergoing negative change compared to the number changing positively.
+Following Dornelas et al. [-@Dornelas2019], linear models were applied to the average annual abundance of each taxa through time and the slope of each was used for further examination. The majority of taxa are not undergoing significant change over time with a large group centered around zero ([@fig-winnersLosers]). Generally, the number of taxa changing significantly is fairly well balanced across estuaries within summer. However, the greatest difference occurs in winter ([@tbl-sigTaxa]), with an average of `r format(winDiff$meanDiff, nsmall = 2)` more taxa undergoing positive significant change across all systems. Meanwhile, on average in the summer, `r format(abs(sumDiff$meanDiff), nsmall = 2)` more taxa is undergoing negative change compared to the number changing positively.
 
 ```{r}
 #| label: tbl-sigTaxa
