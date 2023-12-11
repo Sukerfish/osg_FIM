@@ -7,7 +7,9 @@ authors:
     affiliation:
       - name: The University of South Florida
         department: College of Marine Science
-format: html
+format: 
+  html:
+    self-contained: true
 reference-doc: results_formatting.docx
 editor: visual
 bibliography: references.bib
