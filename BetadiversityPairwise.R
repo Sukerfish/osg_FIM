@@ -160,4 +160,16 @@ turnSummerLm <- aov(value ~ smallYear * system, data = turnSummer)
 #        width = 16,
 #        height = 9)
 
+betaDelta <- betaTimeDF %>%
+  pivot_wider(names_from = Index, values_from = value) %>%
+  mutate(delta = Balanced - Gradient)
+
+deltaSummer <- betaDelta %>%
+  filter(season == "Summer")
+deltaWinter <- betaDelta %>%
+  filter(season == "Winter")
+
+deltaSummerLm <- aov(delta ~ smallYear * system, data = deltaSummer)
+deltaWinterLm <- aov(delta ~ smallYear * system, data = deltaWinter)
+
 ######
