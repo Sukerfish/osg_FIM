@@ -7,13 +7,7 @@ authors:
     affiliation:
       - name: The University of South Florida
         department: College of Marine Science
-format: 
-  html:
-    self-contained: true
-    toc: true
-    toc-location: left
-    toc-expand: true
-  docx: default
+format: docx 
 reference-doc: results_formatting.docx
 editor: visual
 bibliography: references.bib
@@ -192,7 +186,7 @@ In total, 17492 sampling events occurred where at least one taxa was caught and 
 
 ### Data Analyses {#sec-data-analyses}
 
-All analyses were conducted using the R Statistical Computing Environment v4.3.0 and an alpha of 0.05 was used for all significance testing [@R2023]. Preliminary analyses included running simple linear models on annually-summarized means of water temperature and bottom vegetation coverage. Upon first examination, the change in temperature over time was only marginally significant for estuaries in winter (*p* = 0.075). After visual inspection, the anomalously cold winter of 2010 (CITE) appeared as a distinct outlier and was dropped from the winter temperature model. From here, I ran Analysis of Covariance (ANCOVA) models with year as a continuous variable and estuarine system as a categorical predictor while including the interaction between both. I performed post-hoc contrasts for any significant terms in these models to determine the magnitude of any specific differences across systems using the *emmeans* package and used the Tukey method for *p*-value correction [@emmeans].
+All analyses were conducted using the R Statistical Computing Environment v4.3.0 and an alpha of 0.05 was used for all significance testing [@R2023]. Preliminary analyses included running simple linear models on annually-summarized means of water temperature and bottom vegetation coverage. Upon first examination, the change in temperature over time was only marginally significant for estuaries in winter (*p* = 0.075). After visual inspection, the anomalously cold winter of 2010 [@stith2012] appeared as a distinct outlier and so was dropped from the winter temperature model. From here, I ran Analysis of Covariance (ANCOVA) models with year as a continuous variable and estuarine system as a categorical predictor while including the interaction between both. I performed post-hoc contrasts for any significant terms in these models to determine the magnitude of any specific differences across systems using the *emmeans* package and used the Tukey method for *p*-value correction [@emmeans].
 
 To address if the richness and abundance of eGOM estuarine fish assemblages has changed over the study period and if it may be related to water temperature, I modeled richness and abundance per haul across all estuaries for both the summer and winter seasons using generalized linear mixed models (GLMMs) from the R package *glmmTMB* [@glmmTMB]. Given the well-documented seasonal differences in estuarine systems [see @Hagan2003; @Strydom2015; @Schrandt2020], in this and all subsequent analyses, summer and winter are treated entirely separately. For each seine haul, I calculated the richness as the number of taxa present and total abundance as the sum of all individuals counted. In all calculations, total abundance was fourth-root transformed to reduce the effects of overly-abundant taxa, given total abundance ranged from a maximum of `r format(max(totAbModelDF$abundRaw), nsmall = 0)` to `r format(min(totAbModelDF$abundRaw), nsmall = 0)`. For each model, the response in the GLMM included either the total richness or transformed total abundance of each haul, with estuary (four levels) as a fixed effect against year as a random effect (including the interaction), Z-scored water temperature, and Z-scored percent submerged aquatic vegetation coverage (SAV). To account for serial autocorrelation, an `ar1` covariance matrix was used in each model calculated from month of sampling event and within-estuary zone. Given that species richness is strongly affected by sampling effort [@Mittelbach2019], I included an offset term to account for variation in the number of seine hauls. Thus, the formula used for each was: `response ~ smallYear * system + temp_Z + sav_Z + offset(log(n_hauls)) + ar1(yearMonth + 0|systemZone)` where `response` was either total abundance or total richness per haul. The package *emmeans* was again used for post-hoc contrasts and the Tukey method was used for *p*-value correction [@emmeans]. In addition, I used the R package *betapart* to calculate Bray-Curtis dissimilarity over time and modeled this with ANCOVA [@betapart].
 
@@ -997,7 +991,7 @@ plot(centroidCAP)
 source("CKpostTest.R")
 ```
 
-Post analysis of Cedar Key summer biodiversity data included a factor identifying the separation observed in the CAP model. Visual inspection indicated the earlier group as bounded by 2001 to 2010 (inclusive) ([@fig-CK_summerCAP]). PERMANOVA indicated the earlier years are indeed significantly different than the later years (*F*-ratio `r format(as.data.frame(postTest)$F[1], digits = 4)` *p* \< 0.001 [@tbl-CKpost]).
+Post analysis of Cedar Key summer biodiversity data included a factor identifying the separation observed in the CAP model. Visual inspection indicated the earlier group as bounded by 2001 to 2010 (inclusive) ([@fig-CK_summerCAP]). PERMANOVA indicated the earlier years are indeed significantly different than the later years (*F*-ratio `r format(as.data.frame(postTest)$F[1], digits = 4)` *p* < 0.001 [@tbl-CKpost]).
 
 ```{r}
 #| label: tbl-CKpost
@@ -1105,7 +1099,7 @@ for (i in seasysKey){
 
 ```
 
-The majority of taxa that changed over time were either subtropical/tropical-associated or subtropical/tropical/temperate-associated. 
+The majority of taxa that changed over time were either subtropical/tropical-associated or subtropical/tropical/temperate-associated.
 
 ```{r}
 #| label: fig-ecoSlopes
@@ -1223,6 +1217,7 @@ pander(bvcMeans)
 ```
 
 ABUNDANCE GLMMs
+
 ```{r}
 #| label: tbl-abundModels
 #| echo: FALSE
@@ -1246,6 +1241,7 @@ pander(tidy(abundContW$contrasts) %>%
 ```
 
 RICHNESS MODEL OUTPUTS
+
 ```{r}
 #| label: tbl-richModels
 #| echo: FALSE
@@ -1268,6 +1264,7 @@ pander(tidy(richMeanW$contrasts) %>%
 ```
 
 Betadiversity model outputs
+
 ```{r}
 #| label: tbl-betaModels 
 #| echo: FALSE 
@@ -1285,7 +1282,6 @@ emphasize.strong.rows(conditionbetaW)
 pander(betaWinterSummary)
 
 ```
-
 
 . . . ARCHIVAL OLD MATERIALS; NEEDS VETTED
 
