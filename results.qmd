@@ -252,7 +252,7 @@ Results of the water temperature ANCOVAs indicated a significant positive trend 
 #| warning: FALSE
 #| fig-width: 6.5
 #| fig-height: 6
-#| fig-cap: "Annualy averaged water temperature over time. Error bars represent ± 1 standard error."
+#| fig-cap: "Annually averaged water temperature over time. Error bars represent ± 1 standard error."
 
 (seasonTempPlot <- ggplot(winterTemp,
                 aes(x     = contYear, 
@@ -314,7 +314,7 @@ ANCOVA models for average submerged aquatic vegetation coverage (SAV) identified
 #| message: FALSE 
 #| fig-width: 6.5 
 #| fig-height: 6 
-#| fig-cap: "Submerged aquatic vegetation coverage as a percentage averaged annually and plotted over time. Error bars are ± 1 standard error. Solid lines indicate signficant modeled trends and dashed lines indicate a trend of no significance."
+#| fig-cap: "Annually averaged SAV coverage over time. Error bars represent ± 1 standard error. Solid lines indicate significant modeled trends and dashed lines indicate a trend of no significance."
 
 (fullBVCPlot <- ggplot(summerBVC,
                 aes(x     = contYear, 
@@ -433,7 +433,7 @@ plot(NPlot_ann)
 
 Results from post-hoc tests on total richness GLMMs indicated modeled average richness of Apalachicola Bay in summer was greater than all other estuaries, with no significant difference in means among the other three (*t* ≥ `r format(abs(as.data.frame(richMeanS$contrasts)$t.ratio[1]), digits = 3)` for all *p* < 0.05 [@tbl-richModels-3]). In winter, modeled average richness was more nuanced, where Charlotte Harbor had the highest modeled richness compared to all other estuaries, Tampa Bay had higher than Cedar Key, and Cedar Key had less than Apalachicola Bay (*t* ≥ `r format(abs(as.data.frame(richMeanW$contrasts)$t.ratio[1]), digits = 3)` for all *p* < 0.05 [@tbl-richModels-4]). Further, results of the GLMMs indicated that total richness was positively correlated with SAV for all systems and seasons. As with total abundance, water temperature was not significant in any estuaries during the summer but was again positively associated with total richness in all estuaries in winter ([@tbl-richModels]). However, the relative magnitude of the effect of SAV compared to the effect of water temperature on richness was greater than it was in the abundance models. Further, total richness had no discernible trends over time in any of the estuaries or seasons ([@fig-richSyn]).
 
-![Summary of observed biological response trends per system and season from total abundance model. Trend direction calculated using GLMM framework and significant at alpha 0.95.](conceptFigs/richSyn.png){#fig-richSyn}
+![Summary of observed biological response trends per system and season from total richness model. Trend direction calculated using GLMM framework and significant at alpha 0.95.](conceptFigs/richSyn.png){#fig-richSyn}
 
 ```{r}
 #| label: BetaDiversity
@@ -956,7 +956,7 @@ for(i in systemSeason_list$systemSeason){
 
 ```
 
-Visual assessment of the CAP ordinations suggested variability in assemblage composition and abundance over time, as indicated by subtle shifts of the yearly centroids. For most systems, this was gradual, but Cedar Key summer appeared to have a distinct separation of two groups of years on the first axis of variation ([@fig-centroidCAP]). This was further investigated post-hoc (see [@tbl-CKpost]). Only five taxa were selected as the top associated with year separation on the first two canonical axes (see [@tbl-CAPtaxa]). The range of variability described by the CAP models was `r paste0(round(min(topSpp$percent),2), "%")` to `r paste0(round(max(topSpp$percent),2), "%")`.
+Visual assessment of the CAP ordinations suggested variability in assemblage composition and abundance over time, as indicated by subtle shifts of the yearly centroids. For most systems, this was gradual, but Cedar Key summer appeared to have a distinct separation of two groups of years on the first axis of variation ([@fig-centroidCAP]). Only five taxa were selected as the top associated with year separation on the first two canonical axes (see [@tbl-CAPtaxa]). The range of variability described by the CAP models was `r paste0(round(min(topSpp$percent),2), "%")` to `r paste0(round(max(topSpp$percent),2), "%")`.
 
 ```{r}
 #| label: tbl-CAPtaxa
@@ -972,7 +972,7 @@ pander(sysSpp)
 #| message: FALSE
 #| warning: FALSE
 #| fig-width: 6.5
-#| fig-height: 9
+#| fig-height: 8
 #| fig-cap: "Canonical analysis of principal coordinates ordination plots. Shading of markers indicates year for that group, with blue markers indicating centroids of the oldest years in the data and red indicating the most recent years. Percentages next to subplot title indicate total variability captured by the model. Top three taxa associated with canonical axes scores plotted as vectors. Canonical axis (CA) percentages indicate the among-group variation captured in each axis."
 
 plot(centroidCAP)
@@ -985,7 +985,7 @@ In multivariate species-spaces, dbRDA confirmed the significance of SAV and wate
 #| echo: FALSE
 #| message: FALSE
 #| fig-width: 6.5
-#| fig-height: 9
+#| fig-height: 8
 #| fig-cap: "Distance-based redundancy analysis (dbRDA) ordination to visualize effects of habitat parameters. Shading of markers indicates year for that group, with blue markers indicating centroids of the oldest years in the data and red indicating the most recent years. Canonical axis (CA) percentages indicate the total variation in estuarine communities explained by that axis. Each habitat variable is represented by vectors and centroids of taxa groups are calculated using weighted average scores."
 
 plot(fullRDAPlot)
@@ -1077,7 +1077,7 @@ for (i in seasysKey){
 
 ```
 
-The majority of taxa that changed over time were either subtropical/tropical-associated or subtropical/tropical/temperate-associated.
+The majority of taxa that changed over time were either subtropical/tropical-associated or subtropical/tropical/temperate-associated ([@fig-ecoSlopes]).
 
 ```{r}
 #| label: fig-ecoSlopes
