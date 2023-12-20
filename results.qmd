@@ -7,7 +7,12 @@ authors:
     affiliation:
       - name: The University of South Florida
         department: College of Marine Science
-format: docx 
+format:
+  html:
+    self-contained: true
+    toc: true
+    toc-location: left
+    toc-expand: true
 reference-doc: results_formatting.docx
 editor: visual
 bibliography: references.bib
@@ -44,21 +49,21 @@ Sys.setenv(FISHBASE_API="sealifebase")
 
 Global climate change is having strong effects on biodiversity and associated ecosystem structure and functions [@Doney2012; @Poloczanska2016; @Murphy2020]. Shifts in species distributions [@McCarty2001], changes in phenology [@Stenseth2002], and changes in biodiversity [@Dornelas2019] have been observed globally. However, the direction and magnitude of change varies. For example, species richness is declining around the equator and increasing at midlatitudes [@Chaudhary2021]. Some taxa are migrating poleward while others remain unchanged in distribution [@Parmesan1999; @Perry2005; @Chivers2017]. Given that changes in biodiversity can affect ecosystem stability [@Hautier2015], there has been increased concern about how climate change will alter ecosystems, including rainforests [@Levine2016], coral reefs [@Toth2019], and estuaries [@Erickson2021]. However, our understanding of changes in ecosystem stability has been limited by a paucity of long-term time series data [but see @Dornelas2018]. Further, many ecosystems at lower latitudes have received comparatively less attention than those at higher latitudes. Understanding stability in these lower latitude ecosystems can shed light on their responses to climate change and broaden our understanding about generalities.
 
-Temperature is known to affect population-level demographics in several ways, including the sex ratio of offspring [@Ospina-Alvarez2008], growth rates of young [@Raventos2021], and individual survivorship [@Stevens2016]. However, the effects of shifting temperatures are more nuanced at the community level. Studies have highlighted such influences as changes in seasonal weather extremes [@Easterling2000; @Miner2021], shifts in season duration [@Cooper2014], and variation in disturbance frequency, intensity, and duration [@Dale2001], among others. Such factors can drive community-level change in different magnitudes and directions. For example, as distributions of taxa shift in response to warming temperature, the invasion of predators and new pathogens can lead to the extirpation of native species [@Sax2007]. Although average temperatures are increasing globally, the magnitude of these changes may not be consistent among seasons, with warming expected to occur more quickly in the winter than the summer for many ecosystems [@Clark2020]. This seasonal imbalance in temperature change has already contributed to the global poleward expansion of mangroves and is linked to a reduction in frequency and intensity of cold weather events [@Saintilan2014]. Given the importance of season on biota globally, such asymmetric change in temperature may have complex effects. For example, the intensity of a preceding winter is associated with differences in the springtime estuarine fish assemblages that follow [@Curran2019]. In addition, the simultaneous increase in temperature variability due to climate change has been demonstrated to directly influence species richness, with concurrent effects on community stability [@Zhang2018]. Within marine systems, there is evidence that regions at lower latitude have become less stable compared to their higher latitude counterparts due to their responses to temperature [@Miner2021].
+Temperature is known to affect population-level demographics in several ways, including the sex ratio of offspring [@Ospina-Alvarez2008], growth rates of young [@Raventos2021], and individual survivorship [@Stevens2016]. However, the effects of shifting temperatures are more nuanced at the community level. Studies have highlighted such influences as changes in seasonal weather extremes [@Easterling2000; @Miner2021], shifts in season duration [@Cooper2014], and variation in disturbance frequency, intensity, and duration [@Dale2001], among others. Such factors can drive community-level change in different magnitudes and directions. For example, as distributions of taxa shift in response to warming temperature, the invasion of predators and new pathogens can lead to the extirpation of native species [@Sax2007]. Although average temperatures are increasing globally, the magnitude of these changes may not be consistent among seasons, with warming expected to occur more quickly in the winter than the summer for many ecosystems [@Clark2020]. This seasonal imbalance in temperature change has already contributed to the global poleward expansion of mangroves and is linked to a reduction in frequency and intensity of cold weather events [@Saintilan2014]. Given the importance of season on biota globally, such asymmetric change in temperature may have complex effects. For example, the intensity of a preceding winter is associated with differences in the springtime estuarine fish assemblages that follow [@Curran2019]. In addition, the concurrent increase in temperature variability due to climate change has been demonstrated to directly influence species richness, with concurrent effects on community stability [@Zhang2018]. Within marine systems, there is evidence that regions at lower latitude have become less stable compared to their higher latitude counterparts due to their responses to temperature [@Miner2021].
 
-The eastern Gulf of Mexico (eGOM) is a productive subtropical region that supports diverse communities including mangrove- and marshgrass-dominated estuaries, seagrass systems, and hardbottom reefs. The region is bisected by the Northern Gulf of Mexico ecoregion to the north and Floridian to the south, which are characterized by compositionally different marine assemblages [@Spalding2007]. Seagrass systems across this region act as important juvenile habitats for many fishes and have high regional variability in the populations and communities they support [@Schrandt2018; @Faletti2019; @Peake2022]. Globally, temperate ecosystems are undergoing tropicalization, with previously rare or absent tropically-associated taxa increasing in abundance through time [@Nakamura2013; @Osland2021]. The effects of these invading taxa are profound and can lead to regime shifts [@Verges2014; @Wernberg2016]. Yet, there is evidence that some subtropical ecosystems are resilient to tropicalization due to additional factors, such as dispersal limitations of potential invaders [@Mizerek2021]. In the eGOM, the expansion of three co-occurring mangrove species in Florida estuaries has been linked to reduced frequency of extreme cold events [@Cavanaugh2014] and is already creating novel mangrove-marsh assemblages [@Cook-Patton2015], with shifts in faunal communities predicted to follow [@Scheffel2018]. Indeed, warmer winter temperatures have been associated with the poleward expansion of a mangrove-associated fish species in this region [@Purtlebaugh2020] and affected community stability in other estuarine systems in North America [@Miner2021].
+The eastern Gulf of Mexico (eGOM) is a productive subtropical region that supports diverse communities including mangrove- and marshgrass-dominated estuaries, seagrass systems, and hardbottom reefs. The region is bisected by the Northern Gulf of Mexico ecoregion to the north and Floridian to the south, which are characterized by compositionally different marine assemblages [@Spalding2007]. Seagrass systems throughout the eGOM act as important juvenile habitats for many fishes and exhibit high regional variability in the populations and communities they support [@Schrandt2018; @Faletti2019; @Peake2022]. Globally, temperate ecosystems are undergoing tropicalization, with previously rare or absent tropically-associated taxa increasing in abundance through time [@Nakamura2013; @Osland2021]. The effects of these invading taxa are profound and can lead to regime shifts [@Verges2014; @Wernberg2016]. Yet, there is evidence that some subtropical ecosystems are resilient to tropicalization due to additional factors, such as dispersal limitations of potential invaders [@Mizerek2021]. In the eGOM, a reduced frequency of extreme cold events has been linked to the expansion of three co-occurring mangrove species in Florida estuaries [@Cavanaugh2014]. This is already creating novel mangrove-marsh assemblages [@Cook-Patton2015] and shifts in faunal communities are predicted to follow [@Scheffel2018]. Indeed, warmer winter temperatures have been associated with the poleward expansion of a mangrove-associated fish species in this region [@Purtlebaugh2020] and has affected community stability in other estuarine systems in North America [@Miner2021].
 
-Increased abundance of tropically-associated taxa had already been observed in northern Gulf of Mexico (nGOM) seagrass systems as early as 2006, potentially indicating tropicalization by taxa from the Floridian ecoregion [@Fodrie2010]. However, Fodrie et al. [-@Fodrie2010] was restricted to the northernmost edge of the eGOM as well as only the summer and fall seasons. Further, assemblages commonly differ between summer and winter in subtropical and temperate estuaries [@Hagan2003; @Strydom2015; @Schrandt2020]. Thus, it is unclear how estuarine systems across the broader eGOM may be responding to climate change, especially in the context of imbalanced seasonal temperature change. Long-term data collected consistently within and across multiple eGOM estuaries that span temperate and subtropical latitudes can improve our ability to evaluate the stability of these assemblages and establish a timeline of tropicalization in this region. Long-term time series data are available in the eGOM, where estuarine seine hauls have been conducted monthly since 1997 and followed consistent study designs and methods. Using these data, I will investigate whether fish assemblages in estuaries within the eGOM have changed over a 20-year period in response to climate change. Specifically, I will address the following questions: 1) has the richness and abundance of eGOM estuarine fish assemblages changed over a 20-year period? 2) Has the composition and stability of eGOM estuarine fish assemblages changed over time and, if so, are these changes related to water temperature?
+Increased abundance of tropically-associated taxa had already been observed in northern Gulf of Mexico seagrass systems as early as 2006, potentially indicating tropicalization by taxa from the Floridian ecoregion [@Fodrie2010]. However, Fodrie et al. [-@Fodrie2010] was restricted to the northernmost edge of the eGOM as well as only the summer and fall seasons. Further, assemblages commonly differ between summer and winter in subtropical and temperate estuaries [@Hagan2003; @Strydom2015; @Schrandt2020]. Thus, it is unclear how estuarine systems across the broader eGOM may be responding to climate change, especially in the context of imbalanced changes in average seasonal temperatures. Long-term data collected consistently within and across multiple eGOM estuaries that span temperate and subtropical latitudes can improve our ability to evaluate the stability of these assemblages and establish a timeline of tropicalization in this region. Long-term time series data are available in the eGOM, where estuarine fish composition and abundance data have been conducted monthly since 1997 and followed consistent study designs and methods. Using these data, I investigated whether fish assemblages in estuaries within the eGOM changed over a 20-year period and if there is a potential response to climate change. Specifically, I addressed the following questions: 1) Has water temperature and submerged aquatic vegation coverage changed in eGOM estuaries over a 20-year period? 2) Has the richness and abundance of fishes within eGOM estuarine fish assemblages changed over this same time period and, if so, are these changes related to water temperature? 3) Has the composition and stability of eGOM estuarine fish assemblages changed over time?
 
 # Methods {#sec-methods .unnumbered}
 
-### Data collection {#sec-data-collection}
+### Data Collection {#sec-data-collection}
 
 This study used data collected by the Florida Fish and Wildlife Research Institute's (FWRI) Fisheries Independent Monitoring (FIM) program. The program follows a monthly stratified random sampling design in estuaries across Florida, including four in the eastern Gulf of Mexico (from north to south: Apalachicola Bay (AB), Cedar Key (CK), Tampa Bay (TB), and Charlotte Harbor (CH); @fig-FIMsystems). Apalachicola Bay is a shallow, semi-enclosed estuary located on the northern coast of the GOM in the panhandle of Florida, USA and is within the Northern Gulf of Mexico ecoregion [@Spalding2007]. Cedar Key is located within the Suwannee River open estuary system and is also in the Northern Gulf of Mexico ecoregion. Tampa Bay is Florida's largest open water estuary and lies within the Floridian ecoregion [@Spalding2007]. Charlotte Harbor, a drowned river estuary system, is within the Floridian ecoregion [@FWRIFloridaFishandWildlifeResearchInstitute2017]. All systems are dominated by seagrass vegetation in shallow waters, except for Apalachicola Bay, where seagrass is less than 7% of bottom coverage [@FWRIFloridaFishandWildlifeResearchInstitute2017]. However, sampling gear was partly determined by habitat, where all seagrass at particular depths were sampled with the same gear type across estuaries [see also below, @FWRIFloridaFishandWildlifeResearchInstitute2017]. Finally, marsh grasses and oyster beds are dominant along shorelines in Apalachicola Bay and Cedar Key, while mangroves dominate in Charlotte Harbor, and Tampa Bay is characterized by a mix of marsh grasses, oyster beds, and mangroves [@FWRIFloridaFishandWildlifeResearchInstitute2017].
 
 ![Locations of all estuaries in this study.](conceptFigs/FIMsystems.png){#fig-FIMsystems}
 
-Within each estuary, sampling was divided into zones (subdivided into 1-nm^2^ grids) based on geographic, habitat, and depth criteria [@FWRIFloridaFishandWildlifeResearchInstitute2017]. These criteria defined which of three different types of gear were used to collect organisms. For this study, only the 21.3-m seine net were considered, because it was used the longest and most consistently throughout the study period. Specifically, this gear targeted young-of-year and juvenile fishes in shallow habitats (≤1.8-m deep). For every net deployment, all vertebrates and select commercially important invertebrates were counted and identified to the lowest practical taxonomic level (typically species). This study used all available seine data from 1998 to 2020. Further, each seine haul was categorized by season, with summer defined as June-September and winter as December-March, following [@Schrandt2020]. Due to the similarity in appearance, and thus difficulty for *in situ* species-level identification, certain taxa were aggregated at the genus level to reduce potential effects of misidentification ([@tbl-diffID]). A visual estimate of the submerged aquatic vegetation coverage is recorded for each sampling event. Finally, using a YSI sonde, several parameters, including water temperature, were recorded at the surface of the water and at the bottom during each sampling event.
+Within each estuary, sampling was divided into zones (subdivided into 1-nm^2^ grids) based on geographic, habitat, and depth criteria [@FWRIFloridaFishandWildlifeResearchInstitute2017]. These criteria defined which of three different types of gear were used to collect organisms. For this study, only the 21.3-m seine net data were considered, because it was used the longest and most consistently throughout the study period. Specifically, this gear targeted young-of-year and juvenile fishes in shallow habitats (≤1.8-m deep). For every net deployment, all vertebrates and select commercially important invertebrates were counted and identified to the lowest practical taxonomic level (typically species). This study used all available seine data from 1998 to 2020. Further, each seine haul was categorized by season, with summer defined as June-September and winter as December-March, following [@Schrandt2020]. Due to the similarity in appearance, and thus difficulty for *in situ* species-level identification, certain taxa were aggregated at the genus level to reduce potential effects of misidentification ([@tbl-diffID]). A visual estimate of the submerged aquatic vegetation coverage was recorded for each sampling event. Finally, a YSI sonde was used to record water temperature at the surface of the water and at the bottom during each sampling event.
 
 ```{r}
 #| label: tbl-diffID
@@ -182,15 +187,17 @@ BVCwinterSlope <- tidy(winterBVCContrasts$lstrends)
 BVCsummerSlope <- tidy(summerBVCContrasts$lstrends)
 ```
 
-In total, 17492 sampling events occurred where at least one taxa was caught and counted during summer or winter across all four estuaries. For seven sampling events, temperature data were unavailable and thus excluded from the analyses. Further, hauls that were composed solely of rare species (taxa found in ≤5% of all samples for that system and season) were removed from the analyses which reduced samples down to `r nrow(SXS_filtered)`. Overall, `r ncol(SXS_filtered_spp)` taxa in the dataset were recorded, spanning `r max(as.numeric(as.character(waterBVC_full$seasonYear)))-min(as.numeric(as.character(waterBVC_full$seasonYear)))` years of collections.
+In total, 17492 sampling events occurred where at least one taxon was caught and counted during summer or winter in any of the four estuaries. For seven sampling events, temperature data were unavailable and thus excluded from the analyses. Further, hauls that were composed solely of rare species (taxa found in ≤5% of all samples for that system and season) were removed from the analyses which reduced the sample count down to `r nrow(SXS_filtered)`. Overall, `r ncol(SXS_filtered_spp)` taxa were recorded in the dataset over `r max(as.numeric(as.character(waterBVC_full$seasonYear)))-min(as.numeric(as.character(waterBVC_full$seasonYear)))` years of collections.
 
 ### Data Analyses {#sec-data-analyses}
 
-All analyses were conducted using the R Statistical Computing Environment v4.3.0 and an alpha of 0.05 was used for all significance testing [@R2023]. Preliminary analyses included running simple linear models on annually-summarized means of water temperature and bottom vegetation coverage. Upon first examination, the change in temperature over time was only marginally significant for estuaries in winter (*p* = 0.075). After visual inspection, the anomalously cold winter of 2010 [@stith2012] appeared as a distinct outlier and so was dropped from the winter temperature model. From here, I ran Analysis of Covariance (ANCOVA) models with year as a continuous variable and estuarine system as a categorical predictor while including the interaction between both. I performed post-hoc contrasts for any significant terms in these models to determine the magnitude of any specific differences across systems using the *emmeans* package and used the Tukey method for *p*-value correction [@emmeans].
+All analyses were conducted using the R Statistical Computing Environment v4.3.0 and an alpha of 0.05 was used for all significance testing [@R2023]. To address if water temperature and SAV have changed over time in eGOM estuaries, I used Analysis of Covariance (ANCOVA) models for summer and winter seasons, independently, with year as a continuous predictor and estuarine system as a categorical predictor (fixed, 4 levels: Apalachicola Bay, Cedar Key, Tampa Bay, Charlotte Harbor) while including the interaction between both. The response for each model was the mean annual water temperature or percent SAV coverage for each season. Preliminary analyses included simple linear models of annual means of water temperature and bottom vegetation coverage for summer and winter, independently. After visual inspection, the anomalously cold winter of 2010 [@stith2012] appeared as a distinct outlier and was therefore dropped from the winter water temperature ANCOVA. I performed post-hoc contrasts for any significant terms in these ANCOVA models to determine the magnitude of any specific differences across systems using the *emmeans* package and used the Tukey method for *p*-value correction [@emmeans].
 
-To address if the richness and abundance of eGOM estuarine fish assemblages has changed over the study period and if it may be related to water temperature, I modeled richness and abundance per haul across all estuaries for both the summer and winter seasons using generalized linear mixed models (GLMMs) from the R package *glmmTMB* [@glmmTMB]. Given the well-documented seasonal differences in estuarine systems [see @Hagan2003; @Strydom2015; @Schrandt2020], in this and all subsequent analyses, summer and winter are treated entirely separately. For each seine haul, I calculated the richness as the number of taxa present and total abundance as the sum of all individuals counted. In all calculations, total abundance was fourth-root transformed to reduce the effects of overly-abundant taxa, given total abundance ranged from a maximum of `r format(max(totAbModelDF$abundRaw), nsmall = 0)` to `r format(min(totAbModelDF$abundRaw), nsmall = 0)`. For each model, the response in the GLMM included either the total richness or transformed total abundance of each haul, with estuary (four levels) as a fixed effect against year as a random effect (including the interaction), Z-scored water temperature, and Z-scored percent submerged aquatic vegetation coverage (SAV). To account for serial autocorrelation, an `ar1` covariance matrix was used in each model calculated from month of sampling event and within-estuary zone. Given that species richness is strongly affected by sampling effort [@Mittelbach2019], I included an offset term to account for variation in the number of seine hauls. Thus, the formula used for each was: `response ~ smallYear * system + temp_Z + sav_Z + offset(log(n_hauls)) + ar1(yearMonth + 0|systemZone)` where `response` was either total abundance or total richness per haul. The package *emmeans* was again used for post-hoc contrasts and the Tukey method was used for *p*-value correction [@emmeans]. In addition, I used the R package *betapart* to calculate Bray-Curtis dissimilarity over time and modeled this with ANCOVA [@betapart].
+To address if the richness and abundance of fishes within eGOM estuarine fish assemblages has changed over the study period and if it may be related to water temperature, I modeled richness and abundance per haul across all estuaries for both the summer and winter seasons using generalized linear mixed models (GLMMs) from the R package *glmmTMB* [@glmmTMB]. Given the well-documented seasonal differences in estuarine systems [see @Hagan2003; @Strydom2015; @Schrandt2020], in this and all subsequent analyses, summer and winter are treated entirely separately. For each seine haul, I calculated the richness as the number of taxa present and total abundance as the sum of all individuals counted. In all calculations, total abundance was fourth-root transformed to reduce the effects of overly-abundant taxa. For each model, the response in the GLMM included either the total richness or transformed total abundance of each haul, with estuary (fixed, 4 levels: Apalachicola Bay, Cedar Key, Tampa Bay, Charlotte Harbor), year (random, continuous; including the interaction), water temperature (random, continuous), and percent SAV coverage (random, continuous) as predictors. Water temperature and percent SAV coverage were subsequently z-score transformed to reduce analytical biases due to differences in scale. An `ar1` covariance matrix was included in each model to account for serial autocorrelation and was calculated from month of sampling event and within-estuary zone. Given that species richness is strongly affected by sampling effort [@Mittelbach2019], I included an offset term to account for variation in the number of seine hauls. Thus, the formula used for each was: `response ~ smallYear * system + temp_Z + sav_Z + offset(log(n_hauls)) + ar1(yearMonth + 0|systemZone)` where `response` was either total abundance or total richness per haul. The package *emmeans* was again used for post-hoc contrasts and the Tukey method was used for *p*-value correction [@emmeans]. In addition, I used the R package *betapart* to calculate Bray-Curtis dissimilarity over time and modeled this with ANCOVA [@betapart].
 
-I then used distance-based redundancy analysis (dbRDA) from the R package *vegan* to explore the magnitude and direction of effect of water temperature and SAV in multivariate species-space [@vegan]. Before performing canonical analysis of principal coordinates (CAP), I used permutational multivariate analysis of variance (PERMANOVA) from the R package *vegan* to examine the interaction between estuary and time within season, as a means to determine if there were different magnitudes and directions of temporal change among estuaries and thus if each estuary should be treated separately [@vegan]. Finally, to explore the *a priori* hypothesis of a possible "directional" change in species space over time, I used (CAP) models from the R package *BiodiversityR* for each estuary and season [@BiodiversityR]. Following Dornelas et al.[-@Dornelas2019], I further examined individual taxa for change over time. Within each estuary and season, I ran a linear model on the transformed abundance of each taxa independently over time and tested for significance. This was used to determine both the magnitude and direction of change at the species level, thus describing the distribution of "winners and losers" across each estuarine system [@Dornelas2019]. Finally, climatological association data were pulled from Fishbase using *rfishbase* [@rfishbase]. Unless otherwise indicated, mean values reported from these analyses will be reported as mean ± one standard error.
+To address my third question, I first used permutational multivariate analysis of variance (PERMANOVA) from the R package *vegan* to examine the interaction between estuary (fixed, four levels) and year (random, continuous) within season, as a means to determine if there were different magnitudes and directions of temporal change among estuaries and thus if each estuary should be treated separately [@vegan]. I then followed up with canonical analysis of principal coordinates (CAP) ordinations using the R package *BiodiversityR* to visualize differences among the levels of any fixed effect categorical terms deemed significant by the PERMANOVA models [@BiodiversityR]. In addition, I included taxon biplot correlation vectors in these CAP models to help better visualize which taxa were contributing to these differences. Vector lengths were calculated by applying Pythagorean theorem to the first two axis scores for each taxon. Finally, I performed distance-based redundancy analysis (dbRDA) from the R package *vegan* to examine whether water temperature and SAV coverage affected the relative abundances of the different taxa [@vegan].
+
+Additionally, I examined the change in abundance of individual taxa over time following Dornelas et al. [-@Dornelas2019]. Within each estuary and season, I ran a linear model on the fourth-root transformed abundance of each taxon independently over time to determine both the magnitude and direction of change at the taxa level. I then attached climatological association data to any taxon with significant change over time using data pulled from Fishbase using *rfishbase* [@rfishbase]. Unless otherwise indicated, values from these analyses were reported as mean ± SE.
 
 # Results {#sec-results .unnumbered}
 
@@ -232,11 +239,11 @@ minSpSlope <- sigSlopes[minSlope,]
 
 ### Overview {#sec-overview}
 
-Throughout the study period, water temperature was increasing during winter for all systems at a rate nearly double that observed during the summer ([@fig-TempPlot]). However, percent submerged aquatic vegetation (SAV) had a more nuanced response over time, with increases observed in Charlotte Harbor and Tampa Bay, a decrease in Cedar Key winter, and no change in Apalachicola Bay. In species-space, `r length(unique(sigSlopes$Scientificname))` out of `r length(unique(SlopesForAllDF$Scientificname))` total identified taxa had significant changes in abundance over time across all systems.
+Throughout the study period, water temperature was increasing during winter for all systems at a rate nearly double that observed during the summer ([@fig-TempPlot]). However, percent submerged aquatic vegetation (SAV) had a more nuanced response over time, with increases observed in Charlotte Harbor and Tampa Bay, a decrease in Cedar Key winter, and no change in Apalachicola Bay ([@fig-BVCPlot]). In terms of individual taxa, `r length(unique(sigSlopes$Scientificname))` out of `r ncol(SXS_filtered_spp)` total identified taxa had significant changes in abundance over time across all systems.
 
 ### Habitat Parameters {#sec-habitat-parameters}
 
-Results of the water temperature ANCOVAs indicated a significant positive trend that was consistent among estuaries. However, it also identified differences in mean temperature across some systems (*t* ≥ `r format(winterSummary$statistic[4], digits = 4)` for all *p* < 0.05; [@tbl-tempAncova]). Using post-hoc contrasts, I parsed out these differences among estuaries and seasons. For the winter season, I determined Apalachicola Bay and Cedar Key averaged `r format(winterSumAll[1,]$estimate, digits = 3)`°C ± `r format(winterSumAll[1,]$std.error, digits = 2)` during the study period, compared to `r format(winterSumAll[3,]$estimate, digits = 3)`°C ± `r format(winterSumAll[3,]$std.error, digits = 2)` for Tampa Bay and `r format(winterSumAll[4,]$estimate, digits = 3)`°C ± `r format(winterSumAll[4,]$std.error, digits = 2)` for Charlotte Harbor (*t* ratios ≥ `r format(as.data.frame(winterSummaryAll$contrasts)[6,5], digits = 4)` for all *p* < 0.05; [@tbl-tempAncovaContrast]). However, for the summer, Charlotte Harbor averaged warmer than all other systems at `r format(summerSumAll[4,]$estimate, digits = 3)`°C ± `r format(summerSumAll[4,]$std.error, digits = 2)` (*t* ratios ≥ `r format(as.data.frame(summerSummaryAll$contrasts)[6,5], digits = 4)` for all *p* < 0.05; [@tbl-tempAncovaContrast]). Average water temperatures in Cedar Key and Apalachicola Bay were not different from one another (`r format(summerSumAll[1,]$estimate, digits = 3)`°C ± `r format(summerSumAll[1,]$std.error, digits = 2)`), although Tampa Bay was significantly different than Cedar Key, but not Apalachicola Bay, averaging `r format(summerSumAll[3,]$estimate, digits = 3)`°C ± `r format(summerSumAll[3,]$std.error, digits = 2)`. For all systems during winter, water temperature increased at a rate of `r format(winterSummary[2,]$estimate, digits = 2)`°Cyr^-1^ ± `r format(winterSummary[2,]$std.error, digits = 2)` (see also [@fig-habParams]). Similarly, during summer, water temperature increased in all systems at a rate of `r format(summerSummary[2,]$estimate, digits = 2)`°Cyr^-1^ ± `r format(summerSummary[2,]$std.error, digits = 2)` ([@fig-TempPlot]).
+Results of the water temperature ANCOVAs indicated a significant positive trend that was consistent among estuaries. However, it also identified differences in mean temperature across some systems (*t* ≥ `r format(winterSummary$statistic[4], digits = 4)` for all *p* < 0.05; [@tbl-tempAncova]). Using post-hoc contrasts, I parsed out these differences among estuaries and seasons. For the summer season, Charlotte Harbor averaged warmer than all other systems at `r format(summerSumAll[4,]$estimate, digits = 3)`°C ± `r format(summerSumAll[4,]$std.error, digits = 2)` (*t* ≥ `r format(as.data.frame(summerSummaryAll$contrasts)[6,5], digits = 4)` for all *p* < 0.05; [@tbl-tempAncovaContrast]). Average water temperatures in Cedar Key and Apalachicola Bay were not different from one another (`r format(summerSumAll[1,]$estimate, digits = 3)`°C ± `r format(summerSumAll[1,]$std.error, digits = 2)`), although Tampa Bay averaged `r format(summerSumAll[3,]$estimate, digits = 3)`°C ± `r format(summerSumAll[3,]$std.error, digits = 2)` and was significantly different than Cedar Key, but not Apalachicola Bay. However, for the winter season, I determined Apalachicola Bay and Cedar Key averaged `r format(winterSumAll[1,]$estimate, digits = 3)`°C ± `r format(winterSumAll[1,]$std.error, digits = 2)` during the study period, compared to `r format(winterSumAll[3,]$estimate, digits = 3)`°C ± `r format(winterSumAll[3,]$std.error, digits = 2)` for Tampa Bay and `r format(winterSumAll[4,]$estimate, digits = 3)`°C ± `r format(winterSumAll[4,]$std.error, digits = 2)` for Charlotte Harbor (*t* ≥ `r format(as.data.frame(winterSummaryAll$contrasts)[6,5], digits = 4)` for all *p* < 0.05; [@tbl-tempAncovaContrast]). During summer, water temperature increased in all systems at a rate of `r format(summerSummary[2,]$estimate, digits = 2)`°Cyr^-1^ ± `r format(summerSummary[2,]$std.error, digits = 2)` ([@fig-TempPlot]). For all systems during winter, water temperature increased at a rate of `r format(winterSummary[2,]$estimate, digits = 2)`°Cyr^-1^ ± `r format(winterSummary[2,]$std.error, digits = 2)` (see also [@fig-habParams]). 
 
 ```{r}
 #| label: fig-TempPlot
@@ -245,7 +252,7 @@ Results of the water temperature ANCOVAs indicated a significant positive trend 
 #| warning: FALSE
 #| fig-width: 6.5
 #| fig-height: 6
-#| fig-cap: "Temperature averaged annually and plotted over time. Error bars are ± 1 standard error. Solid lines indicate signficant modeled trends."
+#| fig-cap: "Annualy averaged water temperature over time. Error bars represent ± 1 standard error."
 
 (seasonTempPlot <- ggplot(winterTemp,
                 aes(x     = contYear, 
@@ -299,7 +306,7 @@ Results of the water temperature ANCOVAs indicated a significant positive trend 
     ))
 ```
 
-ANCOVA models for average submerged aquatic vegetation coverage (SAV) identified differences in mean annual percent SAV across all systems and seasons as well as an interaction between some systems and time ([@tbl-bvcMeans]). Post-hoc analyses confirmed all systems had different average annual SAV from one another within each season (magnitude of *t* ratios ≥ `r format(as.data.frame(winterSummaryBVCAll$contrasts)$t.ratio[6], digits = 3)` for all *p* < 0.05). Specifically, Charlotte Harbor had the most coverage for both seasons ranging from `r format(winterSumBVCAll[4,]$estimate, digits = 3)`% ± `r format(winterSumBVCAll[4,]$std.error, digits = 3)` in winter to `r format(summerSumBVCAll[4,]$estimate, digits = 3)`% ± `r format(summerSumBVCAll[4,]$std.error, digits = 3)` in summer. Cedar Key averaged the lowest coverage, ranging from `r format(winterSumBVCAll[2,]$estimate, digits = 3)`% ± `r format(winterSumBVCAll[2,]$std.error, digits = 3)` in winter to `r format(summerSumBVCAll[2,]$estimate, digits = 3)`% ± `r format(summerSumBVCAll[2,]$std.error, digits = 3)` in summer. Tampa Bay and Apalachicola Bay were both in the middle of these ranges for both seasons ([@tbl-bvcMeans]). Using post-hoc analyses to examine the trends over time for each system revealed Cedar Key was different than all other systems for the summer season (see also [@fig-habParams]), with a decrease in SAV at a rate of `r format(BVCsummerSlope[2,]$smallYear.trend, digits = 3)`%yr^-1^ ± `r format(BVCsummerSlope[2,]$std.error, digits = 3)` (magnitude of *t* ratios ≥ `r format(as.data.frame(summerBVCContrasts$contrasts)$t.ratio[3], digits = 3)` for all *p* < 0.05). All other system pairs were not different from one another and had no change over time ([@tbl-bvcAncovaContrast-1]). The wintertime trend was more nuanced, where SAV in both Tampa Bay and Charlotte Harbor differed from the northern estuaries Apalachicola Bay and Cedar Key (magnitude of *t* ratios ≥ `r format(as.data.frame(winterBVCContrasts$contrasts)$t.ratio[2], digits = 3)` for all *p* < 0.05 [@tbl-bvcAncovaContrast-2]). SAV in Tampa Bay and Charlotte Harbor increased during the winter at a rate of `r format(BVCwinterSlope[3,]$smallYear.trend, digits = 3)`%yr^-1^ ± `r format(BVCwinterSlope[3,]$std.error, digits = 3)` and `r format(BVCwinterSlope[4,]$smallYear.trend, digits = 3)`%yr^-1^ ± `r format(BVCwinterSlope[4,]$std.error, digits = 3)`, respectively. Apalachicola Bay did not have any significant change in SAV over the study period ([@fig-BVCPlot]).
+ANCOVA models for average submerged aquatic vegetation coverage (SAV) identified differences in mean annual percent SAV across all systems within seasons as well as an interaction between some systems and year ([@tbl-bvcMeans]). Post-hoc analyses confirmed all systems had different average annual SAV from one another within each season (*t* ≥ `r format(as.data.frame(winterSummaryBVCAll$contrasts)$t.ratio[6], digits = 3)` for all *p* < 0.05). Specifically, Charlotte Harbor had the most coverage for both seasons ranging from `r format(winterSumBVCAll[4,]$estimate, digits = 3)`% ± `r format(winterSumBVCAll[4,]$std.error, digits = 3)` in winter to `r format(summerSumBVCAll[4,]$estimate, digits = 3)`% ± `r format(summerSumBVCAll[4,]$std.error, digits = 3)` in summer. Cedar Key averaged the lowest coverage, ranging from `r format(winterSumBVCAll[2,]$estimate, digits = 3)`% ± `r format(winterSumBVCAll[2,]$std.error, digits = 3)` in winter to `r format(summerSumBVCAll[2,]$estimate, digits = 3)`% ± `r format(summerSumBVCAll[2,]$std.error, digits = 3)` in summer. Tampa Bay and Apalachicola Bay were both in the middle of these ranges for both seasons ([@tbl-bvcMeans]). Post-hoc analyses also revealed the change in SAV coverage over time was different for Cedar Key compared to all other systems for the summer season (see also [@fig-habParams]), with a decrease in SAV at a rate of `r format(BVCsummerSlope[2,]$smallYear.trend, digits = 3)`%yr^-1^ ± `r format(BVCsummerSlope[2,]$std.error, digits = 3)` (*t* ≥ `r format(as.data.frame(summerBVCContrasts$contrasts)$t.ratio[3], digits = 3)` for all *p* < 0.05). All other system pairs were statistically similar and experienced no significant change in SAV coverage over time ([@tbl-bvcAncovaContrast-1]). Change in SAV coverage in the winter was more nuanced, where SAV in both Tampa Bay and Charlotte Harbor differed from the northern estuaries Apalachicola Bay and Cedar Key (*t* ≥ `r format(as.data.frame(winterBVCContrasts$contrasts)$t.ratio[2], digits = 3)` for all *p* < 0.05; [@tbl-bvcAncovaContrast-2]). SAV in Tampa Bay and Charlotte Harbor increased during the winter at a rate of `r format(BVCwinterSlope[3,]$smallYear.trend, digits = 3)`%yr^-1^ ± `r format(BVCwinterSlope[3,]$std.error, digits = 3)` and `r format(BVCwinterSlope[4,]$smallYear.trend, digits = 3)`%yr^-1^ ± `r format(BVCwinterSlope[4,]$std.error, digits = 3)`, respectively. Cedar Key did not have any significant change in the winter. Of note, the northernmost estuary in this study, Apalachicola Bay, did not have any significant change in SAV over the study period ([@fig-BVCPlot]).
 
 ```{r BVCPlot}
 #| label: fig-BVCPlot 
@@ -361,7 +368,7 @@ ANCOVA models for average submerged aquatic vegetation coverage (SAV) identified
     ))
 ```
 
-![Summary of observed habitat parameter trends per system and season. Trend direction calculated using ANCOVA framework and significant at alpha 0.95.](conceptFigs/habParamSyn.png){#fig-habParams}
+![Summary of observed habitat parameter trends per system and season. "+" indicates positive trend, "-" indicates negative trend, and "0" indicates no trend. Trend direction calculated using ANCOVA framework and significant at alpha 0.95.](conceptFigs/habParamSyn2.png){#fig-habParams}
 
 ### Community Data {#sec-community-data}
 
@@ -373,7 +380,7 @@ Total abundance was generally lower for all systems in the winter season (averag
 #| message: FALSE
 #| fig-width: 6.5
 #| fig-height: 4
-#| fig-cap: "Total abundance (fourth-root transformed) averaged annually and plotted over time. Error bars are ± 1 standard error."
+#| fig-cap: "Mean total abundance (fourth-root transformed) over time. Error bars represent ± 1 standard error."
 plot(AbundPlot_ann)
 ```
 
@@ -408,11 +415,11 @@ richMeanW <- emmeans(glmmOutRW, spec = "system", contr = "revpairwise")
 
 ```
 
-Results from total abundance GLMMs indicated a positive correlation between SAV and total abundance for all estuaries and seasons ([@tbl-abundModels]). Water temperature was also positively correlated with total abundance in all estuaries, though only in the winter. In winter, the magnitude of the effect of SAV was similar to that of temperature. In summer, post-hoc tests indicated no differences in mean total abundance across all systems, while in winter, Apalachicola Bay had greater abundance than all other systems and Charlotte Harbor had higher total abundance than Tampa Bay (magnitude of *t* ratios ≥ `r format(as.data.frame(abundMeanW$contrasts)$t.ratio[6], digits = 3)` for all *p* < 0.05 [@tbl-abundModels-3]). The response of total abundance over time was more nuanced, with no change during the summer season, while in winter, all systems were decreasing over time, though Tampa Bay was decreasing at a slower rate than in Apalachicola Bay (*t* = `r format(as.data.frame(abundContW$contrasts)$t.ratio[2], digits = 3)` *p* = `r format(as.data.frame(abundContW$contrasts)$p.value[2], digits = 3)` [@fig-abundSyn]; see also [@tbl-abundModels-4]).
+Results from post-hoc tests on total abundance GLMMs revealed that in summer, there was no difference in mean total abundance across all systems, with a positive correlation with SAV and no significant correlation with water temperature ([@tbl-abundModels]). In contrast, there were nuanced differences in abundances among estuaries in the winter. Specifically, Apalachicola Bay had greater abundance than all other systems and Charlotte Harbor had higher total abundance than Tampa Bay (*t* ≥ `r format(as.data.frame(abundMeanW$contrasts)$t.ratio[6], digits = 3)` for all *p* < 0.05 [@tbl-abundModels-3]). Further, results of the GLMMs indicated that abundances were positively correlated to both SAV and water temperature in winter and the magnitude of their effects were similar. The response of total abundance over time was more nuanced, with no change during the summer season, while in winter, all systems were decreasing over time, though Tampa Bay was decreasing at a slower rate than in Apalachicola Bay (*t* = `r format(as.data.frame(abundContW$contrasts)$t.ratio[2], digits = 3)` *p* = `r format(as.data.frame(abundContW$contrasts)$p.value[2], digits = 3)` [@fig-abundSyn]; see also [@tbl-abundModels-4]).
 
 ![Summary of observed biological response trends per system and season from total abundance model. Trend direction calculated using GLMM framework and significant at alpha 0.95.](conceptFigs/abundSyn.png){#fig-abundSyn}
 
-The total richness ([@fig-NPlot]) in winter (average richness `r format(nStats[2,]$meanN, digits = 2)` ±`r format(nStats[2,]$seN, digits = 2)`) was consistently lower for each estuary than in the summer (average richness `r format(nStats[1,]$meanN, digits = 2)` ±`r format(nStats[1,]$seN, digits = 2)`).
+Mean total richness ([@fig-NPlot]) in winter (`r format(nStats[2,]$meanN, digits = 2)` ±`r format(nStats[2,]$seN, digits = 2)`) was consistently lower for each estuary than in the summer (`r format(nStats[1,]$meanN, digits = 2)` ±`r format(nStats[1,]$seN, digits = 2)`).
 
 ```{r}
 #| label: fig-NPlot
@@ -420,11 +427,11 @@ The total richness ([@fig-NPlot]) in winter (average richness `r format(nStats[2
 #| message: FALSE
 #| fig-width: 6.5
 #| fig-height: 4
-#| fig-cap: "Total richness averaged annually and plotted over time. Error bars are ± 1 standard error."
+#| fig-cap: "Mean total richness over time. Error bars represent ± 1 standard error."
 plot(NPlot_ann)
 ```
 
-GLMMs for total richness indicated a positive correlation between SAV and total richness for all systems and seasons. As with total abundance, water temperature was not significant in any estuaries during the summer but was again positively associated with richness in all estuaries in winter ([@tbl-richModels]). However, the relative magnitude of the effect of SAV compared to the effect of water temperature on richness was greater than it was in the abundance models. Post-hoc test indicated modeled average richness of Apalachicola Bay in summer was greater than all other estuaries, with no significant difference in means among the other three (magnitude of *t* ratios ≥ `r format(abs(as.data.frame(richMeanS$contrasts)$t.ratio[1]), digits = 3)` for all *p* < 0.05 [@tbl-richModels-3]). In winter, modeled average richness was more nuanced, where Charlotte Harbor had the highest modeled richness compared to all other estuaries, Tampa Bay had higher than Cedar Key, and Cedar Key had less than Apalachicola Bay (magnitude of *t* ratios ≥ `r format(abs(as.data.frame(richMeanW$contrasts)$t.ratio[1]), digits = 3)` for all *p* < 0.05 [@tbl-richModels-4]) Further, total richness had no discernible trends over time in any of the estuaries or seasons ([@fig-richSyn]).
+Results from post-hoc tests on total richness GLMMs indicated modeled average richness of Apalachicola Bay in summer was greater than all other estuaries, with no significant difference in means among the other three (*t* ≥ `r format(abs(as.data.frame(richMeanS$contrasts)$t.ratio[1]), digits = 3)` for all *p* < 0.05 [@tbl-richModels-3]). In winter, modeled average richness was more nuanced, where Charlotte Harbor had the highest modeled richness compared to all other estuaries, Tampa Bay had higher than Cedar Key, and Cedar Key had less than Apalachicola Bay (*t* ≥ `r format(abs(as.data.frame(richMeanW$contrasts)$t.ratio[1]), digits = 3)` for all *p* < 0.05 [@tbl-richModels-4]). Further, results of the GLMMs indicated that total richness was positively correlated with SAV for all systems and seasons. As with total abundance, water temperature was not significant in any estuaries during the summer but was again positively associated with total richness in all estuaries in winter ([@tbl-richModels]). However, the relative magnitude of the effect of SAV compared to the effect of water temperature on richness was greater than it was in the abundance models. Further, total richness had no discernible trends over time in any of the estuaries or seasons ([@fig-richSyn]).
 
 ![Summary of observed biological response trends per system and season from total abundance model. Trend direction calculated using GLMM framework and significant at alpha 0.95.](conceptFigs/richSyn.png){#fig-richSyn}
 
@@ -632,20 +639,7 @@ fullRDAPlot <- wrap_plots(plotsforAll,
 RDAaxes <- bind_rows(RDAaxesVar, .id = "systemSeason")
 ```
 
-In multivariate species-spaces, dbRDA confirmed the significance of SAV and water temperature in describing the variation in betadiversity across all systems and seasons when compared to a null model ([@fig-RDAforAll]). The range of variation explained by the models was `r min(RDAaxes$fullModel)`% to `r max(RDAaxes$fullModel)`%. The range of variation explained by the first canonical axis was `r min(RDAaxes$CA1)`% to `r max(RDAaxes$CA1)`% with the range of the second canonical axis as `r min(RDAaxes$CA2)`% to `r max(RDAaxes$CA2)`% across all models. Yearly centroids did not separate into visually distinct groups, though the spread among centroids within each system and season was similar across seasons for each estuary. Across estuaries, Cedar Key and Charlotte Harbor appear to have the most tightly clustered yearly centroids compared to Apalachicola Bay and Tampa Bay.
-
-```{r}
-#| label: fig-RDAforAll
-#| echo: FALSE
-#| message: FALSE
-#| fig-width: 6.5
-#| fig-height: 9
-#| fig-cap: "Distance-based redundancy analysis (dbRDA) ordination to visualize effects of habitat parameters. Shading of markers indicates year for that group, with blue markers indicating centroids of the oldest years in the data and red indicating the most recent years. Canonical axis (CA) percentages indicate the total variation in estuarine communities explained by that axis. Each habitat variable is represented by vectors and centroids of taxa groups are calculated using weighted average scores."
-
-plot(fullRDAPlot)
-```
-
-Next, I used PERMANOVA to test for any significant interaction between estuary and year in species-space before proceeding with CAP models. Indeed, for both seasons, the interaction between year and estuary was significant and so separate CAP models were conducted for each ([@tbl-fullPERMANOVA]).
+Results of the PERMANOVAs indicated a significant interaction between year and estuary for both seasons and so separate CAP models were conducted for each system within season ([@tbl-fullPERMANOVA]).
 
 ```{r}
 #| label: PERMANOVA
@@ -657,7 +651,7 @@ load("bigPERMANOVAs.RData")
 #| label: tbl-fullPERMANOVA
 #| echo: FALSE
 #| message: FALSE
-#| tbl-cap: "Summary outputs from PERMANOVAs conducted for each season. Values in bold are significant at alpha of 0.05."
+#| tbl-cap: "Summary outputs from PERMANOVAs conducted for each season. Values in bold are significant."
 #| tbl-subcap:
 #|   - "Summer"
 #|   - "Winter"
@@ -962,7 +956,7 @@ for(i in systemSeason_list$systemSeason){
 
 ```
 
-CAP analyses revealed subtle shifts in yearly centroids over time in species-space. For most systems, this was gradual, but Cedar Key summer appeared to have a distinct separation of two groups of years on the first axis of variation ([@fig-centroidCAP]). This was further investigated post-hoc (see [@tbl-CKpost]). Only five taxa were selected as the top associated with year separation on the first two canonical axes (see [@tbl-CAPtaxa]). The range of variability described by the CAP models was `r paste0(round(min(topSpp$percent),2), "%")` to `r paste0(round(max(topSpp$percent),2), "%")`.
+Visual assessment of the CAP ordinations suggested variability in assemblage composition and abundance over time, as indicated by subtle shifts of the yearly centroids. For most systems, this was gradual, but Cedar Key summer appeared to have a distinct separation of two groups of years on the first axis of variation ([@fig-centroidCAP]). This was further investigated post-hoc (see [@tbl-CKpost]). Only five taxa were selected as the top associated with year separation on the first two canonical axes (see [@tbl-CAPtaxa]). The range of variability described by the CAP models was `r paste0(round(min(topSpp$percent),2), "%")` to `r paste0(round(max(topSpp$percent),2), "%")`.
 
 ```{r}
 #| label: tbl-CAPtaxa
@@ -984,38 +978,22 @@ pander(sysSpp)
 plot(centroidCAP)
 ```
 
-```{r}
-#| label: CK postTest
-#| include: FALSE
-#| cache: TRUE
-source("CKpostTest.R")
-```
-
-Post analysis of Cedar Key summer biodiversity data included a factor identifying the separation observed in the CAP model. Visual inspection indicated the earlier group as bounded by 2001 to 2010 (inclusive) ([@fig-CK_summerCAP]). PERMANOVA indicated the earlier years are indeed significantly different than the later years (*F*-ratio `r format(as.data.frame(postTest)$F[1], digits = 4)` *p* < 0.001 [@tbl-CKpost]).
+In multivariate species-spaces, dbRDA confirmed the significance of SAV and water temperature in describing the variation in betadiversity across all systems and seasons when compared to a null model ([@fig-RDAforAll]). The range of variation explained by the models was `r min(RDAaxes$fullModel)`% to `r max(RDAaxes$fullModel)`%. The range of variation of explained by the first canonical axis of each model was `r min(RDAaxes$CA1)`% to `r max(RDAaxes$CA1)`% within the overall model variaton, with the range of the second canonical axis as `r min(RDAaxes$CA2)`% to `r max(RDAaxes$CA2)`%. No clear patterns of separation among groups of year were apparent in the different ordinations. Across estuaries, Cedar Key and Charlotte Harbor appear to have the most tightly clustered yearly centroids compared to Apalachicola Bay and Tampa Bay.
 
 ```{r}
-#| label: tbl-CKpost
+#| label: fig-RDAforAll
 #| echo: FALSE
 #| message: FALSE
-#| tbl-cap: "Post analysis using PERMANOVA informed by CAP on Cedar Key summer abundance data."
-pander(postTest)
+#| fig-width: 6.5
+#| fig-height: 9
+#| fig-cap: "Distance-based redundancy analysis (dbRDA) ordination to visualize effects of habitat parameters. Shading of markers indicates year for that group, with blue markers indicating centroids of the oldest years in the data and red indicating the most recent years. Canonical axis (CA) percentages indicate the total variation in estuarine communities explained by that axis. Each habitat variable is represented by vectors and centroids of taxa groups are calculated using weighted average scores."
+
+plot(fullRDAPlot)
 ```
 
-```{r}
-#| label: fig-CK_summerCAP
-#| echo: FALSE
-#| message: FALSE
-#| warning: FALSE
-#| fig-width: 5
-#| fig-height: 5
-#| fig-cap: "Canonical analysis of principal coordinates ordination plot. Shading of markers indicates year for that group, with red markers indicating centroids of the oldest years in the data and blue indicating the most recent years. Percentages next to subplot title indicate total variability captured by the model. Top three taxa associated with canonical axes scores plotted as vectors. Canonical axis (CA) percentages indicate the among-group variation captured in each axis."
+### Individual Taxon Analyses {#sec-univariate-analyses}
 
-plot(centroidPlots$CK_summer)
-```
-
-### Univariate Analyses {#sec-univariate-analyses}
-
-Following Dornelas et al. [-@Dornelas2019], linear models were applied to the average annual abundance of each taxa through time and the slope of each was used for further examination. The majority of taxa were not undergoing significant change over time with a large group centered around zero ([@fig-winnersLosers]). Overall, the number of taxa changing negatively was different between winter and summer across all systems (*t*-ratio = `r format(sigSig$statistic, digits = 3)` *p* = `r format(sigSig$p.value, digits = 3)`; see [@tbl-sigTaxa]). In comparison, there was no difference in positively changing taxa across season.
+The majority of taxa did not exhibit significant changes in abundance over time, with a large group centered around zero in both summer and winter ([@fig-winnersLosers]). Overall, the number of taxa changing negatively was different between winter and summer across all systems (*t* = `r format(sigSig$statistic, digits = 3)`, *p* = `r format(sigSig$p.value, digits = 3)`; see [@tbl-sigTaxa]). In comparison, there was no difference in positively changing taxa across season.
 
 ```{r}
 #| label: tbl-sigTaxa
@@ -1053,7 +1031,7 @@ Plotting the taxonomic groups of each significant taxa reveals the magnitude of 
 sigSlopesGroups
 ```
 
-The majority of taxa that had statistically significant slopes still experienced rather modest changes in abundance while a few taxa had slopes an order of magnitude greater than the majority, ranging from an absolute magnitude of `r format(minSpSlope$raw_slope, digits = 2)` to `r round(max(abs(sigSlopes$raw_slope)), 2)` [@fig-sigSlopes].
+The majority of taxa that had statistically significant slopes still experienced rather modest changes in abundance while a few taxa had slopes an order of magnitude greater than the majority, ranging from an absolute magnitude of `r format(minSpSlope$raw_slope, digits = 2)` to `r round(max(abs(sigSlopes$raw_slope)), 2)` ([@fig-sigSlopes]).
 
 ```{r}
 #| label: fig-sigSlopes
@@ -1179,6 +1157,24 @@ pander(winterBVCSummary)
 
 ```
 
+SAV ANCOVA calculated means
+
+```{r}
+#| label: tbl-bvcMeans 
+#| echo: FALSE 
+#| message: FALSE 
+#| tbl-cap: "Least square means of each system for both seasonal linear models." 
+
+bvcMeans <- summerSumBVCAll  %>%
+  mutate(season = "summer") %>%
+  full_join(winterSumBVCAll) %>%
+  mutate(season = ifelse(!is.na(season), "summer", "winter")) %>%
+  select(system, season, estimate, std.error) %>%
+  mutate(std.error = format(std.error, digits = 3))
+
+pander(bvcMeans)
+```
+
 SAV ANCOVA contrasts
 
 ```{r}
@@ -1196,24 +1192,6 @@ pander(tidy(winterBVCContrasts$contrasts) %>%
 #pander(tidy(winterBVCContrasts$lstrends))
 
 #pander(tidy(summerBVCContrasts$lstrends))
-```
-
-SAV ANCOVA calculated means
-
-```{r}
-#| label: tbl-bvcMeans 
-#| echo: FALSE 
-#| message: FALSE 
-#| tbl-cap: "Least square means of each system for both seasonal linear models." 
-
-bvcMeans <- summerSumBVCAll  %>%
-  mutate(season = "summer") %>%
-  full_join(winterSumBVCAll) %>%
-  mutate(season = ifelse(!is.na(season), "summer", "winter")) %>%
-  select(system, season, estimate, std.error) %>%
-  mutate(std.error = format(std.error, digits = 3))
-
-pander(bvcMeans)
 ```
 
 ABUNDANCE GLMMs
@@ -1282,6 +1260,36 @@ emphasize.strong.rows(conditionbetaW)
 pander(betaWinterSummary)
 
 ```
+
+```{r}
+#| label: CK postTest
+#| include: FALSE
+#| cache: TRUE
+source("CKpostTest.R")
+```
+
+Post analysis of Cedar Key summer biodiversity data included a factor identifying the separation observed in the CAP model. Visual inspection indicated the earlier group as bounded by 2001 to 2010 (inclusive) ([@fig-CK_summerCAP]). PERMANOVA indicated the earlier years are indeed significantly different than the later years (*F*-ratio `r format(as.data.frame(postTest)$F[1], digits = 4)` *p* < 0.001 [@tbl-CKpost]).
+
+```{r}
+#| label: tbl-CKpost
+#| echo: FALSE
+#| message: FALSE
+#| tbl-cap: "Post analysis using PERMANOVA informed by CAP on Cedar Key summer abundance data."
+pander(postTest)
+```
+
+```{r}
+#| label: fig-CK_summerCAP
+#| echo: FALSE
+#| message: FALSE
+#| warning: FALSE
+#| fig-width: 5
+#| fig-height: 5
+#| fig-cap: "Canonical analysis of principal coordinates ordination plot. Shading of markers indicates year for that group, with red markers indicating centroids of the oldest years in the data and blue indicating the most recent years. Percentages next to subplot title indicate total variability captured by the model. Top three taxa associated with canonical axes scores plotted as vectors. Canonical axis (CA) percentages indicate the among-group variation captured in each axis."
+
+plot(centroidPlots$CK_summer)
+```
+
 
 . . . ARCHIVAL OLD MATERIALS; NEEDS VETTED
 
