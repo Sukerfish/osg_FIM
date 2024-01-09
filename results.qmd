@@ -13,6 +13,7 @@ format:
     toc: true
     toc-location: left
     toc-expand: true
+  docx: default
 reference-doc: results_formatting.docx
 editor: visual
 bibliography: references.bib
@@ -41,8 +42,20 @@ library(pander)
 library(pixiedust) #for model output formats
 library(emmeans)
 
+library(flextable)
+library(officedown)
+
 Sys.setenv(FISHBASE_API="sealifebase")
 #knitr::opts_chunk$set(echo = TRUE)
+
+set_flextable_defaults(
+  font.size = 12,
+  font.color = "#333333",
+  table.layout = "fixed",
+  border.color = "gray",
+  padding.top = 3, padding.bottom = 3,
+  padding.left = 4, padding.right = 4)
+
 ```
 
 # Introduction {#sec-introduction .unnumbered}
@@ -243,7 +256,7 @@ Throughout the study period, water temperature was increasing during winter for 
 
 ### Habitat Parameters {#sec-habitat-parameters}
 
-Results of the water temperature ANCOVAs indicated a significant positive trend that was consistent among estuaries. However, it also identified differences in mean temperature across some systems (*t* ≥ `r format(winterSummary$statistic[4], digits = 4)` for all *p* < 0.05; [@tbl-tempAncova]). Using post-hoc contrasts, I parsed out these differences among estuaries and seasons. For the summer season, Charlotte Harbor averaged warmer than all other systems at `r format(summerSumAll[4,]$estimate, digits = 3)`°C ± `r format(summerSumAll[4,]$std.error, digits = 2)` (*t* ≥ `r format(as.data.frame(summerSummaryAll$contrasts)[6,5], digits = 4)` for all *p* < 0.05; [@tbl-tempAncovaContrast]). Average water temperatures in Cedar Key and Apalachicola Bay were not different from one another (`r format(summerSumAll[1,]$estimate, digits = 3)`°C ± `r format(summerSumAll[1,]$std.error, digits = 2)`), although Tampa Bay averaged `r format(summerSumAll[3,]$estimate, digits = 3)`°C ± `r format(summerSumAll[3,]$std.error, digits = 2)` and was significantly different than Cedar Key, but not Apalachicola Bay. However, for the winter season, I determined Apalachicola Bay and Cedar Key averaged `r format(winterSumAll[1,]$estimate, digits = 3)`°C ± `r format(winterSumAll[1,]$std.error, digits = 2)` during the study period, compared to `r format(winterSumAll[3,]$estimate, digits = 3)`°C ± `r format(winterSumAll[3,]$std.error, digits = 2)` for Tampa Bay and `r format(winterSumAll[4,]$estimate, digits = 3)`°C ± `r format(winterSumAll[4,]$std.error, digits = 2)` for Charlotte Harbor (*t* ≥ `r format(as.data.frame(winterSummaryAll$contrasts)[6,5], digits = 4)` for all *p* < 0.05; [@tbl-tempAncovaContrast]). During summer, water temperature increased in all systems at a rate of `r format(summerSummary[2,]$estimate, digits = 2)`°Cyr^-1^ ± `r format(summerSummary[2,]$std.error, digits = 2)` ([@fig-TempPlot]). For all systems during winter, water temperature increased at a rate of `r format(winterSummary[2,]$estimate, digits = 2)`°Cyr^-1^ ± `r format(winterSummary[2,]$std.error, digits = 2)` (see also [@fig-habParams]). 
+Results of the water temperature ANCOVAs indicated a significant positive trend that was consistent among estuaries. However, it also identified differences in mean temperature across some systems (*t* ≥ `r format(winterSummary$statistic[4], digits = 4)` for all *p* \< 0.05; [@tbl-tempAncova]). Using post-hoc contrasts, I parsed out these differences among estuaries and seasons. For the summer season, Charlotte Harbor averaged warmer than all other systems at `r format(summerSumAll[4,]$estimate, digits = 3)`°C ± `r format(summerSumAll[4,]$std.error, digits = 2)` (*t* ≥ `r format(as.data.frame(summerSummaryAll$contrasts)[6,5], digits = 4)` for all *p* \< 0.05; [@tbl-tempAncovaContrast]). Average water temperatures in Cedar Key and Apalachicola Bay were not different from one another (`r format(summerSumAll[1,]$estimate, digits = 3)`°C ± `r format(summerSumAll[1,]$std.error, digits = 2)`), although Tampa Bay averaged `r format(summerSumAll[3,]$estimate, digits = 3)`°C ± `r format(summerSumAll[3,]$std.error, digits = 2)` and was significantly different than Cedar Key, but not Apalachicola Bay. However, for the winter season, I determined Apalachicola Bay and Cedar Key averaged `r format(winterSumAll[1,]$estimate, digits = 3)`°C ± `r format(winterSumAll[1,]$std.error, digits = 2)` during the study period, compared to `r format(winterSumAll[3,]$estimate, digits = 3)`°C ± `r format(winterSumAll[3,]$std.error, digits = 2)` for Tampa Bay and `r format(winterSumAll[4,]$estimate, digits = 3)`°C ± `r format(winterSumAll[4,]$std.error, digits = 2)` for Charlotte Harbor (*t* ≥ `r format(as.data.frame(winterSummaryAll$contrasts)[6,5], digits = 4)` for all *p* \< 0.05; [@tbl-tempAncovaContrast]). During summer, water temperature increased in all systems at a rate of `r format(summerSummary[2,]$estimate, digits = 2)`°Cyr^-1^ ± `r format(summerSummary[2,]$std.error, digits = 2)` ([@fig-TempPlot]). For all systems during winter, water temperature increased at a rate of `r format(winterSummary[2,]$estimate, digits = 2)`°Cyr^-1^ ± `r format(winterSummary[2,]$std.error, digits = 2)` (see also [@fig-habParams]).
 
 ```{r}
 #| label: fig-TempPlot
@@ -306,7 +319,7 @@ Results of the water temperature ANCOVAs indicated a significant positive trend 
     ))
 ```
 
-ANCOVA models for average submerged aquatic vegetation coverage (SAV) identified differences in mean annual percent SAV across all systems within seasons as well as an interaction between some systems and year ([@tbl-bvcMeans]). Post-hoc analyses confirmed all systems had different average annual SAV from one another within each season (*t* ≥ `r format(as.data.frame(winterSummaryBVCAll$contrasts)$t.ratio[6], digits = 3)` for all *p* < 0.05). Specifically, Charlotte Harbor had the most coverage for both seasons ranging from `r format(winterSumBVCAll[4,]$estimate, digits = 3)`% ± `r format(winterSumBVCAll[4,]$std.error, digits = 3)` in winter to `r format(summerSumBVCAll[4,]$estimate, digits = 3)`% ± `r format(summerSumBVCAll[4,]$std.error, digits = 3)` in summer. Cedar Key averaged the lowest coverage, ranging from `r format(winterSumBVCAll[2,]$estimate, digits = 3)`% ± `r format(winterSumBVCAll[2,]$std.error, digits = 3)` in winter to `r format(summerSumBVCAll[2,]$estimate, digits = 3)`% ± `r format(summerSumBVCAll[2,]$std.error, digits = 3)` in summer. Tampa Bay and Apalachicola Bay were both in the middle of these ranges for both seasons ([@tbl-bvcMeans]). Post-hoc analyses also revealed the change in SAV coverage over time was different for Cedar Key compared to all other systems for the summer season (see also [@fig-habParams]), with a decrease in SAV at a rate of `r format(BVCsummerSlope[2,]$smallYear.trend, digits = 3)`%yr^-1^ ± `r format(BVCsummerSlope[2,]$std.error, digits = 3)` (*t* ≥ `r format(as.data.frame(summerBVCContrasts$contrasts)$t.ratio[3], digits = 3)` for all *p* < 0.05). All other system pairs were statistically similar and experienced no significant change in SAV coverage over time ([@tbl-bvcAncovaContrast-1]). Change in SAV coverage in the winter was more nuanced, where SAV in both Tampa Bay and Charlotte Harbor differed from the northern estuaries Apalachicola Bay and Cedar Key (*t* ≥ `r format(as.data.frame(winterBVCContrasts$contrasts)$t.ratio[2], digits = 3)` for all *p* < 0.05; [@tbl-bvcAncovaContrast-2]). SAV in Tampa Bay and Charlotte Harbor increased during the winter at a rate of `r format(BVCwinterSlope[3,]$smallYear.trend, digits = 3)`%yr^-1^ ± `r format(BVCwinterSlope[3,]$std.error, digits = 3)` and `r format(BVCwinterSlope[4,]$smallYear.trend, digits = 3)`%yr^-1^ ± `r format(BVCwinterSlope[4,]$std.error, digits = 3)`, respectively. Cedar Key did not have any significant change in the winter. Of note, the northernmost estuary in this study, Apalachicola Bay, did not have any significant change in SAV over the study period ([@fig-BVCPlot]).
+ANCOVA models for average submerged aquatic vegetation coverage (SAV) identified differences in mean annual percent SAV across all systems within seasons as well as an interaction between some systems and year ([@tbl-bvcMeans]). Post-hoc analyses confirmed all systems had different average annual SAV from one another within each season (*t* ≥ `r format(as.data.frame(winterSummaryBVCAll$contrasts)$t.ratio[6], digits = 3)` for all *p* \< 0.05). Specifically, Charlotte Harbor had the most coverage for both seasons ranging from `r format(winterSumBVCAll[4,]$estimate, digits = 3)`% ± `r format(winterSumBVCAll[4,]$std.error, digits = 3)` in winter to `r format(summerSumBVCAll[4,]$estimate, digits = 3)`% ± `r format(summerSumBVCAll[4,]$std.error, digits = 3)` in summer. Cedar Key averaged the lowest coverage, ranging from `r format(winterSumBVCAll[2,]$estimate, digits = 3)`% ± `r format(winterSumBVCAll[2,]$std.error, digits = 3)` in winter to `r format(summerSumBVCAll[2,]$estimate, digits = 3)`% ± `r format(summerSumBVCAll[2,]$std.error, digits = 3)` in summer. Tampa Bay and Apalachicola Bay were both in the middle of these ranges for both seasons ([@tbl-bvcMeans]). Post-hoc analyses also revealed the change in SAV coverage over time was different for Cedar Key compared to all other systems for the summer season (see also [@fig-habParams]), with a decrease in SAV at a rate of `r format(BVCsummerSlope[2,]$smallYear.trend, digits = 3)`%yr^-1^ ± `r format(BVCsummerSlope[2,]$std.error, digits = 3)` (*t* ≥ `r format(as.data.frame(summerBVCContrasts$contrasts)$t.ratio[3], digits = 3)` for all *p* \< 0.05). All other system pairs were statistically similar and experienced no significant change in SAV coverage over time ([@tbl-bvcAncovaContrast-1]). Change in SAV coverage in the winter was more nuanced, where SAV in both Tampa Bay and Charlotte Harbor differed from the northern estuaries Apalachicola Bay and Cedar Key (*t* ≥ `r format(as.data.frame(winterBVCContrasts$contrasts)$t.ratio[2], digits = 3)` for all *p* \< 0.05; [@tbl-bvcAncovaContrast-2]). SAV in Tampa Bay and Charlotte Harbor increased during the winter at a rate of `r format(BVCwinterSlope[3,]$smallYear.trend, digits = 3)`%yr^-1^ ± `r format(BVCwinterSlope[3,]$std.error, digits = 3)` and `r format(BVCwinterSlope[4,]$smallYear.trend, digits = 3)`%yr^-1^ ± `r format(BVCwinterSlope[4,]$std.error, digits = 3)`, respectively. Cedar Key did not have any significant change in the winter. Of note, the northernmost estuary in this study, Apalachicola Bay, did not have any significant change in SAV over the study period ([@fig-BVCPlot]).
 
 ```{r BVCPlot}
 #| label: fig-BVCPlot 
@@ -415,9 +428,26 @@ richMeanW <- emmeans(glmmOutRW, spec = "system", contr = "revpairwise")
 
 ```
 
-Results from post-hoc tests on total abundance GLMMs revealed that in summer, there was no difference in mean total abundance across all systems, with a positive correlation with SAV and no significant correlation with water temperature ([@tbl-abundModels]). In contrast, there were nuanced differences in abundances among estuaries in the winter. Specifically, Apalachicola Bay had greater abundance than all other systems and Charlotte Harbor had higher total abundance than Tampa Bay (*t* ≥ `r format(as.data.frame(abundMeanW$contrasts)$t.ratio[6], digits = 3)` for all *p* < 0.05 [@tbl-abundModels-3]). Further, results of the GLMMs indicated that abundances were positively correlated to both SAV and water temperature in winter and the magnitude of their effects were similar. The response of total abundance over time was more nuanced, with no change during the summer season, while in winter, all systems were decreasing over time, though Tampa Bay was decreasing at a slower rate than in Apalachicola Bay (*t* = `r format(as.data.frame(abundContW$contrasts)$t.ratio[2], digits = 3)` *p* = `r format(as.data.frame(abundContW$contrasts)$p.value[2], digits = 3)` [@fig-abundSyn]; see also [@tbl-abundModels-4]).
+Results from post-hoc tests on total abundance GLMMs revealed that in summer, there was no difference in mean total abundance across all systems, with a positive correlation with SAV and no significant correlation with water temperature ([@tbl-abundModels]). In contrast, there were nuanced differences in abundances among estuaries in the winter. Specifically, Apalachicola Bay had greater abundance than all other systems and Charlotte Harbor had higher total abundance than Tampa Bay (*t* ≥ `r format(as.data.frame(abundMeanW$contrasts)$t.ratio[6], digits = 3)` for all *p* \< 0.05 [@tbl-abundModels-3]). Further, results of the GLMMs indicated that abundances were positively correlated to both SAV and water temperature in winter and the magnitude of their effects were similar. The response of total abundance over time was more nuanced, with no change during the summer season, while in winter, all systems were decreasing over time, though Tampa Bay was decreasing at a slower rate than in Apalachicola Bay (*t* = `r format(as.data.frame(abundContW$contrasts)$t.ratio[2], digits = 3)` *p* = `r format(as.data.frame(abundContW$contrasts)$p.value[2], digits = 3)` [@tbl-abundSyn]; see also [@tbl-abundModels-4]).
 
-![Summary of observed biological response trends per system and season from total abundance model. Trend direction calculated using GLMM framework and significant at alpha 0.95.](conceptFigs/abundSyn.png){#fig-abundSyn}
+```{r}
+#| label: tbl-abundSyn
+#| echo: FALSE
+#| tbl-cap: "Summary of observed biological response trends per system and season from total abundance model. Trend direction calculated using GLMM framework and significant at alpha 0.95."
+
+sumTab <- data.frame(
+  Parameter = c("Total abundance", "Total abundance", "Water temperature", "Water temperature", "SAV coverage", "SAV coverage"), 
+  Effect = c("No change", "Decreasing", "N/A", "Positive", "Positive", "Positive"), 
+  Season = c("Summer", "Winter", "Summer", "Winter", "Summer", "Winter"))
+
+sumFT <- flextable(sumTab) %>%
+  merge_v(j = ~ Parameter + Effect) %>%
+  paginate(init = TRUE, hdr_ftr = TRUE) %>%
+  autofit() %>%
+  theme_vanilla()
+
+sumFT
+```
 
 Mean total richness ([@fig-NPlot]) in winter (`r format(nStats[2,]$meanN, digits = 2)` ±`r format(nStats[2,]$seN, digits = 2)`) was consistently lower for each estuary than in the summer (`r format(nStats[1,]$meanN, digits = 2)` ±`r format(nStats[1,]$seN, digits = 2)`).
 
@@ -431,7 +461,7 @@ Mean total richness ([@fig-NPlot]) in winter (`r format(nStats[2,]$meanN, digits
 plot(NPlot_ann)
 ```
 
-Results from post-hoc tests on total richness GLMMs indicated modeled average richness of Apalachicola Bay in summer was greater than all other estuaries, with no significant difference in means among the other three (*t* ≥ `r format(abs(as.data.frame(richMeanS$contrasts)$t.ratio[1]), digits = 3)` for all *p* < 0.05 [@tbl-richModels-3]). In winter, modeled average richness was more nuanced, where Charlotte Harbor had the highest modeled richness compared to all other estuaries, Tampa Bay had higher than Cedar Key, and Cedar Key had less than Apalachicola Bay (*t* ≥ `r format(abs(as.data.frame(richMeanW$contrasts)$t.ratio[1]), digits = 3)` for all *p* < 0.05 [@tbl-richModels-4]). Further, results of the GLMMs indicated that total richness was positively correlated with SAV for all systems and seasons. As with total abundance, water temperature was not significant in any estuaries during the summer but was again positively associated with total richness in all estuaries in winter ([@tbl-richModels]). However, the relative magnitude of the effect of SAV compared to the effect of water temperature on richness was greater than it was in the abundance models. Further, total richness had no discernible trends over time in any of the estuaries or seasons ([@fig-richSyn]).
+Results from post-hoc tests on total richness GLMMs indicated modeled average richness of Apalachicola Bay in summer was greater than all other estuaries, with no significant difference in means among the other three (*t* ≥ `r format(abs(as.data.frame(richMeanS$contrasts)$t.ratio[1]), digits = 3)` for all *p* \< 0.05 [@tbl-richModels-3]). In winter, modeled average richness was more nuanced, where Charlotte Harbor had the highest modeled richness compared to all other estuaries, Tampa Bay had higher than Cedar Key, and Cedar Key had less than Apalachicola Bay (*t* ≥ `r format(abs(as.data.frame(richMeanW$contrasts)$t.ratio[1]), digits = 3)` for all *p* \< 0.05 [@tbl-richModels-4]). Further, results of the GLMMs indicated that total richness was positively correlated with SAV for all systems and seasons. As with total abundance, water temperature was not significant in any estuaries during the summer but was again positively associated with total richness in all estuaries in winter ([@tbl-richModels]). However, the relative magnitude of the effect of SAV compared to the effect of water temperature on richness was greater than it was in the abundance models. Further, total richness had no discernible trends over time in any of the estuaries or seasons ([@fig-richSyn]).
 
 ![Summary of observed biological response trends per system and season from total richness model. Trend direction calculated using GLMM framework and significant at alpha 0.95.](conceptFigs/richSyn.png){#fig-richSyn}
 
@@ -1268,7 +1298,7 @@ pander(betaWinterSummary)
 source("CKpostTest.R")
 ```
 
-Post analysis of Cedar Key summer biodiversity data included a factor identifying the separation observed in the CAP model. Visual inspection indicated the earlier group as bounded by 2001 to 2010 (inclusive) ([@fig-CK_summerCAP]). PERMANOVA indicated the earlier years are indeed significantly different than the later years (*F*-ratio `r format(as.data.frame(postTest)$F[1], digits = 4)` *p* < 0.001 [@tbl-CKpost]).
+Post analysis of Cedar Key summer biodiversity data included a factor identifying the separation observed in the CAP model. Visual inspection indicated the earlier group as bounded by 2001 to 2010 (inclusive) ([@fig-CK_summerCAP]). PERMANOVA indicated the earlier years are indeed significantly different than the later years (*F*-ratio `r format(as.data.frame(postTest)$F[1], digits = 4)` *p* \< 0.001 [@tbl-CKpost]).
 
 ```{r}
 #| label: tbl-CKpost
@@ -1289,7 +1319,6 @@ pander(postTest)
 
 plot(centroidPlots$CK_summer)
 ```
-
 
 . . . ARCHIVAL OLD MATERIALS; NEEDS VETTED
 
