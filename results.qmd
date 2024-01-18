@@ -457,7 +457,7 @@ Results from post-hoc tests on total abundance GLMMs revealed that in summer, th
 
 sumTab <- data.frame(
   Parameter = c("Total abundance", "Total abundance", "Water temperature", "Water temperature", "SAV coverage", "SAV coverage"), 
-  Effect = c("No change", "Decreasing", "N/A", "Positive", "Positive", "Positive"), 
+  Effect = c("No change", "Decreasing", "N/A", "Positive ", "Positive", "Positive"), 
   Season = c("Summer", "Winter", "Summer", "Winter", "Summer", "Winter"))
 
 sumFT <- flextable(sumTab) %>%
