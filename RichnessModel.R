@@ -341,7 +341,7 @@ abundanceModelDF <- SXS_filtered %>%
   group_by(Reference) %>%
   summarise(abundRaw = sum(nRaw),
             abundAdd = sum(value)) %>% #sum all abundance values 
-  mutate(abund = abundRaw^0.25)
+  mutate(abund = abundRaw)
 
 totAbModelDF <- abundanceModelDF %>%
   left_join(SXR_filtered) %>% #merge in enviro data
