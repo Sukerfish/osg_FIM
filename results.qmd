@@ -17,6 +17,7 @@ format:
 reference-doc: results_formatting.docx
 editor: visual
 bibliography: references.bib
+csl: ecology.csl
 ---
 
 ```{r loadLibraries}
@@ -216,13 +217,13 @@ In total, 17,492 sampling events occurred where at least one taxon was caught an
 
 ### Data Analyses {#sec-data-analyses}
 
-I conducted all analyses using the R Statistical Computing Environment v4.3.0 with an alpha of 0.05 for all significance testing [@R2023]. To address if water temperature and SAV have changed over time in eGOM estuaries, I used Analysis of Covariance (ANCOVA) models for summer and winter seasons, independently, with year as a continuous predictor and estuarine system as a categorical predictor (fixed, 4 levels: Apalachicola Bay, Cedar Key, Tampa Bay, Charlotte Harbor) while including the interaction between both. The response for each model was the mean annual water temperature or percent SAV coverage for each season. Preliminary analyses included simple linear models of annual means of water temperature and bottom vegetation coverage for summer and winter, independently. After visual inspection, the anomalously cold winter of 2010 [@stith2012] appeared as a distinct outlier and was therefore dropped from the winter water temperature ANCOVA. I performed post-hoc contrasts for any significant terms in these ANCOVA models to determine the magnitude of any specific differences across systems using the *emmeans* package and used the Tukey method for *p*-value correction [@emmeans].
+I conducted all analyses using the R Statistical Computing Environment v4.3.0 with an alpha of 0.05 for all significance testing [@R2023]. To address if water temperature and SAV have changed over time in eGOM estuaries, I used Analysis of Covariance (ANCOVA) models for summer and winter seasons, independently, with year as a continuous predictor and estuarine system as a categorical predictor (fixed, 4 levels: Apalachicola Bay, Cedar Key, Tampa Bay, Charlotte Harbor) plus their interaction. The response for each model was the mean annual water temperature or percent SAV coverage for each season. Preliminary analyses included simple linear models of annual means of water temperature and bottom vegetation coverage for summer and winter, independently. After visual inspection, the anomalously cold winter of 2010 [@stith2012] appeared as a distinct outlier and was therefore dropped from the winter water temperature ANCOVA. I performed post-hoc contrasts for any significant terms in these ANCOVA models to determine the magnitude of any specific differences across systems using the *emmeans* package and used the Tukey method for *p*-value correction [@emmeans].
 
-To address if the richness and abundance of fishes within eGOM estuarine fish assemblages has changed over the study period and if it may be related to water temperature, I modeled richness and abundance per haul across all estuaries for both the summer and winter seasons using generalized linear mixed models (GLMMs) from the R package *glmmTMB* [@glmmTMB]. Given the well-documented seasonal differences in estuarine systems [see @Hagan2003; @Strydom2015; @Schrandt2020], in this and all subsequent analyses, summer and winter are treated entirely separately. For each seine haul, I calculated the richness as the number of taxa present and total abundance as the sum of all individuals counted. In all calculations, total abundance was fourth-root transformed to reduce the effects of overly-abundant taxa. For each model, the response in the GLMM included either the total richness or transformed total abundance of each haul, with estuary (fixed, 4 levels: Apalachicola Bay, Cedar Key, Tampa Bay, Charlotte Harbor), year (random, continuous; including the interaction), water temperature (random, continuous), and percent SAV coverage (random, continuous) as predictors. Water temperature and percent SAV coverage were subsequently z-score transformed to reduce analytical biases due to differences in scale. An `ar1` covariance matrix was included in each model to account for serial autocorrelation and was calculated from month of sampling event and within-estuary zone. Given that species richness is strongly affected by sampling effort [@Mittelbach2019], I included an offset term to account for variation in the number of seine hauls. Thus, the formula used for each was: `response ~ smallYear * system + temp_Z + sav_Z + offset(log(n_hauls)) + ar1(yearMonth + 0|systemZone)` where `response` was either total abundance or total richness per haul. The package *emmeans* was again used for post-hoc contrasts and the Tukey method was used for *p*-value correction [@emmeans]. In addition, I used the R package *betapart* to calculate Bray-Curtis dissimilarity over time and modeled this with ANCOVA [@betapart].
+To address if the richness and abundance of fishes within eGOM estuarine fish assemblages has changed over the study period and if it may be related to water temperature, I modeled these responses per haul across all estuaries for both the summer and winter seasons using generalized linear mixed models (GLMMs) from the R package *glmmTMB* [@glmmTMB]. Given the well-documented seasonal differences in estuarine systems [see @Hagan2003; @Strydom2015; @Schrandt2020], in this and all subsequent analyses, summer and winter were treated separately. For each seine haul, I calculated the richness as the number of taxa present and total abundance as the sum of all individuals counted. In all calculations, I used fourth-root transformation to reduce the effects of overly-abundant taxa. For each model, the response in the GLMM included either the total richness or transformed total abundance of each haul, with estuary (fixed, 4 levels: Apalachicola Bay, Cedar Key, Tampa Bay, Charlotte Harbor), year (fixed, continuous; including the interaction), water temperature (fixed, continuous), and percent SAV coverage (fixed, continuous) as predictors. I applied z-score transformation to water temperature and percent SAV coverage to reduce analytical biases due to differences in scale. An `ar1` covariance matrix was included in each model to account for serial autocorrelation and was calculated from month of sampling event and within-estuary zone. Given that species richness is strongly affected by sampling effort [@Mittelbach2019], I included an offset term to account for variation in the number of seine hauls. Thus, the formula used for each was: `response ~ year * system + temp_Z + sav_Z + offset(log(n_hauls)) + ar1(yearMonth + 0|systemZone)` where `response` was either total richness or total abundance per haul. The package *emmeans* was again used for post-hoc contrasts and the Tukey method was used for *p*-value correction [@emmeans]. In addition, I used the R package *betapart* to calculate Bray-Curtis dissimilarity over time and modeled this with ANCOVA [@betapart].
 
-To address my third question, I first used permutational multivariate analysis of variance (PERMANOVA) from the R package *vegan* to examine the interaction between estuary (fixed, four levels) and year (random, continuous) within season, as a means to determine if there were different magnitudes and directions of temporal change among estuaries and thus if each estuary should be treated separately [@vegan]. I then followed up with canonical analysis of principal coordinates (CAP) ordinations using the R package *BiodiversityR* to visualize differences among the levels of any fixed effect categorical terms deemed significant by the PERMANOVA models [@BiodiversityR]. In addition, I included taxon biplot correlation vectors in these CAP models to help better visualize which taxa were contributing to these differences. Vector lengths were calculated by applying Pythagorean theorem to the first two axis scores for each taxon. Finally, I performed distance-based redundancy analysis (dbRDA) from the R package *vegan* to examine whether water temperature and SAV coverage affected the relative abundances of the different taxa [@vegan].
+To address my third question, I first used permutational multivariate analysis of variance (PERMANOVA) from the R package *vegan* to examine the interaction between estuary (fixed, four levels) and year (random, continuous) within season, as a means to determine if there were different magnitudes and directions of temporal change among estuaries and thus if each estuary should be treated separately [@vegan]. I then followed up with canonical analysis of principal coordinates (CAP) ordinations using the R package *BiodiversityR* to visualize differences among the levels of any fixed effect categorical terms deemed significant by the PERMANOVA models [@BiodiversityR]. In addition, I included taxon biplot correlation vectors in these CAP models to help better visualize which taxa were contributing to these differences. Vector lengths were calculated by applying Pythagorean theorem to the first two axis scores for each taxon. Finally, I performed distance-based redundancy analysis (dbRDA) from the R package *vegan* to examine whether water temperature and SAV coverage was related to the relative abundances of the different taxa [@vegan].
 
-Additionally, I examined the change in abundance of individual taxa over time following Dornelas et al. [-@Dornelas2019]. Within each estuary and season, I ran a linear model on the fourth-root transformed abundance of each taxon independently over time to determine both the magnitude and direction of change at the taxa level. I then attached climatological association data to any taxon with significant change over time using data pulled from Fishbase using *rfishbase* [@rfishbase]. Unless otherwise indicated, values from these analyses were reported as mean ± SE.
+Finally, I examined the change in abundance of individual taxa over time following Dornelas et al. [-@Dornelas2019]. Within each estuary and season, I ran a linear model on the fourth-root transformed abundance of each taxon independently over time to determine both the magnitude and direction of change at the taxa level. I binned these rates of change to construct histograms to assess how balanced the winners and losers were for each estuary and season. I then attached climatological association data to any taxon with significant change over time using data pulled from Fishbase using *rfishbase* [@rfishbase]. Unless otherwise indicated, values from these analyses were reported as mean ± SE.
 
 # Results {#sec-results .unnumbered}
 
@@ -264,7 +265,7 @@ minSpSlope <- sigSlopes[minSlope,]
 
 ### Overview {#sec-overview}
 
-Throughout the study period, water temperature was increasing during winter for all systems at a rate nearly double that observed during the summer ([@fig-TempPlot]). However, percent submerged aquatic vegetation (SAV) had a more nuanced response over time, with increases observed in Charlotte Harbor and Tampa Bay, a decrease in Cedar Key winter, and no change in Apalachicola Bay ([@fig-BVCPlot]). In terms of individual taxa, `r length(unique(sigSlopes$Scientificname))` out of `r ncol(SXS_filtered_spp)` total identified taxa had significant changes in abundance over time across all systems.
+Throughout the study period, water temperature increased during winter for all systems at a rate nearly double that observed during the summer ([@fig-TempPlot]). Percent submerged aquatic vegetation (SAV) had a more nuanced response over time, with increases observed in Charlotte Harbor and Tampa Bay, a decrease in Cedar Key winter, and no change in Apalachicola Bay ([@fig-BVCPlot]). Of the `r ncol(SXS_filtered_spp)` total taxa examined, `r length(unique(sigSlopes$Scientificname))` had significant changes in abundance over time across all systems, nearly equally balanced between positive and negative changes.
 
 ### Habitat Parameters {#sec-habitat-parameters}
 
@@ -278,6 +279,9 @@ Results of the water temperature ANCOVAs indicated a significant positive trend 
 #| fig-width: 6.5
 #| fig-height: 6
 #| fig-cap: "Annually averaged water temperature over time. Error bars represent ± 1 standard error."
+
+levels(winterTemp$system)[levels(winterTemp$system)=="AP"] <- "AB"
+levels(summerTemp$system)[levels(summerTemp$system)=="AP"] <- "AB"
 
 (seasonTempPlot <- ggplot(winterTemp,
                 aes(x     = contYear, 
@@ -298,7 +302,7 @@ Results of the water temperature ANCOVAs indicated a significant positive trend 
     geom_smooth(method = "lm", 
                 formula = y ~ x,
                 se = FALSE,
-                data = winterTemp[winterTemp$system %in% c("AP", "TB", "CH"),],
+                data = winterTemp[winterTemp$system %in% c("AB", "TB", "CH"),],
                 linetype = "solid") +
     geom_smooth(method = "lm", 
                 formula = y ~ x,
@@ -313,11 +317,12 @@ Results of the water temperature ANCOVAs indicated a significant positive trend 
     geom_smooth(method = "lm", 
                 formula = y ~ x,
                 se = FALSE,
-                data = summerTemp[summerTemp$system %in% c("AP"),],
+                data = summerTemp[summerTemp$system %in% c("AB"),],
                 linetype = "solid") +
     labs(#title = "Annual Water Temperature Over Time",
       x     = "Year",
       y     = "Mean annual water temperature (°C)",
+      color = "System"
       #fill  = NULL
     ) +
     scale_color_brewer(palette = "PuOr") +
@@ -340,6 +345,9 @@ ANCOVA models for average submerged aquatic vegetation coverage (SAV) identified
 #| fig-width: 6.5 
 #| fig-height: 6 
 #| fig-cap: "Annually averaged SAV coverage over time. Error bars represent ± 1 standard error. Solid lines indicate significant modeled trends and dashed lines indicate a trend of no significance."
+
+levels(winterBVC$system)[levels(winterBVC$system)=="AP"] <- "AB"
+levels(summerBVC$system)[levels(summerBVC$system)=="AP"] <- "AB"
 
 (fullBVCPlot <- ggplot(summerBVC,
                 aes(x     = contYear, 
@@ -365,7 +373,7 @@ ANCOVA models for average submerged aquatic vegetation coverage (SAV) identified
     geom_smooth(method = "lm", 
                 formula = y ~ x,
                 se = FALSE,
-                data = summerBVC[summerBVC$system %in% c("AP", "TB", "CH"),],
+                data = summerBVC[summerBVC$system %in% c("AB", "TB", "CH"),],
                 linetype = "dashed") +
     geom_smooth(method = "lm", 
                 formula = y ~ x,
@@ -375,7 +383,7 @@ ANCOVA models for average submerged aquatic vegetation coverage (SAV) identified
     geom_smooth(method = "lm", 
                 formula = y ~ x,
                 se = FALSE,
-                data = winterBVC[winterBVC$system %in% c("AP", "CK"),],
+                data = winterBVC[winterBVC$system %in% c("AB", "CK"),],
                 linetype = "dashed") +
     labs(#title = "Annual Water Temperature Over Time",
       x     = "Year",
