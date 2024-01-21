@@ -268,8 +268,66 @@ minSpSlope <- sigSlopes[minSlope,]
 Throughout the study period, water temperature increased during winter for all systems at a rate nearly double that observed during the summer ([@fig-TempPlot]). Percent submerged aquatic vegetation (SAV) had a more nuanced response over time, with increases observed in Charlotte Harbor and Tampa Bay, a decrease in Cedar Key winter, and no change in Apalachicola Bay ([@fig-BVCPlot]). Of the `r ncol(SXS_filtered_spp)` total taxa examined, `r length(unique(sigSlopes$Scientificname))` had significant changes in abundance over time across all systems, nearly equally balanced between positive and negative changes.
 
 ### Habitat Parameters {#sec-habitat-parameters}
+### Water temperature
+During the 23-year study period, post-hoc contrasts revealed the long-term mean water temperatures differed among most systems (*t* ≥ `r format(as.data.frame(summerSummaryAll$contrasts)[6,5], digits = 4)` for all *p* \< 0.05; @tbl-tempMeans, @tbl-tempAncovaContrast). Importantly, water temperature increased consistently across all estuaries, though in the winter, water temperature increased at a rate of `r format(winterSummary[2,]$estimate, digits = 2)`°Cyr^-1^ ± `r format(winterSummary[2,]$std.error, digits = 2)`, over twice that during summer (`r format(summerSummary[2,]$estimate, digits = 2)`°Cyr^-1^ ± `r format(summerSummary[2,]$std.error, digits = 2)`; @fig-TempPlot, @tbl-tempAncova).
 
-Results of the water temperature ANCOVAs indicated a significant positive trend that was consistent among estuaries. However, it also identified differences in mean temperature across some systems (*t* ≥ `r format(winterSummary$statistic[4], digits = 4)` for all *p* \< 0.05; [@tbl-tempAncova]). Using post-hoc contrasts, I parsed out these differences among estuaries and seasons. For the summer season, Charlotte Harbor averaged warmer than all other systems at `r format(summerSumAll[4,]$estimate, digits = 3)`°C ± `r format(summerSumAll[4,]$std.error, digits = 2)` (*t* ≥ `r format(as.data.frame(summerSummaryAll$contrasts)[6,5], digits = 4)` for all *p* \< 0.05; [@tbl-tempAncovaContrast]). Average water temperatures in Cedar Key and Apalachicola Bay were not different from one another (`r format(summerSumAll[1,]$estimate, digits = 3)`°C ± `r format(summerSumAll[1,]$std.error, digits = 2)`), although Tampa Bay averaged `r format(summerSumAll[3,]$estimate, digits = 3)`°C ± `r format(summerSumAll[3,]$std.error, digits = 2)` and was significantly different than Cedar Key, but not Apalachicola Bay. However, for the winter season, I determined Apalachicola Bay and Cedar Key averaged `r format(winterSumAll[1,]$estimate, digits = 3)`°C ± `r format(winterSumAll[1,]$std.error, digits = 2)` during the study period, compared to `r format(winterSumAll[3,]$estimate, digits = 3)`°C ± `r format(winterSumAll[3,]$std.error, digits = 2)` for Tampa Bay and `r format(winterSumAll[4,]$estimate, digits = 3)`°C ± `r format(winterSumAll[4,]$std.error, digits = 2)` for Charlotte Harbor (*t* ≥ `r format(as.data.frame(winterSummaryAll$contrasts)[6,5], digits = 4)` for all *p* \< 0.05; [@tbl-tempAncovaContrast]). During summer, water temperature increased in all systems at a rate of `r format(summerSummary[2,]$estimate, digits = 2)`°Cyr^-1^ ± `r format(summerSummary[2,]$std.error, digits = 2)` ([@fig-TempPlot]). For all systems during winter, water temperature increased at a rate of `r format(winterSummary[2,]$estimate, digits = 2)`°Cyr^-1^ ± `r format(winterSummary[2,]$std.error, digits = 2)` (see also [@fig-habParams]).
+```{r}
+#| label: tbl-tempMeans
+#| echo: FALSE 
+#| message: FALSE 
+#| tbl-cap: "Least square means of each system for both seasonal linear models. P-values for pairwise contrasts used tukey method for correction." 
+
+tempMeanOut <- as.data.frame(summary(summerSummaryAll$lsmeans)) %>%
+  mutate(Season = "Summer", .before = system) %>%
+  full_join(as.data.frame(summary(winterSummaryAll$lsmeans))) %>%
+  mutate(Season = ifelse(is.na(Season), "Winter", Season),
+         system = fct_recode(system, "AB" = "AP")) %>%
+  select(!c(lower.CL, upper.CL)) %>%
+  flextable(.) %>%
+  merge_v(j = ~ Season) %>%
+  colformat_double(j = c("lsmean", "SE"), digits = 3) %>%
+  set_header_labels(system = "System", 
+    lsmean = "Estimated mean", 
+    SE = "Standard error") %>%
+  paginate(init = TRUE, hdr_ftr = TRUE) %>%
+  autofit() %>%
+  theme_vanilla()
+  
+tempMeanOut
+
+```
+
+```{r}
+#| label: tbl-tempAncova 
+#| echo: FALSE 
+#| message: FALSE 
+#| tbl-cap: "Outputs of temperature ANCOVA models." 
+
+# pander(summerSummary)
+# pander(winterSummary)
+
+tempANCOVAft <- summerSummary %>%
+  mutate(Season = "Summer", .before = term) %>%
+  full_join(winterSummary) %>%
+  mutate(Season = ifelse(is.na(Season), "Winter", Season)) %>%
+  flextable(.) %>%
+  merge_v(j = ~ Season) %>%
+  colformat_double(j = c("estimate", "std.error",
+                             "statistic", "p.value"), digits = 3) %>%
+  set_formatter(p.value = function(x) scales::pvalue(x)) %>%
+  set_header_labels(term = "Term", 
+    estimate = "Estimate", 
+    std.error = "Standard error",
+    statistic = "t-statistic",
+    p.value = "p-value") %>%
+  bold(~ p.value <0.05, c(2:6)) %>%
+  paginate(init = TRUE, hdr_ftr = TRUE) %>%
+  autofit() %>%
+  theme_vanilla()
+
+tempANCOVAft
+
+```
 
 ```{r}
 #| label: fig-TempPlot
@@ -339,7 +397,68 @@ levels(summerTemp$system)[levels(summerTemp$system)=="AP"] <- "AB"
     ))
 ```
 
-ANCOVA models for average submerged aquatic vegetation coverage (SAV) identified differences in mean annual percent SAV across all systems within seasons as well as an interaction between some systems and year ([@tbl-bvcMeans]). Post-hoc analyses confirmed all systems had different average annual SAV from one another within each season (*t* ≥ `r format(as.data.frame(winterSummaryBVCAll$contrasts)$t.ratio[6], digits = 3)` for all *p* \< 0.05). Specifically, Charlotte Harbor had the most coverage for both seasons ranging from `r format(winterSumBVCAll[4,]$estimate, digits = 3)`% ± `r format(winterSumBVCAll[4,]$std.error, digits = 3)` in winter to `r format(summerSumBVCAll[4,]$estimate, digits = 3)`% ± `r format(summerSumBVCAll[4,]$std.error, digits = 3)` in summer. Cedar Key averaged the lowest coverage, ranging from `r format(winterSumBVCAll[2,]$estimate, digits = 3)`% ± `r format(winterSumBVCAll[2,]$std.error, digits = 3)` in winter to `r format(summerSumBVCAll[2,]$estimate, digits = 3)`% ± `r format(summerSumBVCAll[2,]$std.error, digits = 3)` in summer. Tampa Bay and Apalachicola Bay were both in the middle of these ranges for both seasons ([@tbl-bvcMeans]). Post-hoc analyses also revealed the change in SAV coverage over time was different for Cedar Key compared to all other systems for the summer season (see also [@fig-habParams]), with a decrease in SAV at a rate of `r format(BVCsummerSlope[2,]$smallYear.trend, digits = 3)`%yr^-1^ ± `r format(BVCsummerSlope[2,]$std.error, digits = 3)` (*t* ≥ `r format(as.data.frame(summerBVCContrasts$contrasts)$t.ratio[3], digits = 3)` for all *p* \< 0.05). All other system pairs were statistically similar and experienced no significant change in SAV coverage over time ([@tbl-bvcAncovaContrast-1]). Change in SAV coverage in the winter was more nuanced, where SAV in both Tampa Bay and Charlotte Harbor differed from the northern estuaries Apalachicola Bay and Cedar Key (*t* ≥ `r format(as.data.frame(winterBVCContrasts$contrasts)$t.ratio[2], digits = 3)` for all *p* \< 0.05; [@tbl-bvcAncovaContrast-2]). SAV in Tampa Bay and Charlotte Harbor increased during the winter at a rate of `r format(BVCwinterSlope[3,]$smallYear.trend, digits = 3)`%yr^-1^ ± `r format(BVCwinterSlope[3,]$std.error, digits = 3)` and `r format(BVCwinterSlope[4,]$smallYear.trend, digits = 3)`%yr^-1^ ± `r format(BVCwinterSlope[4,]$std.error, digits = 3)`, respectively. Cedar Key did not have any significant change in the winter. Of note, the northernmost estuary in this study, Apalachicola Bay, did not have any significant change in SAV over the study period ([@fig-BVCPlot]).
+### SAV
+ANCOVA models for average submerged aquatic vegetation coverage (SAV) identified differences in mean annual percent SAV across all systems within seasons as well as an interaction between some systems and year ([@tbl-bvcAncova]). Post-hoc analyses confirmed all systems had different average annual SAV from one another within each season (*t* ≥ `r format(as.data.frame(winterSummaryBVCAll$contrasts)$t.ratio[6], digits = 3)` for all *p* \< 0.05; @tbl-bvcMeans; @tbl-bvcAncovaContrast).
+
+```{r}
+#| label: tbl-bvcAncova 
+#| echo: FALSE 
+#| message: FALSE 
+#| tbl-cap: "Outputs of temperature ANCOVA models." 
+
+# pander(summerSummary)
+# pander(winterSummary)
+
+bvcANCOVAft <- summerBVCSummary %>%
+  mutate(Season = "Summer", .before = term) %>%
+  full_join(winterBVCSummary) %>%
+  mutate(Season = ifelse(is.na(Season), "Winter", Season)) %>%
+  flextable(.) %>%
+  merge_v(j = ~ Season) %>%
+  colformat_double(j = c("estimate", "std.error",
+                             "statistic", "p.value"), digits = 3) %>%
+  set_formatter(p.value = function(x) scales::pvalue(x)) %>%
+  set_header_labels(term = "Term", 
+    estimate = "Estimate", 
+    std.error = "Standard error",
+    statistic = "t-statistic",
+    p.value = "p-value") %>%
+  bold(~ p.value <0.05, c(2:6)) %>%
+  paginate(init = TRUE, hdr_ftr = TRUE) %>%
+  autofit() %>%
+  theme_vanilla()
+
+bvcANCOVAft
+
+```
+
+```{r}
+#| label: tbl-bvcMeans
+#| echo: FALSE 
+#| message: FALSE 
+#| tbl-cap: "Least square means of each system for both seasonal linear models. P-values for pairwise contrasts used tukey method for correction." 
+
+bvcMeanOut <- as.data.frame(summary(summerSummaryBVCAll$lsmeans)) %>%
+  mutate(Season = "Summer", .before = system) %>%
+  full_join(as.data.frame(summary(winterSummaryBVCAll$lsmeans))) %>%
+  mutate(Season = ifelse(is.na(Season), "Winter", Season),
+         system = fct_recode(system, "AB" = "AP")) %>%
+  select(!c(lower.CL, upper.CL)) %>%
+  flextable(.) %>%
+  merge_v(j = ~ Season) %>%
+  colformat_double(j = c("lsmean", "SE"), digits = 3) %>%
+  set_header_labels(system = "System", 
+    lsmean = "Estimated mean", 
+    SE = "Standard error") %>%
+  paginate(init = TRUE, hdr_ftr = TRUE) %>%
+  autofit() %>%
+  theme_vanilla()
+  
+bvcMeanOut
+
+```
+
+Specifically, Charlotte Harbor had the most coverage for both seasons ranging from `r format(winterSumBVCAll[4,]$estimate, digits = 3)`% ± `r format(winterSumBVCAll[4,]$std.error, digits = 3)` in winter to `r format(summerSumBVCAll[4,]$estimate, digits = 3)`% ± `r format(summerSumBVCAll[4,]$std.error, digits = 3)` in summer. Cedar Key averaged the lowest coverage, ranging from `r format(winterSumBVCAll[2,]$estimate, digits = 3)`% ± `r format(winterSumBVCAll[2,]$std.error, digits = 3)` in winter to `r format(summerSumBVCAll[2,]$estimate, digits = 3)`% ± `r format(summerSumBVCAll[2,]$std.error, digits = 3)` in summer. Tampa Bay and Apalachicola Bay were both in the middle of these ranges for both seasons ([@tbl-bvcMeans]). Post-hoc analyses also revealed the change in SAV coverage over time was different for Cedar Key compared to all other systems for the summer season (see also [@fig-habParams]), with a decrease in SAV at a rate of `r format(BVCsummerSlope[2,]$smallYear.trend, digits = 3)`%yr^-1^ ± `r format(BVCsummerSlope[2,]$std.error, digits = 3)` (*t* ≥ `r format(as.data.frame(summerBVCContrasts$contrasts)$t.ratio[3], digits = 3)` for all *p* \< 0.05). All other system pairs were statistically similar and experienced no significant change in SAV coverage over time ([@tbl-bvcAncovaContrast-1]). Change in SAV coverage in the winter was more nuanced, where SAV in both Tampa Bay and Charlotte Harbor differed from the northern estuaries Apalachicola Bay and Cedar Key (*t* ≥ `r format(as.data.frame(winterBVCContrasts$contrasts)$t.ratio[2], digits = 3)` for all *p* \< 0.05; [@tbl-bvcAncovaContrast-2]). SAV in Tampa Bay and Charlotte Harbor increased during the winter at a rate of `r format(BVCwinterSlope[3,]$smallYear.trend, digits = 3)`%yr^-1^ ± `r format(BVCwinterSlope[3,]$std.error, digits = 3)` and `r format(BVCwinterSlope[4,]$smallYear.trend, digits = 3)`%yr^-1^ ± `r format(BVCwinterSlope[4,]$std.error, digits = 3)`, respectively. Cedar Key did not have any significant change in the winter. Of note, the northernmost estuary in this study, Apalachicola Bay, did not have any significant change in SAV over the study period ([@fig-BVCPlot]).
 
 ```{r BVCPlot}
 #| label: fig-BVCPlot 
@@ -1182,58 +1301,45 @@ finalEco
 # Conclusion {#sec-conclusion}
 
 # Supplemental Materials {#sec-supplemental-materials .appendix}
-
-. . . Water temperature ANCOVA
-
-```{r}
-#| label: tbl-tempAncova 
-#| echo: FALSE 
-#| message: FALSE 
-#| tbl-cap: "Outputs of temperature ANOCVA models." 
-#| tbl-subcap: 
-#|   - "summer"
-#|   - "winter"
-
-pander(summerSummary)
-pander(winterSummary)
-
-```
-
-Water temperature contrasts from ANCOVA
-
+##Temp ANCOVA contrasts
 ```{r}
 #| label: tbl-tempAncovaContrast 
 #| echo: FALSE 
 #| message: FALSE 
 #| tbl-cap: "Contrasts from ANCOVA models. Tukey method applied for p-value correction." 
-#| tbl-subcap: 
-#|   - "summer"
-#|   - "winter"
-#|   
-pander(summary(summerSummaryAll$contrasts))
-pander(summary(winterSummaryAll$contrasts))
+
+tempCont <- as.data.frame(summary(summerSummaryAll$contrasts)) %>%
+  mutate(Season = "Summer", .before = contrast) %>%
+  full_join(as.data.frame(summary(winterSummaryAll$contrasts))) %>%
+  mutate(Season = ifelse(is.na(Season), "Winter", Season),
+         contrast = ifelse(contrast == "CK - AP", "CK - AB",
+                            ifelse(contrast == "TB - AP", "TB - AB",
+                                   ifelse(contrast == "CH - AP", "CH - AB", contrast)))) %>%
+  flextable(.) %>%
+  merge_v(j = ~ Season) %>%
+  colformat_double(j = c("estimate", "SE",
+                             "t.ratio", "p.value"), digits = 3) %>%
+  set_formatter(p.value = function(x) scales::pvalue(x)) %>%
+  set_header_labels(contrast = "Contrast", 
+    estimate = "Estimate", 
+    SE = "Standard error",
+    t.ratio = "t-statistic",
+    p.value = "p-value") %>%
+  bold(~ p.value <0.05, c(2:7)) %>%
+  paginate(init = TRUE, hdr_ftr = TRUE) %>%
+  autofit() %>%
+  theme_vanilla()
+  
+tempCont
 
 ```
+Results of the water temperature ANCOVAs indicated a significant positive trend that was consistent among estuaries. However, it also identified differences in mean temperature across some systems (*t* ≥ `r format(winterSummary$statistic[4], digits = 4)` for all *p* \< 0.05; [@tbl-tempAncova]). Using post-hoc contrasts, I parsed out these differences among estuaries and seasons. For the summer season, Charlotte Harbor averaged warmer than all other systems at `r format(summerSumAll[4,]$estimate, digits = 3)`°C ± `r format(summerSumAll[4,]$std.error, digits = 2)` (*t* ≥ `r format(as.data.frame(summerSummaryAll$contrasts)[6,5], digits = 4)` for all *p* \< 0.05; [@tbl-tempAncovaContrast]). Average water temperatures in Cedar Key and Apalachicola Bay were not different from one another (`r format(summerSumAll[1,]$estimate, digits = 3)`°C ± `r format(summerSumAll[1,]$std.error, digits = 2)`), although Tampa Bay averaged `r format(summerSumAll[3,]$estimate, digits = 3)`°C ± `r format(summerSumAll[3,]$std.error, digits = 2)` and was significantly different than Cedar Key, but not Apalachicola Bay. However, for the winter season, I determined Apalachicola Bay and Cedar Key averaged `r format(winterSumAll[1,]$estimate, digits = 3)`°C ± `r format(winterSumAll[1,]$std.error, digits = 2)` during the study period, compared to `r format(winterSumAll[3,]$estimate, digits = 3)`°C ± `r format(winterSumAll[3,]$std.error, digits = 2)` for Tampa Bay and `r format(winterSumAll[4,]$estimate, digits = 3)`°C ± `r format(winterSumAll[4,]$std.error, digits = 2)` for Charlotte Harbor (*t* ≥ `r format(as.data.frame(winterSummaryAll$contrasts)[6,5], digits = 4)` for all *p* \< 0.05; [@tbl-tempAncovaContrast]). During summer, water temperature increased in all systems at a rate of      ([@fig-TempPlot]). For all systems during winter, water temperature increased    (see also [@fig-habParams]).
 
-SAV ANCOVA outputs
-
-```{r}
-#| label: tbl-bvcAncova 
-#| echo: FALSE 
-#| message: FALSE 
-#| tbl-cap: "Outputs of SAV ANCOVA models." 
-#| tbl-subcap: 
-#|   - "summer"
-#|   - "winter"
-pander(summerBVCSummary)
-pander(winterBVCSummary)
-
-```
-
+##SAV ANCOVA outputs
 SAV ANCOVA calculated means
 
 ```{r}
-#| label: tbl-bvcMeans 
+#| label: tbl-bvcMeanss 
 #| echo: FALSE 
 #| message: FALSE 
 #| tbl-cap: "Least square means of each system for both seasonal linear models." 
@@ -1381,23 +1487,6 @@ emphasize.strong.cells(which(summerSummary < 0.05, arr.ind = TRUE))
 pander(summerSummary)
 ```
 
-water temp output
-
-```{r}
-#| label: tbl-tempMeans 
-#| echo: FALSE 
-#| message: FALSE 
-#| tbl-cap: "Least square means of each system for both seasonal linear models. P-values for pairwise contrasts used tukey method for correction." 
-
-tempMeans <- winterSumAll %>%
-  mutate(season = "winter") %>%
-  full_join(summerSumAll) %>%
-  mutate(season = ifelse(!is.na(season), "winter", "summer")) %>%
-  select(system, season, estimate, std.error) %>%
-  mutate(std.error = format(std.error, digits = 3))
-
-pander(tempMeans)
-```
 
 ```{r}
 #| label: tbl-bvcModels 
