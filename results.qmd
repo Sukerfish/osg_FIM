@@ -1,9 +1,9 @@
 ---
-title: "Effects of Climate Change on Estuarine Fish Assemblages"
-abstract: "This is a test abstract"
+title: Effects of Climate Change on Estuarine Fish Assemblages
+abstract: This is a test abstract
 authors:
-  - name: "Garrett Miller"
-    orcid: "0009-0007-6253-2554"
+  - name: Garrett Miller
+    orcid: 0009-0007-6253-2554
     affiliation:
       - name: The University of South Florida
         department: College of Marine Science
@@ -45,6 +45,7 @@ library(emmeans)
 
 library(flextable)
 library(officedown)
+library(kableExtra)
 
 Sys.setenv(FISHBASE_API="sealifebase")
 #knitr::opts_chunk$set(echo = TRUE)
@@ -94,6 +95,14 @@ taxaFT <- flextable(diffTaxa) %>%
   italic(part = "body") %>%
   autofit() %>%
   theme_vanilla()
+
+# taxaFT <- diffTaxa %>%
+#   kbl() %>%
+#   kable_classic(full_width = F) %>%
+#   collapse_rows(columns = 1) %>%
+#   row_spec(1, italic = TRUE) %>%
+#   row_spec(7, italic = TRUE) %>%
+#   column_spec(1, italic = TRUE)
 
 taxaFT
 
@@ -530,7 +539,7 @@ levels(summerBVC$system)[levels(summerBVC$system)=="AP"] <- "AB"
 ```{r}
 #| label: tbl-habParamSyn
 #| echo: FALSE
-#| tbl-cap: "Summary of observed habitat parameter trends per system and season. '+' indicates positive trend, '-' indicates negative trend, and '0' indicates no trend. Trend direction calculated using ANCOVA framework and significant at alpha 0.95."
+#| tbl-cap: "Summary of observed habitat parameter trends per system and season. + indicates positive trend, - indicates negative trend, and 0 indicates no trend. Trend direction calculated using ANCOVA framework and significant at alpha 0.95."
 
 
 habParam <- data.frame(
@@ -1503,34 +1512,7 @@ pander(betaWinterSummary)
 
 ```
 
-```{r}
-#| label: CK postTest
-#| include: FALSE
-#| cache: TRUE
-source("CKpostTest.R")
-```
 
-Post analysis of Cedar Key summer biodiversity data included a factor identifying the separation observed in the CAP model. Visual inspection indicated the earlier group as bounded by 2001 to 2010 (inclusive) ([@fig-CK_summerCAP]). PERMANOVA indicated the earlier years are indeed significantly different than the later years (*F*-ratio `r format(as.data.frame(postTest)$F[1], digits = 4)` *p* \< 0.001 [@tbl-CKpost]).
-
-```{r}
-#| label: tbl-CKpost
-#| echo: FALSE
-#| message: FALSE
-#| tbl-cap: "Post analysis using PERMANOVA informed by CAP on Cedar Key summer abundance data."
-pander(postTest)
-```
-
-```{r}
-#| label: fig-CK_summerCAP
-#| echo: FALSE
-#| message: FALSE
-#| warning: FALSE
-#| fig-width: 5
-#| fig-height: 5
-#| fig-cap: "Canonical analysis of principal coordinates ordination plot. Shading of markers indicates year for that group, with red markers indicating centroids of the oldest years in the data and blue indicating the most recent years. Percentages next to subplot title indicate total variability captured by the model. Top three taxa associated with canonical axes scores plotted as vectors. Canonical axis (CA) percentages indicate the among-group variation captured in each axis."
-
-plot(centroidPlots$CK_summer)
-```
 
 . . . ARCHIVAL OLD MATERIALS; NEEDS VETTED
 
@@ -1568,7 +1550,7 @@ pander(summerBVCSummary)
 #| label: NMDS
 #| include: FALSE
 #| cache: TRUE
-source("NMDS_annual.R")
+#source("NMDS_annual.R")
 ```
 
 NMDS reveals distinct separation among northern and southern estuaries in multivariate species-space. Using an `envfit` model, water temperature and BVC are best aligned with the distance between the two groups of estuaries ([@fig-NMDS_all]). Specifically, temperature predominantly separates the northern and southern groups (NMDS1), with BVC associated with differences among northern and southern groups (NMDS2).
@@ -1585,8 +1567,8 @@ NMDS reveals distinct separation among northern and southern estuaries in multiv
 #| fig-subcap: 
 #|   - "Summer"
 #|   - "Winter"
-plot(summerNMDS)
-plot(winterNMDS)
+# plot(summerNMDS)
+# plot(winterNMDS)
 ```
 
 Looking closer at temp, specifically as in [@Miner2021], the upper and lower 10th percentiles of temp are sometimes changing. Mostly in winter, though not significant using linear models alone ([@fig-upperLower]). Follow-up with GLMM and model selection using AIC to determine whether upper or lower percentile was significant resulted in changes in base model structure, namely dropping the offset term and sometimes dropping BVC or temperature.
