@@ -42,6 +42,7 @@ library(grid)
 library(pander)
 library(pixiedust) #for model output formats
 library(emmeans)
+library(viridis)
 
 library(flextable)
 library(officedown)
@@ -863,25 +864,31 @@ for(i in systemSeason_list$systemSeason){
     #            colour = "black") +
     geom_point(aes(x = mult*dbRDA1,
                    y = mult*dbRDA2,
-                   fill = as.numeric(as.character(seasonYear))),
+                   fill = seasonYear),
                size   = 4,
                stroke = 0.1,
                pch    = 21,
                colour = "black") +
-    scale_fill_gradient(
-      low = "blue",
-      high = "red",
-      space = "Lab",
-      na.value = "grey50",
-      guide = "colourbar",
-      aesthetics = "fill"
-    ) +
+    # scale_fill_gradient(
+    #   low = "blue",
+    #   high = "red",
+    #   space = "Lab",
+    #   na.value = "grey50",
+    #   guide = "colourbar",
+    #   aesthetics = "fill"
+    # ) +
+        scale_fill_viridis(option = "magma", 
+                       limits = sort(levels(SXS_filtered$seasonYear)),
+                       breaks = c("2000", "2005", "2010", "2015", "2020"),
+                       discrete=TRUE) +
     theme_bw() +
     theme(legend.text       = element_text(size=rel(0.8)),
           legend.position   = c(0.055,0.89),
           legend.background = element_blank(),
           legend.key        = element_blank(),
-          panel.grid        = element_blank()) +
+          panel.grid        = element_blank(),
+          plot.title        = element_text(size = rel(0.8)),
+          axis.title        = element_text(size = rel(0.8))) +
     geom_segment(data = vecs,
                  aes(x     = 0, 
                      xend  = mult_vec*dbRDA1, 
@@ -899,6 +906,7 @@ for(i in systemSeason_list$systemSeason){
                          #colour = "blue",
                          #size   = "blue"
                            ),
+                     size          = 2.5,
                      force         = 0.1,
                      alpha         = 0.8,
                      fontface      = "bold",
@@ -923,7 +931,7 @@ for(i in systemSeason_list$systemSeason){
 }
 
 fullRDAPlot <- wrap_plots(plotsforAll,
-                      ncol = 2)
+                      ncol = 2, guides = "collect") & theme(legend.position = 'bottom')
 
 RDAaxes <- bind_rows(RDAaxesVar, .id = "systemSeason")
 ```
@@ -1141,14 +1149,14 @@ for(i in systemSeason_list$systemSeason){
                colour     = "grey70",
                size       = .25) +
     scale_x_continuous(limits       = symmetric_range(1+(mult)*sppvecs_list_fixdf$LD1),
-                       breaks       = c(-6,-3,0,3,6),
+                       breaks       = c(-4,-2,0,2,4),
                        minor_breaks = NULL) +
     scale_y_continuous(limits       = symmetric_range(1+(mult)*sppvecs_list_fixdf$LD2),
-                       breaks       = c(-6,-3,0,3,6),
+                       breaks       = c(-4,-2,0,2,4),
                        minor_breaks = NULL) +
     geom_point(aes(x    = axis1c, 
                    y    = axis2c, 
-                   fill = as.numeric(as.character(df_env.seasonYear))),
+                   fill = df_env.seasonYear),
                size   = 4, 
                stroke = 0.1,
                pch    = 21, 
@@ -1157,20 +1165,26 @@ for(i in systemSeason_list$systemSeason){
          x     = paste("CA1 (",indf$LD1var[1],"%)",sep=""),
          y     = paste("CA2 (",indf$LD2var[1],"%)",sep=""),
          fill  = NULL) +
-    scale_fill_gradient(
-      low = "blue",
-      high = "red",
-      space = "Lab",
-      na.value = "grey50",
-      guide = "colourbar",
-      aesthetics = "fill"
-    ) +
+    # scale_fill_gradient(
+    #   low = "blue",
+    #   high = "red",
+    #   space = "Lab",
+    #   na.value = "grey50",
+    #   guide = "colourbar",
+    #   aesthetics = "fill"
+    # ) +
+    scale_fill_viridis(option = "magma", 
+                       limits = sort(levels(centroidDf$df_env.seasonYear)),
+                       breaks = c("2000", "2005", "2010", "2015", "2020"),
+                       discrete=TRUE) +
     theme_bw() +
-    theme(legend.text       = element_text(size=rel(0.8)),
+    theme(legend.text       = element_text(size=rel(0.5)),
           legend.position   = c(0.055,0.89),
           legend.background = element_blank(),
           legend.key        = element_blank(),
-          panel.grid        = element_blank()) +
+          panel.grid        = element_blank(),
+          plot.title        = element_text(size = rel(0.8)),
+          axis.title        = element_text(size = rel(0.8))) +
     geom_segment(data = taxdf,
                  aes(x    = 0,
                      xend = mult*LD1,
@@ -1185,7 +1199,7 @@ for(i in systemSeason_list$systemSeason){
                        y     = mult*LD2 + 0.2*sin(atan(LD2/LD1))*sign(LD2),
                        label = Scientificname),
                    segment.alpha = 0,
-                   size          = 3.25,
+                   size          = 2,
                    color         = "blue",
                    fontface      = "bold",
                    fill          = "white",
@@ -1196,14 +1210,17 @@ for(i in systemSeason_list$systemSeason){
                    #nudge_x       = ifelse(spp_vecs_label[[i]]$LD1>0,0.05,-0.05),
                    #nudge_y       = ifelse(spp_vecs_label[[i]]$LD2>-0.02,0.05,-0.05),
                    force         = 0.3) +
-  guides(fill = guide_legend(override.aes = list(size = 2.5),
-                             keyheight    = 0.15,
-                             keywidth     = 0.2))
+    scale_size_manual(values = c(2.5,3.5),
+                      guide  = guide_none()) +
+    guides(fill = guide_legend(override.aes = list(size = 2.5),
+                               keyheight    = 0.15,
+                               keywidth     = 0.2,
+                               title = "Year"))
     
 }
     
     centroidCAP <- wrap_plots(centroidPlots,
-           ncol = 2)
+           ncol = 2, guides = "collect")& theme(legend.position = 'bottom')
     
 # table assembly
 spp_vec_setup <- list()
@@ -1262,7 +1279,7 @@ pander(sysSpp)
 #| warning: FALSE
 #| fig-width: 6.5
 #| fig-height: 8
-#| fig-cap: "Canonical analysis of principal coordinates ordination plots. Shading of markers indicates year for that group, with blue markers indicating centroids of the oldest years in the data and red indicating the most recent years. Percentages next to subplot title indicate total variability captured by the model. Top three taxa associated with canonical axes scores plotted as vectors. Canonical axis (CA) percentages indicate the among-group variation captured in each axis."
+#| fig-cap: "Canonical analysis of principal coordinates ordination plots. Shading of markers indicates year for that group, with darker colors indicating centroids of the oldest years in the data and lighter colors indicating the most recent years. Percentages next to subplot title indicate total variability captured by the model. Top three taxa associated with canonical axes scores plotted as vectors. Canonical axis (CA) percentages indicate the among-group variation captured in each axis."
 
 plot(centroidCAP)
 ```
@@ -1275,7 +1292,7 @@ In multivariate species-spaces, dbRDA confirmed the significance of SAV and wate
 #| message: FALSE
 #| fig-width: 6.5
 #| fig-height: 8
-#| fig-cap: "Distance-based redundancy analysis (dbRDA) ordination to visualize effects of habitat parameters. Shading of markers indicates year for that group, with blue markers indicating centroids of the oldest years in the data and red indicating the most recent years. Canonical axis (CA) percentages indicate the total variation in estuarine communities explained by that axis. Each habitat variable is represented by vectors and centroids of taxa groups are calculated using weighted average scores."
+#| fig-cap: "Distance-based redundancy analysis (dbRDA) ordination to visualize effects of habitat parameters. Shading of markers indicates year for that group, with darker colors indicating centroids of the oldest years in the data and lighter colors indicating the most recent years. Canonical axis (CA) percentages indicate the total variation in estuarine communities explained by that axis. Each habitat variable is represented by vectors and centroids of taxa groups are calculated using weighted average scores."
 
 plot(fullRDAPlot)
 ```
