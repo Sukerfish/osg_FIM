@@ -441,7 +441,7 @@ bvcMeanOut
 #| label: tbl-bvcAncova 
 #| echo: FALSE 
 #| message: FALSE 
-#| tbl-cap: "Outputs of temperature ANCOVA models." 
+#| tbl-cap: "Outputs of SAV ANCOVA models." 
 
 # pander(summerSummary)
 # pander(winterSummary)
@@ -619,7 +619,7 @@ richContW <- emtrends(glmmOutRW, ~ system, var = "smallYear", contr = "revpairwi
 
 ```
 
-Results from post-hoc tests on total abundance GLMMs revealed that in summer, there were differences in mean total abundance between northern and southern systems, a positive correlation with SAV coverage, and no significant correlation with water temperature ([@tbl-abundSyn]; [@tbl-abundModels]). Only Tampa Bay exhibited any change in total abundance over time during the summer ([@tbl-abundSyn]). In contrast, there were more nuanced differences in total abundance among estuaries in the winter. For all systems, total abundance was positively correlated with with SAV coverage and water temperature. Cedar Key had the lowest total abundance compared to Apalachicola and Charlotte Harbor (*t* ≥ `r format(as.data.frame(abundMeanW$contrasts)$t.ratio[5], digits = 3)` for all *p* \< 0.05; contrast with Tampa Bay was marginally significant *t* = `r format(as.data.frame(abundMeanW$contrasts)$t.ratio[3], digits = 3)`, *p* = `r format(as.data.frame(abundMeanW$contrasts)$p.value[3], digits = 3)`; [@tbl-abundModels]; see also [@tbl-abundModelsRaw] for full output). In addition, total abundance in Apalachicola Bay decreased during the winter while all other estuaries exhibited no significant change over time (*t* ≥ `r format(as.data.frame(abundContW$contrasts)$t.ratio[4], digits = 3)` for all *p* \< 0.05 [@tbl-abundSyn]).
+Results from post-hoc tests on total abundance GLMMs revealed that in summer, there were differences in mean total abundance between northern and southern systems, a positive correlation with SAV coverage, and no significant correlation with water temperature ([@tbl-abundModels]; [@tbl-abundSyn]). Only Tampa Bay exhibited any change in total abundance over time during the summer ([@tbl-abundSyn]). In contrast, there were more nuanced differences in total abundance among estuaries in the winter. For all systems, total abundance was positively correlated with with SAV coverage and water temperature. Cedar Key had the lowest total abundance compared to Apalachicola and Charlotte Harbor (*t* ≥ `r format(as.data.frame(abundMeanW$contrasts)$t.ratio[5], digits = 3)` for all *p* \< 0.05; contrast with Tampa Bay was marginally significant *t* = `r format(as.data.frame(abundMeanW$contrasts)$t.ratio[3], digits = 3)`, *p* = `r format(as.data.frame(abundMeanW$contrasts)$p.value[3], digits = 3)`; [@tbl-abundModels]; see also [@tbl-abundModelsRaw] for full output). In addition, total abundance in Apalachicola Bay decreased during the winter while all other estuaries exhibited no significant change over time (*t* ≥ `r format(as.data.frame(abundContW$contrasts)$t.ratio[4], digits = 3)` for all *p* \< 0.05 [@tbl-abundSyn]).
 
 ```{r}
 #| label: tbl-abundModels
@@ -789,7 +789,7 @@ ANCOVA models of Bray-Curtis dissimilarity pairwise over time revealed a general
 #| label: tbl-betaTrends
 #| echo: FALSE
 #| message: FALSE
-#| tbl-cap: "ANCOVA model outputs for betadiversity indices over time. Bold values are significant at alpha 0.95.."
+#| tbl-cap: "ANCOVA model outputs for betadiversity indices over time. Bold values are significant at alpha 0.95."
 
 betaTrendOut <- as.data.frame(betaSummerSummary) %>%
   full_join(as.data.frame(betaWinterSummary)) %>%
