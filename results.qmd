@@ -13,7 +13,10 @@ format:
     toc: true
     toc-location: left
     toc-expand: true
-  docx: default
+  docx:
+    toc: true
+    fig-format: svg
+    fig-dpi: 600
 reference-doc: results_formatting.docx
 editor: visual
 bibliography: references.bib
@@ -60,6 +63,8 @@ Sys.setenv(FISHBASE_API="sealifebase")
 #   padding.left = 4, padding.right = 4)
 
 ```
+
+{{< pagebreak >}}
 
 # Introduction {#sec-introduction .unnumbered}
 
@@ -229,7 +234,7 @@ I conducted all analyses using the R Statistical Computing Environment v4.3.0 wi
 
 To address if the richness and abundance of fishes within eGOM estuarine fish assemblages has changed over the study period and the effects of water temperature on assemblages, I modeled total richness and total abundance per haul across all estuaries for both the summer and winter seasons using generalized linear mixed models (GLMMs) from the R package *glmmTMB* [@glmmTMB]. Given the well-documented seasonal differences in estuarine systems [see @Hagan2003; @Strydom2015; @Schrandt2020], in this and all subsequent analyses, I separately analyzed summer and winter. For each seine haul, I calculated the richness as the number of taxa present and total abundance as the sum of all individuals counted. For each model, the response in the GLMM included either the total richness or transformed total abundance of each haul, with estuary (fixed, 4 levels: Apalachicola Bay, Cedar Key, Tampa Bay, Charlotte Harbor), year (fixed, continuous; including the interaction), water temperature (fixed, continuous), and percent SAV coverage (fixed, continuous) as predictors. I applied z-score transformation to water temperature and percent SAV coverage to enable relative effect sizes comparisons. A covariance matrix was included in each model to account for serial autocorrelation and was calculated from month of sampling event and within-estuary zone. Given that species richness is strongly affected by sampling effort [@Mittelbach2019], I included an offset term to account for variation in the number of seine hauls. Thus, the formula used for each was: `response ~ year * system + temp_Z + sav_Z + offset(log(n_hauls)) + ar1(yearMonth + 0|systemZone)` where `response` was either total richness or total abundance per haul. The package *emmeans* was again used for post-hoc contrasts and the Tukey method was used for *p*-value correction [@emmeans]. In addition, I used the R package *betapart* to calculate Bray-Curtis dissimilarity over time and modeled this with ANCOVA [@betapart].
 
-To examine the composition and stability of eGOM estuarine fish assemblages over time, I started with a multivariate approach at the scale of the entire sampling universe. First, I used permutational multivariate analysis of variance (PERMANOVA) from the R package *vegan to* evaluate the interactive effect of estuary (fixed, four levels) and year (random, continuous) within season on the fourth-root transformed taxon abundances [@vegan]. I then followed up with canonical analysis of principal coordinates (CAP) ordinations using the R package *BiodiversityR* to visualize differences among the levels of any fixed effect categorical terms deemed significant by the PERMANOVA models [@BiodiversityR]. In addition, I included taxon biplot correlation vectors in these CAP ordinations to better visualize which taxa contributed to any observed differences. Vector lengths were calculated by applying Pythagorean theorem to the first two axis scores for each taxon. To explore the effects of water temperature and SAV coverage on the relative abundances of the different taxa, I performed distance-based redundancy analysis (dbRDA) from the R package *vegan* [@vegan]. In all calculations, I used fourth-root transformation to reduce the effects of overly abundant taxa and square-root transformed Bray-Curtis dissimilarity matrices to eliminate negative eigenvalues [@Legendre1999].
+To examine the composition and stability of eGOM estuarine fish assemblages over time, I started with a multivariate approach at the scale of the entire sampling universe. First, I used permutational multivariate analysis of variance (PERMANOVA) from the R package *vegan to* evaluate the interactive effect of estuary (fixed, four levels) and year (fixed, continuous) within season on the fourth-root transformed taxon abundances [@vegan]. I then followed up with canonical analysis of principal coordinates (CAP) ordinations using the R package *BiodiversityR* to visualize differences among the levels of any fixed effect categorical terms deemed significant by the PERMANOVA models [@BiodiversityR]. In addition, I included taxon biplot correlation vectors in these CAP ordinations to better visualize which taxa contributed to any observed differences. Vector lengths were calculated by applying Pythagorean theorem to the first two axis scores for each taxon. To explore the effects of water temperature and SAV coverage on the relative abundances of the different taxa, I performed distance-based redundancy analysis (dbRDA) from the R package *vegan* [@vegan]. In all calculations, I used fourth-root transformation to reduce the effects of overly abundant taxa and square-root transformed Bray-Curtis dissimilarity matrices to eliminate negative eigenvalues [@Legendre1999].
 
 Finally, to assess the balance of individual taxa increasing and decreasing in abundance over time I used a univariate approach following Dornelas et al. [-@Dornelas2019]. Within each estuary and season, I ran a linear model on the fourth-root transformed abundance of each taxon independently over time to determine both the magnitude and direction of change at the taxa level. I binned these rates of change to construct histograms displaying the distribution and magnitude of taxa rates of change. I followed up on these analyses to examine whether there were patterns in the climatology of any taxa that underwent significant change. I pulled climatological association data from Fishbase using *rfishbase* and created plots of the distributions of climatological association groups [@rfishbase]. Unless otherwise indicated, values from all analyses were reported as mean ± SE and plots were generated with packages *ggplot2* and *patchwork* [@ggplot2; @patchwork].
 
@@ -277,7 +282,7 @@ In total, 17,492 sampling events occurred where at least one taxon was caught an
 
 ## Habitat Parameters {#sec-habitat-parameters}
 
-### Water temperature
+### Water Temperature
 
 During the 23-year study period, post-hoc contrasts revealed the long-term mean water temperatures differed among most systems (*t* ≥ `r format(as.data.frame(summerSummaryAll$contrasts)[6,5], digits = 4)` for all *p* \< 0.05; @tbl-tempMeans; see also @tbl-tempAncovaContrast). Importantly, water temperature increased consistently across all estuaries, though in the winter, water temperature increased at a rate of `r format(winterSummary[2,]$estimate, digits = 2)`°Cyr^-1^ ± `r format(winterSummary[2,]$std.error, digits = 2)`, over twice that during summer (`r format(summerSummary[2,]$estimate, digits = 2)`°Cyr^-1^ ± `r format(summerSummary[2,]$std.error, digits = 2)`; @fig-TempPlot; @tbl-tempAncova; see also @tbl-habParamSyn).
 
@@ -285,7 +290,7 @@ During the 23-year study period, post-hoc contrasts revealed the long-term mean 
 #| label: tbl-tempMeans
 #| echo: FALSE 
 #| message: FALSE 
-#| tbl-cap: "Least square means of each system for both seasonal linear models. P-values for pairwise contrasts used tukey method for correction." 
+#| tbl-cap: "Least square means of each system for both seasonal linear models. *P*-values for pairwise contrasts used tukey method for correction." 
 
 tempMeanOut <- as.data.frame(summary(summerSummaryAll$lsmeans)) %>%
   mutate(Season = "Summer", .before = system) %>%
@@ -415,7 +420,7 @@ Mean annual percent SAV differed across all systems within each season (*t* ≥ 
 #| label: tbl-bvcMeans
 #| echo: FALSE 
 #| message: FALSE 
-#| tbl-cap: "Least square means of each system for both seasonal linear models. P-values for pairwise contrasts used tukey method for correction." 
+#| tbl-cap: "Least square means of each system for both seasonal linear models. *P*-values for pairwise contrasts used tukey method for correction." 
 
 bvcMeanOut <- as.data.frame(summary(summerSummaryBVCAll$lsmeans)) %>%
   mutate(Season = "Summer", .before = system) %>%
@@ -561,7 +566,7 @@ habParamFT
 
 ### Community Data {#sec-community-data}
 
-#### Total abundance
+#### Total Abundance
 
 Total abundance was generally generally higher (average total abundance `r format(abundStats[1,]$meanAb, digits = 2)` ±`r format(abundStats[1,]$seAb, digits = 2)`) for all systems in the summer season compared to winter (average total abundance `r format(abundStats[2,]$meanAb, digits = 2)` ±`r format(abundStats[2,]$seAb, digits = 2)`; [@fig-AbundPlot]).
 
@@ -625,7 +630,7 @@ Results from post-hoc tests on total abundance GLMMs revealed that in summer, th
 #| label: tbl-abundModels
 #| echo: FALSE
 #| message: FALSE
-#| tbl-cap: "Estimated marginal means of total abundance for each system for both seasonal GLMMs. P-values for pairwise contrasts used tukey method for correction."
+#| tbl-cap: "Estimated marginal means of total abundance for each system for both seasonal GLMMs. *P*-values for pairwise contrasts used tukey method for correction."
 
 abMeanOut <- as.data.frame(summary(abundMeanS$emmeans)) %>%
   mutate(Season = "Summer", .before = system) %>%
@@ -678,7 +683,7 @@ sumFT <- flextable(sumTab) %>%
 sumFT
 ```
 
-#### Total richness
+#### Total Richness
 
 Mean total richness ([@fig-NPlot]) in winter (`r format(nStats[2,]$meanN, digits = 2)` ±`r format(nStats[2,]$seN, digits = 2)`) was consistently lower for each estuary than in the summer (`r format(nStats[1,]$meanN, digits = 2)` ±`r format(nStats[1,]$seN, digits = 2)`).
 
@@ -704,7 +709,7 @@ Results from post-hoc tests on total richness GLMMs indicated modeled average ri
 #| label: tbl-richModels
 #| echo: FALSE
 #| message: FALSE
-#| tbl-cap: "Estimated marginal means of total richness for each system for both seasonal GLMMs. P-values for pairwise contrasts used tukey method for correction."
+#| tbl-cap: "Estimated marginal means of total richness for each system for both seasonal GLMMs. *P*-values for pairwise contrasts used tukey method for correction."
 
 richMeanOut <- as.data.frame(summary(richMeanS$emmeans)) %>%
   mutate(Season = "Summer", .before = system) %>%
@@ -1399,7 +1404,7 @@ sysSppFT
 plot(centroidCAP)
 ```
 
-In multivariate species-spaces, dbRDA confirmed the significance of SAV and water temperature in describing the variation in betadiversity across all systems and seasons when compared to a null model ([@fig-RDAforAll]). The range of variation explained by the models was `r min(RDAaxes$fullModel)`% to `r max(RDAaxes$fullModel)`%. The range of variation of explained by the first canonical axis of each model was `r min(RDAaxes$CA1)`% to `r max(RDAaxes$CA1)`% within the overall model variaton, with the range of the second canonical axis as `r min(RDAaxes$CA2)`% to `r max(RDAaxes$CA2)`%. No clear patterns of separation among groups of year were apparent in the different ordinations. Across estuaries, Cedar Key and Charlotte Harbor appear to have the most tightly clustered yearly centroids compared to Apalachicola Bay and Tampa Bay.
+In multivariate species-spaces, dbRDA highlighted the significance of SAV and water temperature in describing the variation in betadiversity across all systems and seasons when compared to a null model ([@fig-RDAforAll]). The range of variation explained by the models was `r min(RDAaxes$fullModel)`% to `r max(RDAaxes$fullModel)`%. The range of variation of explained by the first canonical axis of each model was `r min(RDAaxes$CA1)`% to `r max(RDAaxes$CA1)`% within the overall model variaton, with the range of the second canonical axis as `r min(RDAaxes$CA2)`% to `r max(RDAaxes$CA2)`%. No clear patterns of separation among groups of year were apparent in the different ordinations. Across estuaries, Cedar Key and Charlotte Harbor appear to have the most tightly clustered yearly centroids compared to Apalachicola Bay and Tampa Bay.
 
 ```{r}
 #| label: fig-RDAforAll
@@ -1473,10 +1478,10 @@ sigFT <- flextable(sigSumPrep) %>%
   labelizor(part = "header", 
   labels = stringr::str_to_title) %>%
   set_header_labels(count = "Taxa counted",
-    sigCount = "Significantly changing",
+    sigCount = "Change overall",
     posCount = "Positive change",
     negCount = "Negative change") %>%
-  autofit() %>%
+  width(width = 1) %>%
   theme_vanilla()
 
 sigFT
