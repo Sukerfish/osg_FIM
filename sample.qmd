@@ -424,3 +424,56 @@ levels(summerBVC$system)[levels(summerBVC$system)=="AP"] <- "AB"
 ```
 
 Mean annual percent SAV differed across all systems within each season (*t* ≥ `r format(as.data.frame(winterSummaryBVCAll$contrasts)$t.ratio[6], digits = 3)` for all *p* \< 0.05; @tbl-bvcMeans; see also @tbl-bvcAncovaContrast). However, ANCOVA models identified an interaction between some systems and year, wherein Cedar Key changed negatively in the summer season, while half the systems (Tampa Bay and Charlotte Harbor) changed positively in the winter season (*t* ≥ `r format(as.data.frame(summerBVCContrasts$contrasts)$t.ratio[3], digits = 3)` for all *p* \< 0.05; [@tbl-bvcAncova]; see also [@tbl-habParamSyn]). Of note, the northernmost estuary in this study, Apalachicola Bay, did not have any significant change in SAV over the sampling period ([@fig-BVCPlot]).
+
+```{r ancovas}
+#| label: ancovas
+#| include: FALSE
+#| message: FALSE
+#| cache: FALSE
+
+source("RichnessModel.R")
+
+stuffW <- aov(abund^0.25 ~ smallYear *
+                       system +
+                       bvc_Z +
+                       temp_Z,
+                     data = runnerW)
+
+stuffS <- aov(abund^0.25 ~ smallYear *
+                       system +
+                       bvc_Z +
+                       temp_Z,
+                     data = runnerS)
+
+stuffOutS <- tidy(stuffS)
+stuffOutW <- tidy(stuffW)
+```
+
+```{r ancovaOutput}
+#| label: tbl-abundanceAncova
+#| echo: FALSE 
+#| message: FALSE 
+#| tbl-cap: "Abundance ancova" 
+
+abundAncova <- stuffOutS %>%
+  mutate(Season = "Summer", .before = term) %>%
+  full_join(stuffOutW) %>%
+  mutate(Season = ifelse(is.na(Season), "Winter", Season)) %>%
+  flextable(.) %>%
+  merge_v(j = ~ Season) %>%
+  colformat_double(j = c("sumsq", "meansq",
+                             "statistic"), digits = 2) %>%
+  colformat_double(j = c("p.value"), digits = 3) %>%
+  set_formatter(p.value = function(x) scales::pvalue(x)) %>%
+  set_header_labels(term = "Term", 
+    #estimate = "Estimate", 
+    #std.error = "Standard error",
+    #statistic = "t-statistic",
+    p.value = "p-value") %>%
+  bold(~ p.value <0.05, c(2:7)) %>%
+  paginate(init = TRUE, hdr_ftr = TRUE) %>%
+  autofit() %>%
+  theme_vanilla()
+  
+abundAncova
+```
