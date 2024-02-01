@@ -1,0 +1,426 @@
+---
+title: Effects of Climate Change on Estuarine Fish Assemblages
+abstract: This is a test abstract
+authors:
+  - name: Garrett Miller
+    orcid: 0009-0007-6253-2554
+    affiliation:
+      - name: The University of South Florida
+        department: College of Marine Science
+format:
+  html:
+    self-contained: true
+    toc: true
+    toc-location: left
+    toc-expand: true
+  docx:
+    toc: true
+    fig-format: svg
+    fig-dpi: 600
+reference-doc: results_formatting.docx
+editor: visual
+bibliography: references.bib
+csl: ecology.csl
+---
+
+```{r loadLibraries}
+#| include: FALSE
+library(tidyverse)
+library(patchwork)
+library(lubridate)
+library(vegan)
+library(BiodiversityR)
+#library(MASS)
+#library(colortools)
+library(ggrepel)
+library(RColorBrewer)
+library(egg)
+library(ggallin)
+library(ggpmisc) #for labeling
+library(broom) #for labeling
+library(DHARMa)
+library(gridExtra)
+library(gridGraphics)
+library(grid)
+library(pander)
+library(pixiedust) #for model output formats
+library(emmeans)
+library(viridis)
+
+library(flextable)
+library(officedown)
+library(kableExtra)
+
+Sys.setenv(FISHBASE_API="sealifebase")
+#knitr::opts_chunk$set(echo = TRUE)
+
+# set_flextable_defaults(
+#   font.size = 12,
+#   font.color = "#333333",
+#   table.layout = "fixed",
+#   border.color = "gray",
+#   padding.top = 3, padding.bottom = 3,
+#   padding.left = 4, padding.right = 4)
+
+```
+
+```{r}
+#| label: Temp_BVC
+#| include: FALSE
+#| message: FALSE
+#| cache: TRUE
+source("tempBVC.R")
+
+abundStats <- SXS_filtered %>%
+  select(!c(systemSeason, seasonYear, systemZone, BottomVegCover, Temperature)) %>%
+  pivot_longer(cols = !c(Reference),
+               names_to = "taxa") %>% #pivot to reference and taxa only
+  mutate(nRaw = value^4) %>%
+  group_by(Reference) %>%
+  summarise(abundRaw = sum(nRaw)) %>% #sum all abundance values 
+  mutate(abund = abundRaw^0.25) %>%
+  left_join(SXS_filtered) %>%
+  ungroup() %>%
+    separate(systemSeason,
+           c("system","season"),
+           sep = "_",
+           remove = FALSE) %>%
+  group_by(season) %>%
+  summarise(meanAb = mean(abundRaw),
+            sdAb = sd(abundRaw),
+            nAb = length(abundRaw),
+            q10Ab = quantile(abundRaw, 0.1),
+            q90Ab = quantile(abundRaw, 0.9)) %>%
+  mutate(seAb = sdAb/sqrt(nAb))
+
+nStats <- SXR_filtered_spp %>%
+  left_join(SXS_filtered_env) %>%
+  left_join(monthly) %>%
+  group_by(systemSeason) %>%
+  add_count(name = "n_hauls") %>% #count number of hauls per systemSeason
+  ungroup() %>%
+    separate(systemSeason,
+           c("system","season"),
+           sep = "_",
+           remove = FALSE) %>%
+  group_by(season) %>%
+  summarise(meanBVC = mean(BottomVegCover),
+            meanTemp = mean(Temperature),
+            meanN = mean(N),
+            sdTemp = sd(Temperature),
+            sdBVC = sd(BottomVegCover),
+            sdN = sd(N),
+            nTemp = length(Temperature),
+            nBVC = length(BottomVegCover),
+            nN = length(N),
+            q10Temp = quantile(Temperature, 0.1),
+            q10BVC = quantile(BottomVegCover, 0.1),
+            q10N = quantile(N, 0.1),
+            q90Temp = quantile(Temperature, 0.9),
+            q90BVC = quantile(BottomVegCover, 0.9),
+            q90N = quantile(N, 0.9)) %>%
+  mutate(seTemp = sdTemp/sqrt(nTemp),
+         seBVC = sdBVC/sqrt(nBVC),
+         seN = sdN/sqrt(nN))
+
+hydroSummary <- waterBVC_full %>%
+  group_by(season) %>%
+  summarise(meanTempFull = mean(meanTemp),
+            meanBVCFull = mean(meanBVC),
+            sdTempFull = sd(meanTemp),
+            sdBVCFull = sd(meanBVC),
+            nTempFull = length(meanTemp),
+            nBVCFull = length(meanBVC),
+            seTempFull = sdTempFull/sqrt(nTempFull),
+            seBVCFull = sdBVCFull/sqrt(nBVCFull))
+
+#pairwise emmeans
+winterSummaryAll <- lsmeans(winterLm, spec = "system", contr = "revpairwise")
+summerSummaryAll <- lsmeans(summerLm, spec = "system", contr = "revpairwise")
+
+winterSumAll <- tidy(winterSummaryAll$lsmeans)
+summerSumAll <- tidy(summerSummaryAll$lsmeans)
+
+#pairwise slope checks
+winterContrasts <- lstrends(winterLm, ~ system, var = "smallYear", contr = "revpairwise")
+summerContrasts <- lstrends(summerLm, ~ system, var = "smallYear", contr = "revpairwise")
+
+winterSlope <- tidy(winterContrasts$lstrends)
+summerSlope <- tidy(summerContrasts$lstrends)
+
+winterSummary <- tidy(summary.lm(winterLm))
+summerSummary <- tidy(summary.lm(summerLm))
+
+winterBVCSummary <- tidy(summary.lm(winterBVCLm))
+summerBVCSummary <- tidy(summary.lm(summerBVCLm))
+
+#pairwise emmeans
+winterSummaryBVCAll <- lsmeans(winterBVCLm, spec = "system", contr = "revpairwise")
+summerSummaryBVCAll <- lsmeans(summerBVCLm, spec = "system", contr = "revpairwise")
+
+winterSumBVCAll <- tidy(winterSummaryBVCAll$lsmeans)
+summerSumBVCAll <- tidy(summerSummaryBVCAll$lsmeans)
+
+#pairwise slope checks
+winterBVCContrasts <- lstrends(winterBVCLm, ~ system, var = "smallYear", contr = "revpairwise")
+summerBVCContrasts <- lstrends(summerBVCLm, ~ system, var = "smallYear", contr = "revpairwise")
+
+BVCwinterSlope <- tidy(winterBVCContrasts$lstrends)
+BVCsummerSlope <- tidy(summerBVCContrasts$lstrends)
+
+winterSummaryANC <- tidy(winterLm)
+summerSummaryANC <- tidy(summerLm)
+
+winterBVCSummaryANC <- tidy(winterBVCLm)
+summerBVCSummaryANC <- tidy(summerBVCLm)
+```
+
+### Submerged Aquatic Vegetation
+
+ANCOVA models for average submerged aquatic vegetation coverage (SAV) identified differences in mean annual percent SAV across all systems within seasons as well as an interaction between some systems and year (summer interaction *p* = `r format(summerSummaryANC$p.value[3], digits = 3)` winter interaction *p* = `r format(winterSummaryANC$p.value[3], digits = 3)`; [@tbl-bvcAncova]).
+
+Post-hoc analyses highlighted all systems had different average annual SAV from one another within each season (*t* ≥ `r format(as.data.frame(winterSummaryBVCAll$contrasts)$t.ratio[6], digits = 3)` for all *p* \< 0.05). Specifically, Charlotte Harbor had the most coverage for both seasons ranging from `r format(winterSumBVCAll[4,]$estimate, digits = 3)`% ± `r format(winterSumBVCAll[4,]$std.error, digits = 3)` in winter to `r format(summerSumBVCAll[4,]$estimate, digits = 3)`% ± `r format(summerSumBVCAll[4,]$std.error, digits = 3)` in summer. Cedar Key averaged the lowest coverage, ranging from `r format(winterSumBVCAll[2,]$estimate, digits = 3)`% ± `r format(winterSumBVCAll[2,]$std.error, digits = 3)` in winter to `r format(summerSumBVCAll[2,]$estimate, digits = 3)`% ± `r format(summerSumBVCAll[2,]$std.error, digits = 3)` in summer. Tampa Bay and Apalachicola Bay were both in the middle of these ranges for both seasons ([@tbl-bvcMeans]). Post-hoc analyses also revealed the change in SAV coverage over time was different for Cedar Key compared to all other systems for the summer season, with a decrease in SAV at a rate of `r format(BVCsummerSlope[2,]$smallYear.trend, digits = 3)`%yr^-1^ ± `r format(BVCsummerSlope[2,]$std.error, digits = 3)` (*t* ≥ `r format(as.data.frame(summerBVCContrasts$contrasts)$t.ratio[3], digits = 3)` for all *p* \< 0.05). All other system pairs were statistically similar and experienced no significant change in SAV coverage over time ([@tbl-bvcTrendsContrast]). Change in SAV coverage in the winter was more nuanced, where SAV in both Tampa Bay and Charlotte Harbor differed from the northern estuaries Apalachicola Bay and Cedar Key (*t* ≥ `r format(as.data.frame(winterBVCContrasts$contrasts)$t.ratio[2], digits = 3)` for all *p* \< 0.05; [@tbl-bvcTrendsContrast]). SAV in Tampa Bay and Charlotte Harbor increased during the winter at a rate of `r format(BVCwinterSlope[3,]$smallYear.trend, digits = 3)`%yr^-1^ ± `r format(BVCwinterSlope[3,]$std.error, digits = 3)` and `r format(BVCwinterSlope[4,]$smallYear.trend, digits = 3)`%yr^-1^ ± `r format(BVCwinterSlope[4,]$std.error, digits = 3)`, respectively. Cedar Key did not have any significant change in the winter. Of note, the northernmost estuary in this study, Apalachicola Bay, did not have any significant change in SAV over the study period ([@fig-BVCPlot]).
+
+```{r}
+#| label: tbl-bvcAncovaFull 
+#| echo: FALSE 
+#| message: FALSE 
+#| tbl-cap: "Output of full SAV ANCOVA models." 
+
+# pander(summerSummary)
+# pander(winterSummary)
+
+bvcFullANCOVAft <- summerBVCSummaryANC %>%
+  mutate(Season = "Summer", .before = term) %>%
+  full_join(winterBVCSummaryANC) %>%
+  mutate(Season = ifelse(is.na(Season), "Winter", Season)) %>%
+  flextable(.) %>%
+  merge_v(j = ~ Season) %>%
+  colformat_double(j = c("sumsq", "meansq",
+                             "statistic"), digits = 2) %>%
+  colformat_double(j = c("p.value"), digits = 3) %>%
+  set_formatter(p.value = function(x) scales::pvalue(x)) %>%
+  set_header_labels(term = "Term", 
+    #estimate = "Estimate", 
+    #std.error = "Standard error",
+    #statistic = "t-statistic",
+    p.value = "p-value") %>%
+  bold(~ p.value <0.05, c(2:7)) %>%
+  paginate(init = TRUE, hdr_ftr = TRUE) %>%
+  autofit() %>%
+  theme_vanilla()
+
+bvcFullANCOVAft
+```
+
+```{r}
+#| label: tbl-bvcAncova 
+#| echo: FALSE 
+#| message: FALSE 
+#| tbl-cap: "Outputs of linear models within SAV ANCOVAs." 
+
+# pander(summerSummary)
+# pander(winterSummary)
+
+bvcANCOVAft <- summerBVCSummary %>%
+  mutate(Season = "Summer", .before = term) %>%
+  full_join(winterBVCSummary) %>%
+  mutate(Season = ifelse(is.na(Season), "Winter", Season)) %>%
+  flextable(.) %>%
+  merge_v(j = ~ Season) %>%
+  colformat_double(j = c("estimate", "std.error",
+                             "statistic", "p.value"), digits = 3) %>%
+  set_formatter(p.value = function(x) scales::pvalue(x)) %>%
+  set_header_labels(term = "Term", 
+    estimate = "Estimate", 
+    std.error = "Standard error",
+    statistic = "t-statistic",
+    p.value = "p-value") %>%
+  bold(~ p.value <0.05, c(2:6)) %>%
+  paginate(init = TRUE, hdr_ftr = TRUE) %>%
+  autofit() %>%
+  theme_vanilla()
+
+bvcANCOVAft
+```
+
+```{r}
+#| label: tbl-bvcMeans
+#| echo: FALSE 
+#| message: FALSE 
+#| tbl-cap: "Least square means of each system for both seasonal linear models." 
+
+bvcMeanOut <- as.data.frame(summary(summerSummaryBVCAll$lsmeans)) %>%
+  mutate(Season = "Summer", .before = system) %>%
+  full_join(as.data.frame(summary(winterSummaryBVCAll$lsmeans))) %>%
+  mutate(Season = ifelse(is.na(Season), "Winter", Season),
+         system = fct_recode(system, "AB" = "AP")) %>%
+  select(!c(lower.CL, upper.CL)) %>%
+  flextable(.) %>%
+  merge_v(j = ~ Season) %>%
+  colformat_double(j = c("lsmean", "SE"), digits = 3) %>%
+  set_header_labels(system = "System", 
+    lsmean = "Estimated mean", 
+    SE = "Standard error") %>%
+  paginate(init = TRUE, hdr_ftr = TRUE) %>%
+  autofit() %>%
+  theme_vanilla()
+  
+bvcMeanOut
+
+```
+
+```{r}
+#| label: tbl-bvcMeanContrast 
+#| echo: FALSE 
+#| message: FALSE 
+#| tbl-cap: "Contrasts in means from ANCOVA models. Tukey method applied for p-value correction." 
+
+bvcCont <- as.data.frame(summary(summerSummaryBVCAll$contrasts)) %>%
+  mutate(Season = "Summer", .before = contrast) %>%
+  full_join(as.data.frame(summary(winterSummaryBVCAll$contrasts))) %>%
+  mutate(Season = ifelse(is.na(Season), "Winter", Season),
+         contrast = ifelse(contrast == "CK - AP", "CK - AB",
+                            ifelse(contrast == "TB - AP", "TB - AB",
+                                   ifelse(contrast == "CH - AP", "CH - AB", contrast)))) %>%
+  flextable(.) %>%
+  merge_v(j = ~ Season) %>%
+  colformat_double(j = c("estimate", "SE",
+                             "t.ratio", "p.value"), digits = 3) %>%
+  set_formatter(p.value = function(x) scales::pvalue(x)) %>%
+  set_header_labels(contrast = "Contrast", 
+    estimate = "Estimate", 
+    SE = "Standard error",
+    t.ratio = "t-statistic",
+    p.value = "p-value") %>%
+  bold(~ p.value <0.05, c(2:7)) %>%
+  paginate(init = TRUE, hdr_ftr = TRUE) %>%
+  autofit() %>%
+  theme_vanilla()
+  
+bvcCont
+```
+
+```{r}
+#| label: tbl-bvcTrends
+#| echo: FALSE 
+#| message: FALSE 
+#| tbl-cap: "Least square trends of each system for both seasonal linear models. Tukey method applied for *p*-value correction." 
+
+bvcTrend <- as.data.frame(summary(summerBVCContrasts$lstrends)) %>%
+  mutate(Season = "Summer", .before = system) %>%
+  full_join(as.data.frame(summary(winterBVCContrasts$lstrends))) %>%
+  mutate(Season = ifelse(is.na(Season), "Winter", Season),
+         system = fct_recode(system, "AB" = "AP")) %>%
+  select(!c(lower.CL, upper.CL)) %>%
+  flextable(.) %>%
+  merge_v(j = ~ Season) %>%
+  colformat_double(j = c("smallYear.trend", "SE"), digits = 3) %>%
+  set_header_labels(system = "System", 
+    smallYear.trend = "Estimated slope", 
+    SE = "Standard error") %>%
+  paginate(init = TRUE, hdr_ftr = TRUE) %>%
+  autofit() %>%
+  theme_vanilla()
+  
+bvcTrend
+```
+
+```{r}
+#| label: tbl-bvcTrendsContrast
+#| echo: FALSE 
+#| message: FALSE 
+#| tbl-cap: "Least square trends of each system for both seasonal linear models." 
+
+bvcTrendCont <- as.data.frame(summary(summerBVCContrasts$contrasts)) %>%
+  mutate(Season = "Summer", .before = contrast) %>%
+  full_join(as.data.frame(summary(winterBVCContrasts$contrasts))) %>%
+  mutate(Season = ifelse(is.na(Season), "Winter", Season),
+         contrast = ifelse(contrast == "CK - AP", "CK - AB",
+                            ifelse(contrast == "TB - AP", "TB - AB",
+                                   ifelse(contrast == "CH - AP", "CH - AB", contrast)))) %>%
+  flextable(.) %>%
+  merge_v(j = ~ Season) %>%
+  colformat_double(j = c("estimate", "SE",
+                             "t.ratio", "p.value"), digits = 3) %>%
+  set_formatter(p.value = function(x) scales::pvalue(x)) %>%
+  set_header_labels(contrast = "Contrast", 
+    estimate = "Estimate", 
+    SE = "Standard error",
+    t.ratio = "t-statistic",
+    p.value = "p-value") %>%
+  bold(~ p.value <0.05, c(2:7)) %>%
+  paginate(init = TRUE, hdr_ftr = TRUE) %>%
+  autofit() %>%
+  theme_vanilla()
+  
+bvcTrendCont
+```
+
+```{r BVCPlot}
+#| label: fig-BVCPlot 
+#| echo: FALSE 
+#| message: FALSE 
+#| fig-width: 6.5 
+#| fig-height: 6 
+#| fig-cap: "Annually averaged SAV coverage over time. Error bars represent ± 1 standard error. Solid lines indicate significant modeled trends and dashed lines indicate a trend of no significance."
+
+levels(winterBVC$system)[levels(winterBVC$system)=="AP"] <- "AB"
+levels(summerBVC$system)[levels(summerBVC$system)=="AP"] <- "AB"
+
+(fullBVCPlot <- ggplot(summerBVC,
+                aes(x     = contYear, 
+                    y     = meanBVC, 
+                    group = system,
+                    color = system
+                )) + 
+    geom_point(alpha = 0.4) +
+    geom_errorbar(aes(ymin = meanBVC-seBVC, ymax = meanBVC+seBVC),
+                data = summerBVC,
+                alpha = 0.4) +
+    geom_point(data = winterBVC,
+                alpha = 0.4) +
+    geom_errorbar(aes(ymin = meanBVC-seBVC, ymax = meanBVC+seBVC),
+                data = winterBVC,
+                alpha = 0.4) +
+    coord_cartesian(ylim = c(0, 62)) +
+    geom_smooth(method = "lm", 
+                formula = y ~ x,
+                se = FALSE,
+                data = summerBVC[summerBVC$system %in% c("CK"),],
+                linetype = "solid") +
+    geom_smooth(method = "lm", 
+                formula = y ~ x,
+                se = FALSE,
+                data = summerBVC[summerBVC$system %in% c("AB", "TB", "CH"),],
+                linetype = "dashed") +
+    geom_smooth(method = "lm", 
+                formula = y ~ x,
+                se = FALSE,
+                data = winterBVC[winterBVC$system %in% c("TB", "CH"),],
+                linetype = "solid") +
+    geom_smooth(method = "lm", 
+                formula = y ~ x,
+                se = FALSE,
+                data = winterBVC[winterBVC$system %in% c("AB", "CK"),],
+                linetype = "dashed") +
+    labs(#title = "Annual Water Temperature Over Time",
+      x     = "Year",
+      y     = "Mean annual SAV (%)",
+      #fill  = NULL
+    ) +
+    scale_color_brewer(palette = "PuOr") +
+    #scale_color_viridis_d() +
+    theme_bw() +
+    facet_wrap(~season,
+               nrow = 2,
+               scales = "free_y",
+    labeller = labeller(
+        season = c(`summer` = "Summer", `winter` = "Winter")
+    )) +
+    theme(
+      legend.position = "bottom"
+    ))
+```
+
+Mean annual percent SAV differed across all systems within each season (*t* ≥ `r format(as.data.frame(winterSummaryBVCAll$contrasts)$t.ratio[6], digits = 3)` for all *p* \< 0.05; @tbl-bvcMeans; see also @tbl-bvcAncovaContrast). However, ANCOVA models identified an interaction between some systems and year, wherein Cedar Key changed negatively in the summer season, while half the systems (Tampa Bay and Charlotte Harbor) changed positively in the winter season (*t* ≥ `r format(as.data.frame(summerBVCContrasts$contrasts)$t.ratio[3], digits = 3)` for all *p* \< 0.05; [@tbl-bvcAncova]; see also [@tbl-habParamSyn]). Of note, the northernmost estuary in this study, Apalachicola Bay, did not have any significant change in SAV over the sampling period ([@fig-BVCPlot]).
