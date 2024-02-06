@@ -226,6 +226,12 @@ summerBVCContrasts <- lstrends(summerBVCLm, ~ system, var = "smallYear", contr =
 
 BVCwinterSlope <- tidy(winterBVCContrasts$lstrends)
 BVCsummerSlope <- tidy(summerBVCContrasts$lstrends)
+
+winterSummaryANC <- tidy(winterLm)
+summerSummaryANC <- tidy(summerLm)
+
+winterBVCSummaryANC <- tidy(winterBVCLm)
+summerBVCSummaryANC <- tidy(summerBVCLm)
 ```
 
 ## Data Analyses {#sec-data-analyses}
@@ -237,6 +243,8 @@ To address if the richness and abundance of fishes within eGOM estuarine fish as
 To examine the composition and stability of eGOM estuarine fish assemblages over time, I started with a multivariate approach at the scale of the entire sampling universe. First, I used permutational multivariate analysis of variance (PERMANOVA) from the R package *vegan to* evaluate the interactive effect of estuary (fixed, four levels) and year (fixed, continuous) within season on the fourth-root transformed taxon abundances [@vegan]. I then followed up with canonical analysis of principal coordinates (CAP) ordinations using the R package *BiodiversityR* to visualize differences among the levels of any fixed effect categorical terms deemed significant by the PERMANOVA models [@BiodiversityR]. In addition, I included taxon biplot correlation vectors in these CAP ordinations to better visualize which taxa contributed to any observed differences. Vector lengths were calculated by applying Pythagorean theorem to the first two axis scores for each taxon. To explore the effects of water temperature and SAV coverage on the relative abundances of the different taxa, I performed distance-based redundancy analysis (dbRDA) from the R package *vegan* [@vegan]. In all calculations, I used fourth-root transformation to reduce the effects of overly abundant taxa and square-root transformed Bray-Curtis dissimilarity matrices to eliminate negative eigenvalues [@Legendre1999].
 
 Finally, to assess the balance of individual taxa increasing and decreasing in abundance over time I used a univariate approach following Dornelas et al. [-@Dornelas2019]. Within each estuary and season, I ran a linear model on the fourth-root transformed abundance of each taxon independently over time to determine both the magnitude and direction of change at the taxa level. I binned these rates of change to construct histograms displaying the distribution and magnitude of taxa rates of change. I followed up on these analyses to examine whether there were patterns in the climatology of any taxa that underwent significant change. I pulled climatological association data from Fishbase using *rfishbase* and created plots of the distributions of climatological association groups [@rfishbase]. Unless otherwise indicated, values from all analyses were reported as mean ± SE and plots were generated with packages *ggplot2* and *patchwork* [@ggplot2; @patchwork].
+
+In total, 17,492 sampling events occurred where at least one taxon was caught and counted during summer and winter in any of the four estuaries. For seven sampling events, water temperature data were unavailable and thus excluded from the analyses. Further, hauls that were composed solely of rare species (taxa found in ≤5% of all samples for that system and season) were removed from the analyses which reduced the sample count down to `r format(nrow(SXS_filtered), big.mark=",")`. Overall, `r ncol(SXS_filtered_spp)` taxa were recorded in the dataset over `r max(as.numeric(as.character(waterBVC_full$seasonYear)))-min(as.numeric(as.character(waterBVC_full$seasonYear)))+1` years of collections.
 
 # Results {#sec-results .unnumbered}
 
@@ -278,57 +286,78 @@ minSpSlope <- sigSlopes[minSlope,]
 
 ## Overview {#sec-overview}
 
-In total, 17,492 sampling events occurred where at least one taxon was caught and counted during summer and winter in any of the four estuaries. For seven sampling events, water temperature data were unavailable and thus excluded from the analyses. Further, hauls that were composed solely of rare species (taxa found in ≤5% of all samples for that system and season) were removed from the analyses which reduced the sample count down to `r format(nrow(SXS_filtered), big.mark=",")`. Overall, `r ncol(SXS_filtered_spp)` taxa were recorded in the dataset over `r max(as.numeric(as.character(waterBVC_full$seasonYear)))-min(as.numeric(as.character(waterBVC_full$seasonYear)))+1` years of collections. Throughout the study period, water temperature increased during winter for all systems at a rate nearly double that observed during the summer ([@fig-TempPlot]). Percent submerged aquatic vegetation (SAV) had a more nuanced response over time, with increases observed in Charlotte Harbor and Tampa Bay, a decrease in Cedar Key winter, and no change in Apalachicola Bay ([@fig-BVCPlot]). Of the `r ncol(SXS_filtered_spp)` total taxa examined, `r length(unique(sigSlopes$Scientificname))` had significant changes in abundance over time across all systems, nearly equally balanced between positive and negative changes.
+Throughout the 23-year study period, water temperature increased during winter for all systems at a rate more than triple that observed during the summer ([@fig-TempPlot]). Percent submerged aquatic vegetation (SAV) displayed more nuanced dynamics, with increases observed in Charlotte Harbor and Tampa Bay, a decrease in Cedar Key winter, and no change in Apalachicola Bay ([@fig-BVCPlot]). Of the `r ncol(SXS_filtered_spp)` total taxa examined, `r length(unique(sigSlopes$Scientificname))` had significant changes in abundance over time across all systems, nearly equally balanced between positive and negative changes.
 
-## Habitat Parameters {#sec-habitat-parameters}
+## Habitat Dynamics {#sec-habitat-parameters}
+
+```{r}
+#| label: tempBVCtake2
+#| include: FALSE
+#| message: FALSE
+#| cache: TRUE
+
+#no temp interaction
+winterFinal <- aov(meanTemp ~ system + smallYear, data = winterTemp)
+winterFinalTidy <- tidy(summary.lm(winterFinal))
+summerFinal <- aov(meanTemp ~ system + smallYear, data = summerTemp)
+summerFinalTidy <- tidy(summary.lm(summerFinal))
+
+#pairwise emmeans
+winterMeansLm <- lsmeans(winterFinal, spec = "system", contr = "revpairwise")
+summerMeansLm <- lsmeans(summerFinal, spec = "system", contr = "revpairwise")
+
+#individual bvc b/c interaction
+BVC_AP_winter <- winterBVC %>%
+  filter(system == "AP")
+BVC_CK_winter <- winterBVC %>%
+  filter(system == "CK")
+BVC_TB_winter <- winterBVC %>%
+  filter(system == "TB")
+BVC_CH_winter <- winterBVC %>%
+  filter(system == "CH")
+
+BVC_AP_summer <- summerBVC %>%
+  filter(system == "AP")
+BVC_CK_summer <- summerBVC %>%
+  filter(system == "CK")
+BVC_TB_summer <- summerBVC %>%
+  filter(system == "TB")
+BVC_CH_summer <- summerBVC %>%
+  filter(system == "CH")
+
+BVC_AP_winter.model <- aov(meanBVC ~ smallYear, data = BVC_AP_winter)
+BVC_CK_winter.model <- aov(meanBVC ~ smallYear, data = BVC_CK_winter)
+BVC_TB_winter.model <- aov(meanBVC ~ smallYear, data = BVC_TB_winter)
+BVC_CH_winter.model <- aov(meanBVC ~ smallYear, data = BVC_CH_winter)
+
+BVC_AP_summer.model <- aov(meanBVC ~ smallYear, data = BVC_AP_summer)
+BVC_CK_summer.model <- aov(meanBVC ~ smallYear, data = BVC_CK_summer)
+BVC_TB_summer.model <- aov(meanBVC ~ smallYear, data = BVC_TB_summer)
+BVC_CH_summer.model <- aov(meanBVC ~ smallYear, data = BVC_CH_summer)
+```
 
 ### Water Temperature
 
-During the 23-year study period, post-hoc contrasts revealed the long-term mean water temperatures differed among most systems (*t* ≥ `r format(as.data.frame(summerSummaryAll$contrasts)[6,5], digits = 4)` for all *p* \< 0.05; @tbl-tempMeans; see also @tbl-tempAncovaContrast). Importantly, water temperature increased consistently across all estuaries, though in the winter, water temperature increased at a rate of `r format(winterSummary[2,]$estimate, digits = 2)`°Cyr^-1^ ± `r format(winterSummary[2,]$std.error, digits = 2)`, over twice that during summer (`r format(summerSummary[2,]$estimate, digits = 2)`°Cyr^-1^ ± `r format(summerSummary[2,]$std.error, digits = 2)`; @fig-TempPlot; @tbl-tempAncova; see also @tbl-habParamSyn).
-
-```{r}
-#| label: tbl-tempMeans
-#| echo: FALSE 
-#| message: FALSE 
-#| tbl-cap: "Least square means of each system for both seasonal linear models. *P*-values for pairwise contrasts used tukey method for correction." 
-
-tempMeanOut <- as.data.frame(summary(summerSummaryAll$lsmeans)) %>%
-  mutate(Season = "Summer", .before = system) %>%
-  full_join(as.data.frame(summary(winterSummaryAll$lsmeans))) %>%
-  mutate(Season = ifelse(is.na(Season), "Winter", Season),
-         system = fct_recode(system, "AB" = "AP")) %>%
-  select(!c(lower.CL, upper.CL)) %>%
-  flextable(.) %>%
-  merge_v(j = ~ Season) %>%
-  colformat_double(j = c("lsmean", "SE"), digits = 3) %>%
-  set_header_labels(system = "System", 
-    lsmean = "Estimated mean", 
-    SE = "Standard error") %>%
-  paginate(init = TRUE, hdr_ftr = TRUE) %>%
-  autofit() %>%
-  theme_vanilla()
-  
-tempMeanOut
-
-```
+During the 23-year study period, water temperature increased consistently across all estuaries (`time:estuary` interaction term for summer *p* = `r format(as.data.frame(summerSummaryANC$p.value)[3,], digits = 3)` and winter *p* = `r format(as.data.frame(winterSummaryANC$p.value)[3,], digits = 3)`). Winter water temperature increased at a rate of `r format(as.data.frame(winterFinalTidy$estimate)[5,], digits = 2)`°Cyr^-1^ ± `r format(winterFinalTidy[5,]$std.error, digits = 2)` which was over three times that during summer (`r format(as.data.frame(summerFinalTidy$estimate)[5,], digits = 2)`°Cyr^-1^ ± `r format(summerFinalTidy[5,]$std.error, digits = 2)`; @fig-TempPlot; @tbl-tempAncova). Despite the consistency in the rates of increase, post-hoc contrasts revealed the long-term mean water temperatures differed among most systems (*p* \< 0.05 for 9 out of 12 pairwise comparisons; @tbl-tempMeans; @tbl-tempMeanContrasts).
 
 ```{r}
 #| label: tbl-tempAncova 
 #| echo: FALSE 
 #| message: FALSE 
-#| tbl-cap: "Outputs of temperature ANCOVA models." 
+#| tbl-cap: "Outputs of water temperature ANCOVA models." 
 
 # pander(summerSummary)
 # pander(winterSummary)
 
-tempANCOVAft <- summerSummary %>%
+tempANCOVAft <- summerFinalTidy %>%
   mutate(Season = "Summer", .before = term) %>%
-  full_join(winterSummary) %>%
+  full_join(winterFinalTidy) %>%
   mutate(Season = ifelse(is.na(Season), "Winter", Season)) %>%
   flextable(.) %>%
   merge_v(j = ~ Season) %>%
   colformat_double(j = c("estimate", "std.error",
-                             "statistic", "p.value"), digits = 3) %>%
+                             "p.value"), digits = 3) %>%
+  colformat_double(j = c("statistic"), digits = 2) %>%
   set_formatter(p.value = function(x) scales::pvalue(x)) %>%
   set_header_labels(term = "Term", 
     estimate = "Estimate", 
@@ -341,7 +370,64 @@ tempANCOVAft <- summerSummary %>%
   theme_vanilla()
 
 tempANCOVAft
+```
 
+```{r}
+#| label: tbl-tempMeans
+#| echo: FALSE 
+#| message: FALSE 
+#| tbl-cap: "Least square means of each system for both seasonal linear models." 
+
+tempMeanOut <- as.data.frame(summary(summerMeansLm$lsmeans)) %>%
+  mutate(Season = "Summer", .before = system) %>%
+  full_join(as.data.frame(summary(winterMeansLm$lsmeans))) %>%
+  mutate(Season = ifelse(is.na(Season), "Winter", Season),
+         system = fct_recode(system, "AB" = "AP")) %>%
+  select(!c(lower.CL, upper.CL)) %>%
+  flextable(.) %>%
+  merge_v(j = ~ Season) %>%
+  colformat_double(j = c("lsmean", "SE"), digits = 3) %>%
+  #colformat_double(j = c("SE"), digits = 2) %>%
+  set_header_labels(system = "System", 
+    lsmean = "Estimated mean", 
+    SE = "Standard error") %>%
+  paginate(init = TRUE, hdr_ftr = TRUE) %>%
+  autofit() %>%
+  theme_vanilla()
+  
+tempMeanOut
+```
+
+```{r}
+#| label: tbl-tempMeanContrasts
+#| echo: FALSE 
+#| message: FALSE 
+#| tbl-cap: "Least square means of each system for both seasonal linear models. *P*-values for pairwise contrasts used Tukey method for correction." 
+
+tempCont <- as.data.frame(summary(summerMeansLm$contrasts)) %>%
+  mutate(Season = "Summer", .before = contrast) %>%
+  full_join(as.data.frame(summary(winterMeansLm$contrasts))) %>%
+  mutate(Season = ifelse(is.na(Season), "Winter", Season),
+         contrast = ifelse(contrast == "CK - AP", "CK - AB",
+                            ifelse(contrast == "TB - AP", "TB - AB",
+                                   ifelse(contrast == "CH - AP", "CH - AB", contrast)))) %>%
+  flextable(.) %>%
+  merge_v(j = ~ Season) %>%
+  colformat_double(j = c("estimate", "SE",
+                             "p.value"), digits = 3) %>%
+  colformat_double(j = c("t.ratio"), digits = 2) %>%
+  set_formatter(p.value = function(x) scales::pvalue(x)) %>%
+  set_header_labels(contrast = "Contrast", 
+    estimate = "Estimate", 
+    SE = "Standard error",
+    t.ratio = "t-statistic",
+    p.value = "p-value") %>%
+  bold(~ p.value <0.05, c(2:7)) %>%
+  paginate(init = TRUE, hdr_ftr = TRUE) %>%
+  autofit() %>%
+  theme_vanilla()
+  
+tempCont
 ```
 
 ```{r}
@@ -351,55 +437,43 @@ tempANCOVAft
 #| warning: FALSE
 #| fig-width: 6.5
 #| fig-height: 6
-#| fig-cap: "Annually averaged water temperature over time. Error bars represent ± 1 standard error."
+#| fig-cap: "Annually averaged water temperature over time. Error bars represent ± 1 standard error. Slopes of lines are derived from ANCOVA models."
 
 levels(winterTemp$system)[levels(winterTemp$system)=="AP"] <- "AB"
 levels(summerTemp$system)[levels(summerTemp$system)=="AP"] <- "AB"
+
+winterTempPred <- predict(winterFinal)
+summerTempPred <- predict(summerFinal)
 
 (seasonTempPlot <- ggplot(winterTemp,
                 aes(x     = contYear, 
                     y     = meanTemp, 
                     group = system,
-                    color = system
+                    shape = system
                 )) + 
-    geom_point(alpha = 0.4) +
+    geom_point(alpha = 0.8,
+               size = 2) +
     geom_errorbar(aes(ymin = meanTemp-seTemp, ymax = meanTemp+seTemp),
                   data = winterTemp,
                 alpha = 0.4) +
     geom_point(data = summerTemp,
-                alpha = 0.4) +
+                alpha = 0.8,
+               size = 2) +
     geom_errorbar(aes(ymin = meanTemp-seTemp, ymax = meanTemp+seTemp),
                   data = summerTemp,
                 alpha = 0.4) +
-    #coord_cartesian(ylim = c(14, 23)) +
-    geom_smooth(method = "lm", 
-                formula = y ~ x,
-                se = FALSE,
-                data = winterTemp[winterTemp$system %in% c("AB", "TB", "CH"),],
-                linetype = "solid") +
-    geom_smooth(method = "lm", 
-                formula = y ~ x,
-                se = FALSE,
-                data = winterTemp[winterTemp$system %in% c("CK"),],
-                linetype = "solid") +
-        geom_smooth(method = "lm", 
-                formula = y ~ x,
-                se = FALSE,
-                data = summerTemp[summerTemp$system %in% c("CK", "TB", "CH"),],
-                linetype = "solid") +
-    geom_smooth(method = "lm", 
-                formula = y ~ x,
-                se = FALSE,
-                data = summerTemp[summerTemp$system %in% c("AB"),],
-                linetype = "solid") +
+    geom_line(aes(y=winterTempPred)) +
+    geom_line(data = summerTemp,
+              aes(y=summerTempPred)) +
     labs(#title = "Annual Water Temperature Over Time",
       x     = "Year",
       y     = "Mean annual water temperature (°C)",
       color = "System"
       #fill  = NULL
     ) +
-    scale_color_brewer(palette = "PuOr") +
+    #scale_color_brewer(palette = "PuOr") +
     #scale_color_viridis_d() +
+    scale_shape_manual(values = c(0, 1, 15, 16)) +
     theme_bw() +
     facet_wrap(~season,
                nrow = 2,
