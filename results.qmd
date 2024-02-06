@@ -338,7 +338,7 @@ BVC_CH_summer.model <- aov(meanBVC ~ smallYear, data = BVC_CH_summer)
 
 ### Water Temperature
 
-During the 23-year study period, water temperature increased consistently across all estuaries (time:estuary interaction term for summer *p* = `r format(as.data.frame(summerSummaryANC$p.value)[3,], digits = 3)` and winter *p* = `r format(as.data.frame(winterSummaryANC$p.value)[3,], digits = 3)`). Winter water temperature increased at a rate of `r format(as.data.frame(winterFinalTidy$estimate)[5,], digits = 2)`°Cyr^-1^ ± `r format(winterFinalTidy[5,]$std.error, digits = 2)` which was over three times that during summer (`r format(as.data.frame(summerFinalTidy$estimate)[5,], digits = 2)`°Cyr^-1^ ± `r format(summerFinalTidy[5,]$std.error, digits = 2)`; @fig-TempPlot). Despite the consistency in the rates of increase, post-hoc contrasts revealed the long-term mean water temperatures differed among most systems, with Charlotte Harbor consistently warmer than all other estuaries in both seasons (*p* \< 0.05 for 9 out of 12 pairwise comparisons; @tbl-tempMeans).
+During the 23-year study period, water temperature increased consistently across all estuaries (time:system interaction term for summer *p* = `r format(as.data.frame(summerSummaryANC$p.value)[3,], digits = 3)` and winter *p* = `r format(as.data.frame(winterSummaryANC$p.value)[3,], digits = 3)`). Winter water temperature increased at a rate of `r format(as.data.frame(winterFinalTidy$estimate)[5,], digits = 2)`°Cyr^-1^ ± `r format(winterFinalTidy[5,]$std.error, digits = 2)` which was over three times that during summer (`r format(as.data.frame(summerFinalTidy$estimate)[5,], digits = 2)`°Cyr^-1^ ± `r format(summerFinalTidy[5,]$std.error, digits = 2)`; @fig-TempPlot). Despite the consistency in the rates of increase, post-hoc contrasts revealed the long-term mean water temperatures differed among most systems, with Charlotte Harbor consistently warmer than all other estuaries in both seasons (*p* \< 0.05 for 9 out of 12 pairwise comparisons; @tbl-tempMeans).
 
 ```{r}
 #| label: tbl-tempMeans
@@ -404,7 +404,7 @@ summerTempPred <- predict(summerFinal)
     labs(#title = "Annual Water Temperature Over Time",
       x     = "Year",
       y     = "Mean annual water temperature (°C)",
-      color = "System"
+      shape = "System"
       #fill  = NULL
     ) +
     #scale_color_brewer(palette = "PuOr") +
@@ -424,15 +424,13 @@ summerTempPred <- predict(summerFinal)
 
 ### Submerged Aquatic Vegetation
 
-The dynamics of SAV differed across systems within each season (time:estuary interaction term for summer *p* = `r format(as.data.frame(summerBVCSummaryANC$p.value)[3,], digits = 3)` and winter *p* = `r format(as.data.frame(winterBVCSummaryANC$p.value)[3,], digits = 3)`). As a result, I used independent models for each system and season combination. SAV coverage in Charlotte Harbor increased for both seasons, while Tampa Bay increased in winter only, Cedar Key decreased in summer only, and the northernmost estuary in this study, Apalachicola Bay, did not have any significant change in SAV over the sampling period (@fig-BVCPlot; @tbl-bvcAncova).
-
-Mean annual percent SAV differed across all systems within each season (*t* ≥ `r format(as.data.frame(winterSummaryBVCAll$contrasts)$t.ratio[6], digits = 3)` for all *p* \< 0.05; @tbl-bvcMeans; see also @tbl-bvcAncovaContrast). However, ANCOVA models identified an interaction between some systems and year, wherein Cedar Key changed negatively in the summer season, while half the systems (Tampa Bay and Charlotte Harbor) changed positively in the winter season (*t* ≥ `r format(as.data.frame(summerBVCContrasts$contrasts)$t.ratio[3], digits = 3)` for all *p* \< 0.05; [@tbl-bvcAncova]; see also [@tbl-habParamSyn]). Of note, the northernmost estuary in this study, Apalachicola Bay, did not have any significant change in SAV over the sampling period ([@fig-BVCPlot]).
+The dynamics of SAV differed across systems within each season (time:system interaction term for summer *p* = `r format(as.data.frame(summerBVCSummaryANC$p.value)[3,], digits = 3)` and winter *p* = `r format(as.data.frame(winterBVCSummaryANC$p.value)[3,], digits = 3)`). As a result, I used independent models for each system and season combination. SAV coverage in Charlotte Harbor increased for both seasons, while Tampa Bay increased in winter only, Cedar Key decreased in summer only, and the northernmost estuary in this study, Apalachicola Bay, did not have any significant change in SAV over the sampling period (@fig-BVCPlot; @tbl-bvcAncova). In addition, mean annual percent SAV differed across all systems within each season wherein northern systems averaged less SAV than southern systems in both seasons (*p* \< 0.05 for all pairwise comparisons; @tbl-bvcMeans; see also @tbl-bvcMeanContrasts).
 
 ```{r}
 #| label: tbl-bvcAncova 
 #| echo: FALSE 
 #| message: FALSE 
-#| tbl-cap: "Outputs of SAV ANCOVA models." 
+#| tbl-cap: "Coefficients of SAV slope from SAV linear models." 
 
 # pander(summerSummary)
 # pander(winterSummary)
@@ -498,7 +496,7 @@ bvcANCOVAft
 #| label: tbl-bvcMeans
 #| echo: FALSE 
 #| message: FALSE 
-#| tbl-cap: "Least square means of each system for both seasonal linear models. *P*-values for pairwise contrasts used tukey method for correction." 
+#| tbl-cap: "Least square means of each system for both seasonal linear models." 
 
 bvcMeanOut <- as.data.frame(summary(summerSummaryBVCAll$lsmeans)) %>%
   mutate(Season = "Summer", .before = system) %>%
@@ -535,14 +533,16 @@ levels(summerBVC$system)[levels(summerBVC$system)=="AP"] <- "AB"
                 aes(x     = contYear, 
                     y     = meanBVC, 
                     group = system,
-                    color = system
+                    shape = system
                 )) + 
-    geom_point(alpha = 0.4) +
+    geom_point(alpha = 0.8,
+               size = 2) +
     geom_errorbar(aes(ymin = meanBVC-seBVC, ymax = meanBVC+seBVC),
                 data = summerBVC,
                 alpha = 0.4) +
     geom_point(data = winterBVC,
-                alpha = 0.4) +
+                alpha = 0.8,
+               size = 2) +
     geom_errorbar(aes(ymin = meanBVC-seBVC, ymax = meanBVC+seBVC),
                 data = winterBVC,
                 alpha = 0.4) +
@@ -550,30 +550,36 @@ levels(summerBVC$system)[levels(summerBVC$system)=="AP"] <- "AB"
     geom_smooth(method = "lm", 
                 formula = y ~ x,
                 se = FALSE,
-                data = summerBVC[summerBVC$system %in% c("CK"),],
-                linetype = "solid") +
+                data = summerBVC[summerBVC$system %in% c("CK", "CH"),],
+                linetype = "solid",
+                color = "black") +
     geom_smooth(method = "lm", 
                 formula = y ~ x,
                 se = FALSE,
-                data = summerBVC[summerBVC$system %in% c("AB", "TB", "CH"),],
-                linetype = "dashed") +
+                data = summerBVC[summerBVC$system %in% c("AB", "TB"),],
+                linetype = "dashed",
+                color = "black") +
     geom_smooth(method = "lm", 
                 formula = y ~ x,
                 se = FALSE,
                 data = winterBVC[winterBVC$system %in% c("TB", "CH"),],
-                linetype = "solid") +
+                linetype = "solid",
+                color = "black") +
     geom_smooth(method = "lm", 
                 formula = y ~ x,
                 se = FALSE,
                 data = winterBVC[winterBVC$system %in% c("AB", "CK"),],
-                linetype = "dashed") +
+                linetype = "dashed",
+                color = "black") +
     labs(#title = "Annual Water Temperature Over Time",
       x     = "Year",
       y     = "Mean annual SAV (%)",
+      shape = "System"
       #fill  = NULL
     ) +
-    scale_color_brewer(palette = "PuOr") +
+    #scale_color_brewer(palette = "PuOr") +
     #scale_color_viridis_d() +
+    scale_shape_manual(values = c(0, 1, 15, 16)) +
     theme_bw() +
     facet_wrap(~season,
                nrow = 2,
@@ -598,7 +604,7 @@ habParam <- data.frame(
   System_AB = c("+", "0", "+", "0"), 
   System_CK = c("+", "-", "+", "0"),
   System_TB = c("+", "0", "+", "+"),
-  System_CH = c("+", "0", "+", "+"))
+  System_CH = c("+", "+", "+", "+"))
 
 habParamFT <- flextable(habParam) %>%
   separate_header() %>%
@@ -667,7 +673,6 @@ richMeanW <- emmeans(glmmOutRW, spec = "system", contr = "revpairwise")
 
 richContS <- emtrends(glmmOutRS, ~ system, var = "smallYear", contr = "revpairwise")
 richContW <- emtrends(glmmOutRW, ~ system, var = "smallYear", contr = "revpairwise")
-
 ```
 
 Results from post-hoc tests on total abundance GLMMs revealed that in summer, there were differences in mean total abundance between northern and southern systems, a positive correlation with SAV coverage, and no significant correlation with water temperature ([@tbl-abundModels]; [@tbl-abundSyn]). Only Tampa Bay exhibited any change in total abundance over time during the summer ([@tbl-abundSyn]). In contrast, there were more nuanced differences in total abundance among estuaries in the winter. For all systems, total abundance was positively correlated with with SAV coverage and water temperature. Cedar Key had the lowest total abundance compared to Apalachicola and Charlotte Harbor (*t* ≥ `r format(as.data.frame(abundMeanW$contrasts)$t.ratio[5], digits = 3)` for all *p* \< 0.05; contrast with Tampa Bay was marginally significant *t* = `r format(as.data.frame(abundMeanW$contrasts)$t.ratio[3], digits = 3)`, *p* = `r format(as.data.frame(abundMeanW$contrasts)$p.value[3], digits = 3)`; [@tbl-abundModels]; see also [@tbl-abundModelsRaw] for full output). In addition, total abundance in Apalachicola Bay decreased during the winter while all other estuaries exhibited no significant change over time (*t* ≥ `r format(as.data.frame(abundContW$contrasts)$t.ratio[4], digits = 3)` for all *p* \< 0.05 [@tbl-abundSyn]).
@@ -1810,6 +1815,39 @@ tempCont <- as.data.frame(summary(summerMeansLm$contrasts)) %>%
   theme_vanilla()
   
 tempCont
+```
+
+```{r}
+#| label: tbl-bvcMeanContrasts
+#| echo: FALSE 
+#| message: FALSE 
+#| tbl-cap: "Least square means of each system for both seasonal linear models. *P*-values for pairwise contrasts used Tukey method for correction." 
+
+bvcmeanCont <- as.data.frame(summary(summerSummaryBVCAll$contrasts)) %>%
+  mutate(Season = "Summer", .before = contrast) %>%
+  full_join(as.data.frame(summary(winterSummaryBVCAll$contrasts))) %>%
+  mutate(Season = ifelse(is.na(Season), "Winter", Season),
+         contrast = ifelse(contrast == "CK - AP", "CK - AB",
+                            ifelse(contrast == "TB - AP", "TB - AB",
+                                   ifelse(contrast == "CH - AP", "CH - AB", contrast)))) %>%
+  flextable(.) %>%
+  merge_v(j = ~ Season) %>%
+  colformat_double(j = c("estimate", "SE",
+                             "p.value"), digits = 3) %>%
+  colformat_double(j = c("t.ratio"), digits = 2) %>%
+  set_formatter(p.value = function(x) scales::pvalue(x)) %>%
+  set_header_labels(contrast = "Contrast", 
+    estimate = "Estimate", 
+    SE = "Standard error",
+    t.ratio = "t-statistic",
+    p.value = "p-value") %>%
+  bold(~ p.value <0.05, c(2:7)) %>%
+  paginate(init = TRUE, hdr_ftr = TRUE) %>%
+  autofit() %>%
+  theme_vanilla()
+  
+bvcmeanCont
+
 ```
 
 #### OLD STUFF
