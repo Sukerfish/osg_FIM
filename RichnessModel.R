@@ -567,7 +567,7 @@ for (i in sysList){
   runner <- data.frame()
   runner <- filter(totAbModelDF, systemSeason == i)
  
-  glmmOut <- glmmTMB(N ~ (1|smallYear) +
+  glmmOutAb <- glmmTMB(N ~ smallYear +
                            temp_Z +
                            bvc_Z +
                        #(1|contYear) +
@@ -578,8 +578,8 @@ for (i in sysList){
                      #dispformula = ~0,
                      #ziformula = ~1,
                          family = gaussian)
-  sysGLMMS_richness[[i]] <- glmmOut
-  richnessOut[[i]] <- broom.mixed::tidy(glmmOut, effects = "fixed")
+  sysGLMMS_richness[[i]] <- glmmOutAb
+  richnessOut[[i]] <- broom.mixed::tidy(glmmOutAb, effects = "fixed")
   # richnessOut[[i]] <- dust(glmmOut, effects = "fixed", caption = i) %>%
   #   sprinkle(cols = c("estimate", "std.error", "statistic"), round = 3) %>%
   #   sprinkle(cols = "p.value", fn = quote(pvalString(value))) %>%
@@ -627,15 +627,15 @@ for (i in sysList){
   funner <- data.frame()
   funner <- filter(totAbModelDF, systemSeason == i)
   
-  glmmOut <- glmmTMB(abund ~ (1|smallYear) +
+  glmmOutR <- glmmTMB(abund ~ smallYear +
                        temp_Z +
                        bvc_Z +
                        offset(log(n_hauls)) +
                        ar1(yearMonth + 0|systemZone),
                      data = funner,
                      family = gaussian)
-  sysGLMMS_abund[[i]] <- glmmOut
-  outputs[[i]] <- broom.mixed::tidy(glmmOut, effects = "fixed")
+  sysGLMMS_abund[[i]] <- glmmOutR
+  outputs[[i]] <- broom.mixed::tidy(glmmOutR, effects = "fixed")
   
   # abundOut[[i]] <- dust(glmmOut, effects = "fixed", caption = i) %>%
   #   sprinkle(cols = c("estimate", "std.error", "statistic"), round = 3) %>% 
