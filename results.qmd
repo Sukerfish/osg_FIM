@@ -236,11 +236,11 @@ summerBVCSummaryANC <- tidy(summerBVCLm)
 
 ## Data Analyses {#sec-data-analyses}
 
-I conducted all analyses using the R Statistical Computing Environment v4.3.0 with an alpha of 0.05 for all significance testing [@R2023]. To address if water temperature and SAV have changed over time in eGOM estuaries, I used Analysis of Covariance (ANCOVA) models for summer and winter seasons, independently, with year as a continuous predictor and estuarine system as a categorical predictor (fixed, 4 levels: Apalachicola Bay, Cedar Key, Tampa Bay, Charlotte Harbor) plus their interaction. Each model included either the mean annual water temperature or percent SAV coverage for each season as responses. Prior to this analysis, we removed any outlier data from years in which temperatures were anomalously higher or lower than the long-term average (e.g. winter of 2010; [@stith2012]). I performed post-hoc contrasts for any significant terms in these ANCOVA models to determine the magnitude of any specific differences across systems using the *emmeans* package and used the Tukey method for *p*-value correction [@emmeans].
+I conducted all analyses using the R Statistical Computing Environment v4.3.0 with an alpha of 0.05 for all significance testing [@R2023]. To address if water temperature and SAV have changed over time in eGOM estuaries, I used Analysis of Covariance (ANCOVA) models for summer and winter seasons, independently, with year as a continuous predictor and estuarine system as a categorical predictor (fixed, 4 levels: Apalachicola Bay, Cedar Key, Tampa Bay, Charlotte Harbor) plus their interaction. Each model included either the mean annual water temperature or percent SAV coverage for each season as responses. Prior to this analysis, we removed any outlier data from years in which temperatures were anomalously higher or lower than the long-term average (e.g. winter of 2010; [@stith2012]). I performed post-hoc contrasts for any significant terms in these ANCOVA models to determine the magnitude of any specific differences in means across systems using the *emmeans* package and used the Tukey method for *p*-value correction [@emmeans]. For any ANCOVA models with a significant interaction between year and system, I separated the model into independent linear models for each system and season combination. If the interaction between year and system was insignificant, I then dropped the interaction term and reran the model without it.
 
-To address if the richness and abundance of fishes within eGOM estuarine fish assemblages has changed over the study period and the effects of water temperature on assemblages, I modeled total richness and total abundance per haul across all estuaries for both the summer and winter seasons using generalized linear mixed models (GLMMs) from the R package *glmmTMB* [@glmmTMB]. Given the well-documented seasonal differences in estuarine systems [see @Hagan2003; @Strydom2015; @Schrandt2020], in this and all subsequent analyses, I separately analyzed summer and winter. For each seine haul, I calculated the richness as the number of taxa present and total abundance as the sum of all individuals counted. For each model, the response in the GLMM included either the total richness or transformed total abundance of each haul, with estuary (fixed, 4 levels: Apalachicola Bay, Cedar Key, Tampa Bay, Charlotte Harbor), year (fixed, continuous; including the interaction), water temperature (fixed, continuous), and percent SAV coverage (fixed, continuous) as predictors. I applied z-score transformation to water temperature and percent SAV coverage to enable relative effect sizes comparisons. A covariance matrix was included in each model to account for serial autocorrelation and was calculated from month of sampling event and within-estuary zone. Given that species richness is strongly affected by sampling effort [@Mittelbach2019], I included an offset term to account for variation in the number of seine hauls. Thus, the formula used for each was: `response ~ year * system + temp_Z + sav_Z + offset(log(n_hauls)) + ar1(yearMonth + 0|systemZone)` where `response` was either total richness or total abundance per haul. The package *emmeans* was again used for post-hoc contrasts and the Tukey method was used for *p*-value correction [@emmeans]. In addition, I used the R package *betapart* to calculate Bray-Curtis dissimilarity over time and modeled this with ANCOVA [@betapart].
+To address if the richness and abundance of fishes within eGOM estuarine faunal assemblages has changed over the study period and assess the effects of water temperature on these assemblages, I modeled total richness and total abundance per haul across all estuaries for both the summer and winter seasons using generalized linear mixed models (GLMMs) from the R package *glmmTMB* [@glmmTMB]. Given the well-documented seasonal differences in estuarine systems [see @Hagan2003; @Strydom2015; @Schrandt2020], in this and all subsequent analyses, I separately analyzed summer and winter. For each seine haul, I calculated the richness as the number of taxa present and total abundance as the sum of all individuals counted. For each model, the response in the GLMM included either the total richness or transformed total abundance of each haul, with estuary (fixed, 4 levels: Apalachicola Bay, Cedar Key, Tampa Bay, Charlotte Harbor), year (fixed, continuous; including the interaction), water temperature (fixed, continuous), and percent SAV coverage (fixed, continuous) as predictors. I applied z-score transformation to water temperature and percent SAV coverage to enable relative effect sizes comparisons. A covariance matrix was included in each model to account for serial autocorrelation and was calculated from month of sampling event and within-estuary zone. Given that species richness is strongly affected by sampling effort [@Mittelbach2019], I included an offset term to account for variation in the number of seine hauls. Thus, the formula used for each was: `response ~ year * system + temp_Z + sav_Z + offset(log(n_hauls)) + ar1(yearMonth + 0|systemZone)` where `response` was either total richness or total abundance per haul. The package *emmeans* was again used for post-hoc contrasts of means and the Tukey method was used for *p*-value correction [@emmeans]. For any GLMMs with a significant interaction between year and system, I separated the model into independent linear models for each system and season combination. If the interaction between year and system was insignificant, I then dropped the interaction term and reran the model without it.
 
-To examine the composition and stability of eGOM estuarine fish assemblages over time, I started with a multivariate approach at the scale of the entire sampling universe. First, I used permutational multivariate analysis of variance (PERMANOVA) from the R package *vegan to* evaluate the interactive effect of estuary (fixed, four levels) and year (fixed, continuous) within season on the fourth-root transformed taxon abundances [@vegan]. I then followed up with canonical analysis of principal coordinates (CAP) ordinations using the R package *BiodiversityR* to visualize differences among the levels of any fixed effect categorical terms deemed significant by the PERMANOVA models [@BiodiversityR]. In addition, I included taxon biplot correlation vectors in these CAP ordinations to better visualize which taxa contributed to any observed differences. Vector lengths were calculated by applying Pythagorean theorem to the first two axis scores for each taxon. To explore the effects of water temperature and SAV coverage on the relative abundances of the different taxa, I performed distance-based redundancy analysis (dbRDA) from the R package *vegan* [@vegan]. In all calculations, I used fourth-root transformation to reduce the effects of overly abundant taxa and square-root transformed Bray-Curtis dissimilarity matrices to eliminate negative eigenvalues [@Legendre1999].
+To examine the composition and stability of eGOM estuarine fish assemblages over time, I started with a univariate approach using the R package *betapart* to calculate Bray-Curtis dissimilarity over time and modeled this with ANCOVA [@betapart]. I then used permutational multivariate analysis of variance (PERMANOVA) from the R package *vegan to* evaluate the interactive effect of estuary (fixed, four levels) and year (fixed, continuous) within season on the fourth-root transformed taxon abundances [@vegan]. I then followed up with canonical analysis of principal coordinates (CAP) ordinations using the R package *BiodiversityR* to visualize differences among the levels of any fixed effect categorical terms deemed significant by the PERMANOVA models [@BiodiversityR]. In addition, I included taxon biplot correlation vectors in these CAP ordinations to better visualize which taxa contributed to any observed differences. Vector lengths were calculated by applying Pythagorean theorem to the first two axis scores for each taxon. To explore the effects of water temperature and SAV coverage on the relative abundances of the different taxa, I performed distance-based redundancy analysis (dbRDA) from the R package *vegan* [@vegan]. In all calculations, I used fourth-root transformation to reduce the effects of overly abundant taxa and square-root transformed Bray-Curtis dissimilarity matrices to eliminate negative eigenvalues [@Legendre1999].
 
 Finally, to assess the balance of individual taxa increasing and decreasing in abundance over time I used a univariate approach following Dornelas et al. [-@Dornelas2019]. Within each estuary and season, I ran a linear model on the fourth-root transformed abundance of each taxon independently over time to determine both the magnitude and direction of change at the taxa level. I binned these rates of change to construct histograms displaying the distribution and magnitude of taxa rates of change. I followed up on these analyses to examine whether there were patterns in the climatology of any taxa that underwent significant change. I pulled climatological association data from Fishbase using *rfishbase* and created plots of the distributions of climatological association groups [@rfishbase]. Unless otherwise indicated, values from all analyses were reported as mean ± SE and plots were generated with packages *ggplot2* and *patchwork* [@ggplot2; @patchwork].
 
@@ -286,7 +286,7 @@ minSpSlope <- sigSlopes[minSlope,]
 
 ## Overview {#sec-overview}
 
-Throughout the 23-year study period, water temperature increased during winter for all systems at a rate more than triple that observed during the summer ([@fig-TempPlot]). Percent submerged aquatic vegetation (SAV) displayed more nuanced dynamics, with increases observed in Charlotte Harbor and Tampa Bay, a decrease in Cedar Key winter, and no change in Apalachicola Bay ([@fig-BVCPlot]). Of the `r ncol(SXS_filtered_spp)` total taxa examined, `r length(unique(sigSlopes$Scientificname))` had significant changes in abundance over time across all systems, nearly equally balanced between positive and negative changes.
+Throughout the 23-year study period, water temperature increased during winter for all systems at a rate more than triple that observed during the summer ([@fig-TempPlot]). Percent submerged aquatic vegetation (SAV) displayed more nuanced dynamics, with increases observed in Charlotte Harbor and Tampa Bay, a decrease in Cedar Key during summer, and no change in Apalachicola Bay ([@fig-BVCPlot]). Of the `r ncol(SXS_filtered_spp)` total taxa examined, `r length(unique(sigSlopes$Scientificname))` had significant changes in abundance over time across all systems, nearly equally balanced between positive and negative changes.
 
 ## Habitat Dynamics {#sec-habitat-parameters}
 
@@ -338,7 +338,7 @@ BVC_CH_summer.model <- aov(meanBVC ~ smallYear, data = BVC_CH_summer)
 
 ### Water Temperature
 
-During the 23-year study period, water temperature increased consistently across all estuaries (time:system interaction term for summer *p* = `r scales::pvalue(as.data.frame(summerSummaryANC$p.value)[3,])` and winter *p* = `r scales::pvalue(as.data.frame(winterSummaryANC$p.value)[3,])`). Winter water temperature increased at a rate of `r format(as.data.frame(winterFinalTidy$estimate)[5,], digits = 2)`°Cyr^-1^ ± `r format(winterFinalTidy[5,]$std.error, digits = 2)` which was over three times that during summer (`r format(as.data.frame(summerFinalTidy$estimate)[5,], digits = 2)`°Cyr^-1^ ± `r format(summerFinalTidy[5,]$std.error, digits = 2)`; @fig-TempPlot). Despite the consistency in the rates of increase, post-hoc contrasts revealed the long-term mean water temperatures differed among most systems, with Charlotte Harbor consistently warmer than all other estuaries in both seasons (*p* \< 0.05 for 9 out of 12 pairwise comparisons; @tbl-tempMeans).
+During the 23-year study period, water temperature increased consistently across all estuaries (Year:System interaction term for summer *p* = `r scales::pvalue(as.data.frame(summerSummaryANC$p.value)[3,])` and winter *p* = `r scales::pvalue(as.data.frame(winterSummaryANC$p.value)[3,])`). Winter water temperature increased at a rate of `r format(as.data.frame(winterFinalTidy$estimate)[5,], digits = 2)`°Cyr^-1^ ± `r format(winterFinalTidy[5,]$std.error, digits = 2)` which was over three times that during summer (`r format(as.data.frame(summerFinalTidy$estimate)[5,], digits = 2)`°Cyr^-1^ ± `r format(summerFinalTidy[5,]$std.error, digits = 2)`; @fig-TempPlot). Despite the consistency in the rates of increase, post-hoc contrasts revealed the long-term mean water temperatures differed among most systems, with Charlotte Harbor consistently warmer than all other estuaries in both seasons (*p* \< 0.05 for 9 out of 12 pairwise comparisons; @tbl-tempMeans).
 
 ```{r}
 #| label: tbl-tempMeans
@@ -424,20 +424,20 @@ summerTempPred <- predict(summerFinal)
 
 ### Submerged Aquatic Vegetation
 
-The dynamics of SAV differed across systems within each season (time:system interaction term for summer *p* = `r scales::pvalue(as.data.frame(summerBVCSummaryANC$p.value)[3,])` and winter *p* = `r scales::pvalue(as.data.frame(winterBVCSummaryANC$p.value)[3,])`). As a result, I used independent models for each system and season combination. SAV coverage in Charlotte Harbor increased for both seasons, while Tampa Bay increased in winter only, Cedar Key decreased in summer only, and the northernmost estuary in this study, Apalachicola Bay, did not have any significant change in SAV over the sampling period (@fig-BVCPlot; @tbl-bvcAncova). In addition, mean annual percent SAV differed across all systems within each season wherein northern systems averaged less SAV than southern systems in both seasons (*p* \< 0.05 for all pairwise comparisons; @tbl-bvcMeans; see also @tbl-bvcMeanContrasts).
+The dynamics of SAV differed across systems within each season (Year:System interaction term for summer *p* = `r scales::pvalue(as.data.frame(summerBVCSummaryANC$p.value)[3,])` and winter *p* = `r scales::pvalue(as.data.frame(winterBVCSummaryANC$p.value)[3,])`). Therefore, I used independent models for each system and season combination. Significant changes in SAV coverage during the study period occurred in Charlotte Harbor (increased for both seasons; *p* \< 0.05; @tbl-bvcAncova), Tampa Bay (increased in winter; *p* \< 0.05; @tbl-bvcAncova), and Cedar Key (decreased in summer; *p* \< 0.05; @tbl-bvcAncova). Of note, the northernmost estuary in this study, Apalachicola Bay, did not have any significant change in SAV over the sampling period (@fig-BVCPlot; @tbl-bvcAncova). In addition, mean annual percent SAV differed across all systems within each season wherein northern systems averaged less SAV than southern systems in both seasons (*p* \< 0.05 for all pairwise comparisons; @tbl-bvcMeans; see also @tbl-bvcMeanContrasts).
 
 ```{r}
 #| label: tbl-bvcAncova 
 #| echo: FALSE 
 #| message: FALSE 
-#| tbl-cap: "Coefficients of SAV slope from SAV linear models." 
+#| tbl-cap: "Slopes of SAV change over time for all independent linear models." 
 
 # pander(summerSummary)
 # pander(winterSummary)
 
 tidy_BVC_AP_winter.model <- tidy(summary.lm(BVC_AP_winter.model)) %>%
   mutate(Season = "Winter",
-         System = "AP", .before = term)
+         System = "AB", .before = term)
 tidy_BVC_CK_winter.model <- tidy(summary.lm(BVC_CK_winter.model)) %>%
   mutate(Season = "Winter",
          System = "CK", .before = term)
@@ -450,7 +450,7 @@ tidy_BVC_CH_winter.model <- tidy(summary.lm(BVC_CH_winter.model)) %>%
 
 tidy_BVC_AP_summer.model <- tidy(summary.lm(BVC_AP_summer.model)) %>%
   mutate(Season = "Summer",
-         System = "AP", .before = term)
+         System = "AB", .before = term)
 tidy_BVC_CK_summer.model <- tidy(summary.lm(BVC_CK_summer.model)) %>%
   mutate(Season = "Summer",
          System = "CK", .before = term)
@@ -480,7 +480,7 @@ bvcANCOVAft <- fullBVC %>%
   colformat_double(j = c("statistic"), digits = 2) %>%
   set_formatter(p.value = function(x) scales::pvalue(x)) %>%
   set_header_labels(term = "Term", 
-    estimate = "Coefficient", 
+    estimate = "Slope", 
     std.error = "Standard error",
     statistic = "t-statistic",
     p.value = "p-value") %>%
@@ -524,7 +524,7 @@ bvcMeanOut
 #| message: FALSE 
 #| fig-width: 6.5 
 #| fig-height: 6 
-#| fig-cap: "Annually averaged SAV coverage over time. Error bars represent ± 1 standard error. Solid lines indicate significant modeled trends and dashed lines indicate a trend of no significance."
+#| fig-cap: "Annually averaged SAV coverage over time. Error bars represent ± 1 standard error. Solid lines indicate significant modeled trends and dashed lines indicate a trend of no significance and are derived from independent linear models."
 
 levels(winterBVC$system)[levels(winterBVC$system)=="AP"] <- "AB"
 levels(summerBVC$system)[levels(summerBVC$system)=="AP"] <- "AB"
@@ -596,30 +596,6 @@ levels(summerBVC$system)[levels(summerBVC$system)=="AP"] <- "AB"
     ))
 ```
 
-```{r}
-#| label: tbl-habParamSyn
-#| echo: FALSE
-#| tbl-cap: "Summary of observed habitat parameter trends per system and season. + indicates positive trend, - indicates negative trend, and 0 indicates no trend. Trend direction calculated using ANCOVA framework and significant at alpha 0.95."
-
-
-habParam <- data.frame(
-  Season = c("Summer", "Summer", "Winter", "Winter"),
-  Parameter = c("Water temperature", "SAV coverage", "Water temperature", "SAV coverage"), 
-  System_AB = c("+", "0", "+", "0"), 
-  System_CK = c("+", "-", "+", "0"),
-  System_TB = c("+", "0", "+", "+"),
-  System_CH = c("+", "+", "+", "+"))
-
-habParamFT <- flextable(habParam) %>%
-  separate_header() %>%
-  merge_v(j = ~ Season) %>%
-  paginate(init = TRUE, hdr_ftr = TRUE) %>%
-  autofit() %>%
-  theme_vanilla()
-
-habParamFT
-```
-
 ## Assemblage Structure: Patterns and Dynamics {#sec-community-data}
 
 ### Abundance and Richness
@@ -676,7 +652,7 @@ pValuesBvc <- abundOutTidy %>%
   filter(term == "bvc_Z")
 ```
 
-Total abundance of fauna was generally higher (mean total abundance `r format(abundStats[1,]$meanAb, digits = 2)` ±`r format(abundStats[1,]$seAb, digits = 2)`) for all systems in the summer season compared to winter (mean total abundance `r format(abundStats[2,]$meanAb, digits = 2)` ±`r format(abundStats[2,]$seAb, digits = 2)`; [@fig-AbundPlot]). The global abundance GLMMs had multiple significant time:system interaction terms for each season, therefore, I separated each system and season into independent GLMMs. Total abundance decreased for Apalachicola Bay in winter (*p* = `r scales::pvalue(abundOutTidy[18,]$p.value)`), increased for Tampa Bay in summer (*p* = `r scales::pvalue(abundOutTidy[14,]$p.value)`), and remained stable for all other systems [@tbl-abundModels]. Outputs of GLMMs revealed summer abundances were not related to water temperature (*p* = `r scales::pvalue(min(pValuesTemp[pValuesTemp$Season=="Summer",]$p.value))` - `r scales::pvalue(max(pValuesTemp[pValuesTemp$Season=="Summer",]$p.value))`; @tbl-abundModels) and positively related to SAV coverage for all systems except Cedar Key (*p* = `r scales::pvalue(min(pValuesBvc[pValuesBvc$Season=="Summer",]$p.value))` - `r scales::pvalue(max(pValuesBvc[pValuesBvc$Season=="Summer",]$p.value))`; @tbl-abundModels). In contrast, winter total abundance was positively related to water temperature for all systems except Cedar Key (*p* = `r scales::pvalue(min(pValuesTemp[pValuesTemp$Season=="Winter",]$p.value))` - `r scales::pvalue(max(pValuesTemp[pValuesTemp$Season=="Winter",]$p.value))`; @tbl-abundModels) but, as during summer, positively related to SAV coverage for all systems except Cedar Key (*p* = `r scales::pvalue(min(pValuesBvc[pValuesBvc$Season=="Winter",]$p.value))` - `r scales::pvalue(max(pValuesBvc[pValuesBvc$Season=="Winter",]$p.value))`; @tbl-abundModels).
+Total abundance of fauna was generally higher (mean total abundance `r format(abundStats[1,]$meanAb, digits = 2)` ±`r format(abundStats[1,]$seAb, digits = 2)`) for all systems in the summer season compared to winter (mean total abundance `r format(abundStats[2,]$meanAb, digits = 2)` ±`r format(abundStats[2,]$seAb, digits = 2)`; [@fig-AbundPlot]). The initial abundance GLMMs for each season had a significant Year:System interaction term (*p* \< 0.05), therefore, I separated the models into independent GLMMs for each system and season combination and dropped the interaction term from these final models. Within these independent GLMMs, total abundance decreased for Apalachicola Bay in winter (*p* = `r scales::pvalue(abundOutTidy[18,]$p.value)`; @tbl-abundModels), increased for Tampa Bay in summer (*p* = `r scales::pvalue(abundOutTidy[14,]$p.value)`; @tbl-abundModels), and remained stable for all other systems ([@tbl-abundModels]). Further, these GLMMs revealed summer abundances were not related to water temperature (*p* = `r scales::pvalue(min(pValuesTemp[pValuesTemp$Season=="Summer",]$p.value))` - `r scales::pvalue(max(pValuesTemp[pValuesTemp$Season=="Summer",]$p.value))`; @tbl-abundModels) and positively related to SAV coverage for all systems except Cedar Key (*p* = `r scales::pvalue(min(pValuesBvc[pValuesBvc$Season=="Summer",]$p.value))` - `r scales::pvalue(max(pValuesBvc[pValuesBvc$Season=="Summer",]$p.value))`; @tbl-abundModels). In contrast, winter total abundance was positively related to water temperature for all systems except Cedar Key (*p* = `r scales::pvalue(min(pValuesTemp[pValuesTemp$Season=="Winter",]$p.value))` - `r scales::pvalue(max(pValuesTemp[pValuesTemp$Season=="Winter",]$p.value))`; @tbl-abundModels). The relationship between SAV coverage and total abundance was more nuanced in the winter than during the summer. For Tampa Bay and Charlotte Harbor, total abundance was positively related to SAV coverage (*p* \< 0.05 ; @tbl-abundModels). However, in Apalachicola Bay, total abundance was inversely related to SAV coverage (`r scales::pvalue(pValuesBvc[pValuesBvc$Season=="Summer"&pValuesBvc$System=="AP",]$p.value)`; @tbl-abundModels) while there was no significant correlation with SAV in Cedar Key (*p* \> 0.05; @tbl-abundModels).
 
 ```{r}
 #| label: fig-AbundPlot
@@ -699,7 +675,7 @@ plot(AbundPlot_ann +
 #| label: tbl-abundModels
 #| echo: FALSE
 #| message: FALSE
-#| tbl-cap: "Coefficients of terms in total abundance GLMMs."
+#| tbl-cap: "Coefficients of terms in total abundance GLMMs. Bold rows highlight terms where *p* < 0.05."
 
 abMeanOut <- abundOutTidy %>%
   mutate(System = fct_recode(System, "AB" = "AP")) %>%
@@ -726,38 +702,6 @@ abMeanOut <- abundOutTidy %>%
   theme_vanilla()
   
 abMeanOut
-```
-
-```{r}
-#| label: tbl-abundSyn
-#| echo: FALSE
-#| tbl-cap: "Summary of observed total abundance response correlations per system and season from total abundance models. + indicates positive correlation, - indicates negative correlation, and 0 indicates no correlation. Correlation direction calculated using GLMM framework and significant at alpha 0.95."
-
-sumTab <- data.frame(
-  Season = c("Summer", "Summer", "Summer", "Winter", "Winter", "Winter"),
-  Parameter = c("Water temperature", "SAV coverage", "Total abundance", "Water temperature", "SAV coverage", "Total abundance"), 
-  System_AB = c("0", "+", "0", "+", "+", "Decreased"), 
-  System_CK = c("0", "0", "0", "0", "0", "0"),
-  System_TB = c("0", "+", "Increased", "+", "+", "0"),
-  System_CH = c("0", "+", "0", "+", "+", "0"))
-
-sumFT <- flextable(sumTab) %>%
-  separate_header() %>%
-  merge_v(j = ~ Season) %>%
-  paginate(init = TRUE, hdr_ftr = TRUE) %>%
-  autofit() %>%
-  width(j = 3:6, 1) %>%
-  theme_vanilla()
-
-# habParamFT
-# 
-# sumFT <- flextable(sumTab) %>%
-#   merge_v(j = ~ Parameter + Effect) %>%
-#   paginate(init = TRUE, hdr_ftr = TRUE) %>%
-#   autofit() %>%
-#   theme_vanilla()
-
-sumFT
 ```
 
 ```{r}
@@ -807,7 +751,7 @@ richFinalTidy <- broom.mixed::tidy(glmmOutRS_final, effects = "fixed") %>%
   select(Season, term, estimate, std.error, statistic, p.value)
 ```
 
-Mean total richness in winter (`r format(nStats[2,]$meanN, digits = 2)` ±`r format(nStats[2,]$seN, digits = 2)`) was consistently lower for each estuary than in the summer (`r format(nStats[1,]$meanN, digits = 2)` ±`r format(nStats[1,]$seN, digits = 2)`; [@fig-NPlot]). The global richness GLMMs had no significant time:system interaction terms for either season, so I dropped the interaction term from the final models (*p* = `r scales::pvalue(min(richFullInteraction$p.value))` - `r scales::pvalue(max(richFullInteraction$p.value))`). Total richness did not change during either summer or winter (summer *p* = `r scales::pvalue(richFinalTidy[richFinalTidy$term=="smallYear"&richFinalTidy$Season=="Summer",]$p.value)` and winter *p* = `r scales::pvalue(richFinalTidy[richFinalTidy$term=="smallYear"&richFinalTidy$Season=="Winter",]$p.value)`; @tbl-richGLMMs). Outputs of GLMMs revealed summer abundances were not related to water temperature (*p* = `r scales::pvalue(min(richFinalTidy[richFinalTidy$term=="temp_Z"&richFinalTidy$Season=="Summer",]$p.value))` - `r scales::pvalue(max(richFinalTidy[richFinalTidy$term=="temp_Z"&richFinalTidy$Season=="Summer",]$p.value))`; @tbl-richGLMMs) and positively related to SAV coverage for all systems (*p* = `r scales::pvalue(min(richFinalTidy[richFinalTidy$term=="bvc_Z"&richFinalTidy$Season=="Summer",]$p.value))` - `r scales::pvalue(max(richFinalTidy[richFinalTidy$term=="bvc_Z"&richFinalTidy$Season=="Summer",]$p.value))`; @tbl-richGLMMs). In contrast, winter total abundance was positively related to water temperature for all systems (*p* = `r scales::pvalue(min(richFinalTidy[richFinalTidy$term=="temp_Z"&richFinalTidy$Season=="Winter",]$p.value))` - `r scales::pvalue(max(richFinalTidy[richFinalTidy$term=="temp_Z"&richFinalTidy$Season=="Winter",]$p.value))`; @tbl-richGLMMs) but, as during summer, positively related to SAV coverage for all systems (*p* = `r scales::pvalue(min(richFinalTidy[richFinalTidy$term=="bvc_Z"&richFinalTidy$Season=="Summer",]$p.value))` - `r scales::pvalue(max(richFinalTidy[richFinalTidy$term=="bvc_Z"&richFinalTidy$Season=="Summer",]$p.value))`; @tbl-richGLMMs).
+Mean total richness in winter (`r format(nStats[2,]$meanN, digits = 2)` ±`r format(nStats[2,]$seN, digits = 2)`) was consistently lower for each estuary than in the summer (`r format(nStats[1,]$meanN, digits = 2)` ±`r format(nStats[1,]$seN, digits = 2)`; [@fig-NPlot]). The initial richness GLMMs for each season had no significant Year:System interaction terms, therefore, I dropped this interaction term from the final models (*p* = `r scales::pvalue(min(richFullInteraction$p.value))` - `r scales::pvalue(max(richFullInteraction$p.value))`). The revised GLMMs revealed that total richness did not change during either summer or winter (summer *p* = `r scales::pvalue(richFinalTidy[richFinalTidy$term=="smallYear"&richFinalTidy$Season=="Summer",]$p.value)` and winter *p* = `r scales::pvalue(richFinalTidy[richFinalTidy$term=="smallYear"&richFinalTidy$Season=="Winter",]$p.value)`; @tbl-richGLMMs). Further, total richness in summer was not related to water temperature (*p* = `r scales::pvalue(min(richFinalTidy[richFinalTidy$term=="temp_Z"&richFinalTidy$Season=="Summer",]$p.value))`; @tbl-richGLMMs) and was positively related to SAV coverage for all systems (*p* = `r scales::pvalue(min(richFinalTidy[richFinalTidy$term=="bvc_Z"&richFinalTidy$Season=="Summer",]$p.value))`; @tbl-richGLMMs). In contrast, total richness in winter was positively related to water temperature for all systems (*p* = `r scales::pvalue(min(richFinalTidy[richFinalTidy$term=="temp_Z"&richFinalTidy$Season=="Winter",]$p.value))`; @tbl-richGLMMs). However, as during summer, total richness was positively related to SAV coverage for all systems (*p* = `r scales::pvalue(min(richFinalTidy[richFinalTidy$term=="bvc_Z"&richFinalTidy$Season=="Summer",]$p.value))`; @tbl-richGLMMs).
 
 ```{r}
 #| label: fig-NPlot
@@ -839,7 +783,7 @@ plot(NPlot_ann +
 
 richMeanOut <- richFinalTidy %>%
   #mutate(Season = ifelse(is.na(Season), "Winter", Season)) %>%
-  filter(term != "(Intercept)") %>%
+  #filter(term != "(Intercept)") %>%
   flextable(.) %>%
   merge_v(j = ~ Season) %>%
   colformat_double(j = c("estimate", "std.error", "p.value"), digits = 3) %>%
@@ -856,30 +800,6 @@ richMeanOut <- richFinalTidy %>%
   theme_vanilla()
   
 richMeanOut
-```
-
-```{r}
-#| label: tbl-richSyn
-#| echo: FALSE
-#| tbl-cap: "Summary of observed total richness response trends per system and season from total richness models. + indicates positive correlation, - indicates negative correlation, and 0 indicates no correlation. Correlation direction calculated using GLMM framework and significant at alpha 0.95."
-
-richTab <- data.frame(
-  Season = c("Summer", "Summer", "Summer", "Winter", "Winter", "Winter"),
-  Parameter = c("Water temperature", "SAV coverage", "Total richness", "Water temperature", "SAV coverage", "Total richness"), 
-  System_AB = c("0", "+", "0", "+", "+", "0"), 
-  System_CK = c("0", "+", "0", "+", "+", "0"),
-  System_TB = c("0", "+", "0", "+", "+", "0"),
-  System_CH = c("0", "+", "0", "+", "+", "0"))
-
-richFT <- flextable(richTab) %>%
-  separate_header() %>%
-  merge_v(j = ~ Season) %>%
-  paginate(init = TRUE, hdr_ftr = TRUE) %>%
-  autofit() %>%
-  width(j = 3:6, 1) %>%
-  theme_vanilla()
-
-richFT
 ```
 
 ### Betadiversity
@@ -919,7 +839,21 @@ betaWinterSummaryANC <- tidy(betaWinterLm) %>%
     mutate(Season = "Winter")
 betaSummerSummaryANC <- tidy(betaSummerLm) %>%
     mutate(Season = "Summer")
+
+betaWinterLmFinal <- aov(value ~ smallYear + system, data = betaWinter)
+# nestWinterLm <- aov(value ~ smallYear * system, data = nestWinter)
+# turnWinterLm <- aov(value ~ smallYear * system, data = turnWinter)
+betaSummerLmFinal <- aov(value ~ smallYear + system, data = betaSummer)
+# nestSummerLm <- aov(value ~ smallYear * system, data = nestSummer)
+# turnSummerLm <- aov(value ~ smallYear * system, data = turnSummer)
+
+betaWinterSummaryANC_final <- tidy(summary.lm(betaWinterLmFinal)) %>%
+    mutate(Season = "Winter")
+betaSummerSummaryANC_final <- tidy(summary.lm(betaSummerLmFinal)) %>%
+    mutate(Season = "Summer")
 ```
+
+ANCOVA all systems changed the same (Year:System interaction term for summer *p* = `r scales::pvalue(as.data.frame(betaSummerSummaryANC$p.value)[3,])` and winter *p* = `r scales::pvalue(as.data.frame(betaWinterSummaryANC$p.value)[3,])`). Winter betadiversity increased at a rate of `r format(as.data.frame(betaWinterSummaryANC_final$estimate)[2,], digits = 2)`yr^-1^ ± `r format(betaWinterSummaryANC_final[2,]$std.error, digits = 2)` which was twice that during summer (`r format(as.data.frame(betaSummerSummaryANC_final$estimate)[2,], digits = 2)`yr^-1^ ± `r format(betaSummerSummaryANC_final[2,]$std.error, digits = 2)`; @tbl-betaTrends; @fig-betadiversity).
 
 ANCOVA models of Bray-Curtis dissimilarity pairwise over time revealed a general trend of stability during the summer with no significant change among any of the estuaries. However, during winter, there was a trend of increasing dissimilarity through time for all estuaries ([@tbl-betaTrends]). In addition, during winter, particularly in the northern estuaries (Apalachicola Bay and Cedar Key), there was considerably higher variability in the years after 2010 ([@fig-betadiversity]). Within dissimilarity overall, there were clear variations in the underlying components of betadiversity (turnover and nestedness), though they are not modeled here.
 
@@ -927,10 +861,10 @@ ANCOVA models of Bray-Curtis dissimilarity pairwise over time revealed a general
 #| label: tbl-betaTrends
 #| echo: FALSE
 #| message: FALSE
-#| tbl-cap: "ANCOVA model outputs for betadiversity indices over time. Bold values are significant at alpha 0.95."
+#| tbl-cap: "ANCOVA model outputs for betadiversity indices over time. Bold values are significant at alpha 0.05."
 
-betaTrendOut <- as.data.frame(betaSummerSummary) %>%
-  full_join(as.data.frame(betaWinterSummary)) %>%
+betaTrendOut <- as.data.frame(betaSummerSummaryANC_final) %>%
+  full_join(as.data.frame(betaWinterSummaryANC_final)) %>%
   relocate(Season, .before = term) %>%
   flextable(.) %>%
   merge_v(j = ~ Season) %>%
@@ -1931,6 +1865,88 @@ bvcmeanCont
 ```
 
 #### OLD STUFF
+
+#### Synthesis tables
+
+```{r}
+#| label: tbl-habParamSyn
+#| echo: FALSE
+#| tbl-cap: "Summary of observed habitat parameter trends per system and season. + indicates positive trend, - indicates negative trend, and 0 indicates no trend. Trend direction calculated using ANCOVA framework and significant at alpha 0.95."
+
+
+habParam <- data.frame(
+  Season = c("Summer", "Summer", "Winter", "Winter"),
+  Parameter = c("Water temperature", "SAV coverage", "Water temperature", "SAV coverage"), 
+  System_AB = c("+", "0", "+", "0"), 
+  System_CK = c("+", "-", "+", "0"),
+  System_TB = c("+", "0", "+", "+"),
+  System_CH = c("+", "+", "+", "+"))
+
+habParamFT <- flextable(habParam) %>%
+  separate_header() %>%
+  merge_v(j = ~ Season) %>%
+  paginate(init = TRUE, hdr_ftr = TRUE) %>%
+  autofit() %>%
+  theme_vanilla()
+
+habParamFT
+```
+
+```{r}
+#| label: tbl-abundSyn
+#| echo: FALSE
+#| tbl-cap: "Summary of observed total abundance response correlations per system and season from total abundance models. + indicates positive correlation, - indicates negative correlation, and 0 indicates no correlation. Correlation direction calculated using GLMM framework and significant at alpha 0.95."
+
+sumTab <- data.frame(
+  Season = c("Summer", "Summer", "Summer", "Winter", "Winter", "Winter"),
+  Parameter = c("Water temperature", "SAV coverage", "Total abundance", "Water temperature", "SAV coverage", "Total abundance"), 
+  System_AB = c("0", "+", "0", "+", "+", "Decreased"), 
+  System_CK = c("0", "0", "0", "0", "0", "0"),
+  System_TB = c("0", "+", "Increased", "+", "+", "0"),
+  System_CH = c("0", "+", "0", "+", "+", "0"))
+
+sumFT <- flextable(sumTab) %>%
+  separate_header() %>%
+  merge_v(j = ~ Season) %>%
+  paginate(init = TRUE, hdr_ftr = TRUE) %>%
+  autofit() %>%
+  width(j = 3:6, 1) %>%
+  theme_vanilla()
+
+# habParamFT
+# 
+# sumFT <- flextable(sumTab) %>%
+#   merge_v(j = ~ Parameter + Effect) %>%
+#   paginate(init = TRUE, hdr_ftr = TRUE) %>%
+#   autofit() %>%
+#   theme_vanilla()
+
+sumFT
+```
+
+```{r}
+#| label: tbl-richSyn
+#| echo: FALSE
+#| tbl-cap: "Summary of observed total richness response trends per system and season from total richness models. + indicates positive correlation, - indicates negative correlation, and 0 indicates no correlation. Correlation direction calculated using GLMM framework and significant at alpha 0.95."
+
+richTab <- data.frame(
+  Season = c("Summer", "Summer", "Summer", "Winter", "Winter", "Winter"),
+  Parameter = c("Water temperature", "SAV coverage", "Total richness", "Water temperature", "SAV coverage", "Total richness"), 
+  System_AB = c("0", "+", "0", "+", "+", "0"), 
+  System_CK = c("0", "+", "0", "+", "+", "0"),
+  System_TB = c("0", "+", "0", "+", "+", "0"),
+  System_CH = c("0", "+", "0", "+", "+", "0"))
+
+richFT <- flextable(richTab) %>%
+  separate_header() %>%
+  merge_v(j = ~ Season) %>%
+  paginate(init = TRUE, hdr_ftr = TRUE) %>%
+  autofit() %>%
+  width(j = 3:6, 1) %>%
+  theme_vanilla()
+
+richFT
+```
 
 ##Temp ANCOVA contrasts
 
