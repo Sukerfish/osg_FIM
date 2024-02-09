@@ -240,7 +240,7 @@ I conducted all analyses using the R Statistical Computing Environment v4.3.0 wi
 
 To address if the richness and abundance of fishes within eGOM estuarine faunal assemblages has changed over the study period and assess the effects of water temperature on these assemblages, I modeled total richness and total abundance per haul across all estuaries for both the summer and winter seasons using generalized linear mixed models (GLMMs) from the R package *glmmTMB* [@glmmTMB]. Given the well-documented seasonal differences in estuarine systems [see @Hagan2003; @Strydom2015; @Schrandt2020], in this and all subsequent analyses, I separately analyzed summer and winter. For each seine haul, I calculated the richness as the number of taxa present and total abundance as the sum of all individuals counted. For each model, the response in the GLMM included either the total richness or transformed total abundance of each haul, with estuary (fixed, 4 levels: Apalachicola Bay, Cedar Key, Tampa Bay, Charlotte Harbor), year (fixed, continuous; including the interaction), water temperature (fixed, continuous), and percent SAV coverage (fixed, continuous) as predictors. I applied z-score transformation to water temperature and percent SAV coverage to enable relative effect sizes comparisons. A covariance matrix was included in each model to account for serial autocorrelation and was calculated from month of sampling event and within-estuary zone. Given that species richness is strongly affected by sampling effort [@Mittelbach2019], I included an offset term to account for variation in the number of seine hauls. Thus, the formula used for each was: `response ~ year * system + temp_Z + sav_Z + offset(log(n_hauls)) + ar1(yearMonth + 0|systemZone)` where `response` was either total richness or total abundance per haul. The package *emmeans* was again used for post-hoc contrasts of means and the Tukey method was used for *p*-value correction [@emmeans]. For any GLMMs with a significant interaction between year and system, I separated the model into independent linear models for each system and season combination. If the interaction between year and system was insignificant, I then dropped the interaction term and reran the model without it.
 
-To examine the composition and stability of eGOM estuarine fish assemblages over time, I started with a univariate approach using the R package *betapart* to calculate Bray-Curtis dissimilarity over time and modeled this with ANCOVA [@betapart]. I then used permutational multivariate analysis of variance (PERMANOVA) from the R package *vegan to* evaluate the interactive effect of estuary (fixed, four levels) and year (fixed, continuous) within season on the fourth-root transformed taxon abundances [@vegan]. I then followed up with canonical analysis of principal coordinates (CAP) ordinations using the R package *BiodiversityR* to visualize differences among the levels of any fixed effect categorical terms deemed significant by the PERMANOVA models (*sensu* [@Peake2022]; [@BiodiversityR]). In addition, I included taxon biplot correlation vectors in these CAP ordinations to better visualize which taxa contributed to any observed differences. Vector lengths were calculated by applying Pythagorean theorem to the first two axis scores for each taxon. To explore the effects of water temperature and SAV coverage on the relative abundances of the different taxa, I performed distance-based redundancy analysis (dbRDA) using the R package *vegan* [@vegan]. In all calculations, I used fourth-root transformation to reduce the effects of overly abundant taxa and square-root transformed Bray-Curtis dissimilarity matrices to eliminate negative eigenvalues [@Legendre1999].
+To examine the composition and stability of eGOM estuarine fish assemblages over time, I started with a univariate approach using the R package *betapart* to calculate Bray-Curtis dissimilarity over time with respect to the first year of available data and modeled this with ANCOVA using the formula `betadiversity index ~ year + system + year:system` [@betapart]. For any ANCOVAs with a significant interaction between year and system, I separated the model into independent linear models for each system and season combination. If the interaction between year and system was insignificant, I dropped the interaction term and reran the model without it. I then used permutational multivariate analysis of variance (PERMANOVA) from the R package *vegan to* evaluate the interactive effect of estuary (fixed, four levels) and year (fixed, continuous) within season on the fourth-root transformed taxon abundances [@vegan]. I then followed up with canonical analysis of principal coordinates (CAP) ordinations using the R package *BiodiversityR* to visualize differences among the levels of any fixed effect categorical terms deemed significant by the PERMANOVA models (*sensu* [@Peake2022]; [@BiodiversityR]). In addition, I included taxon biplot correlation vectors in these CAP ordinations to better visualize which taxa contributed to any observed differences. Vector lengths were calculated by applying Pythagorean theorem to the first two axis scores for each taxon. To explore the effects of water temperature and SAV coverage on the relative abundances of the different taxa, I performed distance-based redundancy analysis (dbRDA) using the R package *vegan* [@vegan]. In all calculations, I used fourth-root transformation to reduce the effects of overly abundant taxa and square-root transformed Bray-Curtis dissimilarity matrices to eliminate negative eigenvalues [@Legendre1999].
 
 Finally, to assess the balance of individual taxa increasing and decreasing in abundance over time I used a univariate approach following Dornelas et al. [-@Dornelas2019]. Within each estuary and season, I ran a linear model on the fourth-root transformed abundance of each taxon independently over time to determine both the magnitude and direction of change at the taxa level. I binned these rates of change to construct histograms displaying the distribution and magnitude of taxa rates of change. I followed up on these analyses to examine whether there were patterns in the climatology of any taxa that underwent significant change. I pulled climatological association data from Fishbase using *rfishbase* and created plots of the distributions of climatological association groups [@rfishbase]. Unless otherwise indicated, values from all analyses were reported as mean ± SE and plots were generated with packages *ggplot2* and *patchwork* [@ggplot2; @patchwork].
 
@@ -1423,7 +1423,7 @@ for(i in systemSeason_list$systemSeason){
 
 ```
 
-CAP ordinations indicated that in most systems and seasons, there was a steady progression from the earlier years of assemblage composition and abundance to the more recent years. This is evidenced by the small movement of the centroids of each year in a general direction ([@fig-centroidCAP]). However, notable exceptions include Cedar Key summer, which appeared to have a distinct separation of two groups of years (pre- and post-2010) and Charlotte Harbor, which, for both seasons, has considerably more overlap among earlier and recent year centroids ([@fig-centroidCAP]). In terms of individual taxa identified by the CAPs, in winter, *Leiostomous xanthurus* was consistently identified as the taxa most associated with yearly assemblage differences and was mostly pointed toward the centroids of earlier year groups in the dataset ([@tbl-CAPtaxa];[@fig-centroidCAP]). This same phenomenon was observed in the summer data for both Tampa Bay and Apalachicola Bay. For the apparent separation in Cedar Key summer, the taxa most aligned with these opposing groups are both shrimps in the genus *Farfantepenaeus* ([@fig-centroidCAP]). Overall, the range of variability described by the CAP models was `r paste0(round(min(topSpp$percent),2), "%")` to `r paste0(round(max(topSpp$percent),2), "%")`, indicating a large portion of the variability was not explained by the assemblage composition and abundances alone. Looking at the assemblage most associated with yearly differences, only five different taxa were selected as the top associated with yearly separation on the first two canonical axes for all system and season combinations ([@tbl-CAPtaxa]). Specifically, each system in summer has a different taxa associated with the greatest yearly separation, but in the winter, all systems are best separated on a yearly basis by *L. xanthurus* ([@tbl-CAPtaxa]).
+CAP ordinations revealed that in most systems and seasons, there was a steady progression from the earlier years of assemblage composition and abundance to the more recent years. This is evidenced by the small movement of the centroids of each year in a single general direction ([@fig-centroidCAP]). However, notable exceptions include Cedar Key summer, which appeared to have a distinct separation of two groups of years (pre- and post-2010) and Charlotte Harbor, which, for both seasons, has considerably more overlap among earlier and recent year centroids ([@fig-centroidCAP]). In terms of individual taxa identified by the CAPs, in winter, *Leiostomous xanthurus* was consistently identified as the taxa most associated with yearly assemblage differences and was mostly pointed toward the centroids of earlier year groups in the dataset ([@tbl-CAPtaxa];[@fig-centroidCAP]). This same phenomenon was observed in the summer data for both Tampa Bay and Apalachicola Bay. For the apparent separation in Cedar Key summer, the taxa most aligned with these opposing groups are shrimps in the genus *Farfantepenaeus* ([@fig-centroidCAP]). Overall, the range of variability described by the CAP models was `r paste0(round(min(topSpp$percent),2), "%")` to `r paste0(round(max(topSpp$percent),2), "%")`, indicating a large portion of the variability was not explained by the assemblage composition and abundances alone. Looking at the assemblage most associated with yearly differences, only five different taxa were selected as the top associated with yearly separation on the first two canonical axes for all system and season combinations ([@tbl-CAPtaxa]). Specifically, each system in summer has a different taxa associated with the greatest yearly separation, but in the winter, all systems are best separated on a yearly basis by *L. xanthurus* ([@tbl-CAPtaxa]).
 
 ```{r}
 #| label: tbl-CAPtaxa
@@ -1467,7 +1467,7 @@ sysSppFT
 plot(centroidCAP)
 ```
 
-In terms of abiotic effects on assemblage composition and abundance, dbRDA highlighted the significance of SAV and water temperature in describing the variation in betadiversity across all systems and seasons when compared to a null model ([@fig-RDAforAll]). However, no clear patterns of separation among years were apparent in most of the ordinations ([@fig-RDAforAll]). Across systems, Tampa Bay appears to have the most tightly clustered group of yearly centroids compared to all other systems ([@fig-RDAforAll]). The range of variation explained by the models was `r min(RDAaxes$fullModel)`% to `r max(RDAaxes$fullModel)`%. The range of variation explained by the first canonical axis of each model was `r min(RDAaxes$CA1)`% to `r max(RDAaxes$CA1)`% within the overall model variation, with the range of the second canonical axis as `r min(RDAaxes$CA2)`% to `r max(RDAaxes$CA2)`%.
+In terms of abiotic effects on assemblage composition and abundance, dbRDA highlighted the significance of SAV and water temperature in describing the variation in betadiversity across all systems and seasons when compared to a null model ([@fig-RDAforAll]). However, no clear patterns of separation among years were apparent in most of the ordinations ([@fig-RDAforAll]). Across systems, Tampa Bay appears to have the most tightly clustered group of yearly centroids compared to all other systems ([@fig-RDAforAll]). The range of variation explained by the models was `r min(RDAaxes$fullModel)`% to `r max(RDAaxes$fullModel)`%. The range of variation explained by the first canonical axis of each model was `r min(RDAaxes$CA1)`% to `r max(RDAaxes$CA1)`% within the overall model variation, with the range of the second canonical axis covering `r min(RDAaxes$CA2)`% to `r max(RDAaxes$CA2)`%.
 
 ```{r}
 #| label: fig-RDAforAll
@@ -1481,6 +1481,25 @@ plot(fullRDAPlot)
 ```
 
 ### Individual Taxon Analyses {#sec-univariate-analyses}
+
+```{r}
+#| label: individualTaxonPrep
+#| include: FALSE
+
+sigSummaryPercent <- sigSummary %>%
+  select(system, season, count, sigCount, pos_percent, neg_percent) %>%
+  rename(posPercent = pos_percent) %>%
+  rename(negPercent = neg_percent)
+
+ssGrouped <- sigSlopes_grouped %>%
+  separate(systemSeason, into = c("system", "season"), remove = FALSE) %>%
+  mutate(season = stringr::str_to_title(season)) %>%
+  mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH"))) %>%
+  mutate(system = fct_recode(system, "AB" = "AP")) %>%
+  mutate(Scientificname = factor(Scientificname)) %>%
+  mutate(Scientificnumber = as.numeric(Scientificname)) %>%
+  unite(col = seaSys, system, season, sep = " ", remove = FALSE)
+```
 
 The majority of taxa did not exhibit significant changes in abundance over time, with a large group centered around zero in both summer and winter ([@fig-winnersLosers]). However, the percentage of taxa changing negatively was overall greater in the summer than the winter (*t* = `r format(negSig$statistic, digits = 3)`, *p* = `r format(negSig$p.value, digits = 3)`; see [@tbl-sigTaxa]).
 
@@ -1526,7 +1545,7 @@ winLose
 #| message: FALSE
 #| warning: FALSE
 #| tbl-cap: "Summary of counts of taxa with significant changes in abundance over time."
-sigSumPrep <- sigSummaryShort %>%
+sigSumPrep <- sigSummaryPercent %>%
   group_by(season) %>%
   mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH"))) %>%
   mutate(system = fct_recode(system, "AB" = "AP")) %>%
@@ -1535,19 +1554,23 @@ sigSumPrep <- sigSummaryShort %>%
   relocate(season, .before = system)
 
 sigFT <- flextable(sigSumPrep) %>%
-  separate_header() %>%
+  #separate_header() %>%
   merge_v(j = ~ season) %>%
   paginate(init = TRUE, hdr_ftr = TRUE) %>%
   labelizor(part = "header", 
   labels = stringr::str_to_title) %>%
+  set_formatter(posPercent = function(x) sprintf("%.2f%%", x*100),
+                negPercent = function(x) sprintf("%.2f%%", x*100)
+               ) %>%
   set_header_labels(count = "Taxa counted",
     sigCount = "Change overall",
-    posCount = "Positive change",
-    negCount = "Negative change") %>%
+    posPercent = "Positive change",
+    negPercent = "Negative change") %>%
   width(width = 1) %>%
   theme_vanilla()
 
 sigFT
+
 ```
 
 The majority of taxa that had statistically significant slopes still experienced rather modest changes in abundance while a few taxa had slopes an order of magnitude greater than the majority ([@fig-sigSlopes]).
@@ -2055,15 +2078,6 @@ Taxa groups
 #| fig-width: 6.5
 #| fig-height: 5
 #| fig-cap: "Taxonomically-grouped slopes of abundance over time plotted per estuary and season. Red indicates a negative change over time and blue indicates a positive change. The dashed line represents a slope of 0."
-
-ssGrouped <- sigSlopes_grouped %>%
-  separate(systemSeason, into = c("system", "season"), remove = FALSE) %>%
-  mutate(season = stringr::str_to_title(season)) %>%
-  mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH"))) %>%
-  mutate(system = fct_recode(system, "AB" = "AP")) %>%
-  mutate(Scientificname = factor(Scientificname)) %>%
-  mutate(Scientificnumber = as.numeric(Scientificname)) %>%
-  unite(col = seaSys, system, season, sep = " ", remove = FALSE)
 
 #sigSlopesGroups
 
