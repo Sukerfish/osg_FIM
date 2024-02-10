@@ -679,6 +679,8 @@ plot(AbundPlot_ann +
 
 abMeanOut <- abundOutTidy %>%
   mutate(System = fct_recode(System, "AB" = "AP")) %>%
+  mutate(System = factor(System, levels = c("AB", "CK", "TB", "CH"))) %>%
+  arrange(Season, System) %>%
   relocate(Season, .before = System) %>%
   filter(term != "(Intercept)") %>%
   mutate(term = ifelse(term == "smallYear", "Year", term)) %>%
@@ -779,11 +781,14 @@ plot(NPlot_ann +
 #| label: tbl-richGLMMs
 #| echo: FALSE
 #| message: FALSE
-#| tbl-cap: "Estimated marginal means of total richness for each system for both seasonal GLMMs. *P*-values for pairwise contrasts used tukey method for correction."
+#| tbl-cap: "Coefficients of terms in total richness GLMMs. Bold rows highlight terms where *p* < 0.05."
 
 richMeanOut <- richFinalTidy %>%
   #mutate(Season = ifelse(is.na(Season), "Winter", Season)) %>%
   #filter(term != "(Intercept)") %>%
+  mutate(term = ifelse(term == "smallYear", "Year", term)) %>%
+  mutate(term = ifelse(term == "bvc_Z", "SAV_Z", term)) %>%
+  mutate(term = ifelse(term == "temp_Z", "Temp_Z", term)) %>%
   flextable(.) %>%
   merge_v(j = ~ Season) %>%
   colformat_double(j = c("estimate", "std.error", "p.value"), digits = 3) %>%
@@ -864,6 +869,7 @@ Bray-Curtis dissimilarity increased consistently across all systems within each 
 betaTrendOut <- as.data.frame(betaSummerSummaryANC_final) %>%
   full_join(as.data.frame(betaWinterSummaryANC_final)) %>%
   relocate(Season, .before = term) %>%
+  mutate(term = ifelse(term == "smallYear", "Year", term)) %>%
   flextable(.) %>%
   merge_v(j = ~ Season) %>%
   colformat_double(j = c(3:6), digits = 3) %>%
@@ -890,7 +896,16 @@ betaTrendOut
 #| message: FALSE
 #| fig-width: 6.5
 #| fig-height: 5
-#| fig-cap: "Partitioned betadiversity calculated pairwise with respect to the first year of available data. Balanced represents turnover and gradient represents nestedness."
+#| fig-cap: "Partitioned betadiversity calculated pairwise with respect to the first year of available data. Trend lines calculated using seasonal ANCOVA models."
+
+winterBetaPred <- predict(betaWinterLmFinal)
+summerBetaPred <- predict(betaSummerLmFinal)
+
+betaTimeDF <- betaTimeDF %>%
+  mutate(Index = factor(Index))
+
+levels(betaTimeDF$Index)[levels(betaTimeDF$Index)=="Balanced"] <- "Turnover"
+levels(betaTimeDF$Index)[levels(betaTimeDF$Index)=="Gradient"] <- "Nestedness"
 
 (betaTimePlot <- ggplot(aes(x = contYear,
                             y = value,
@@ -906,16 +921,20 @@ betaTrendOut
   # scale_color_cmocean(discrete = TRUE,
   #                     name = "solar") +
   # scale_color_viridis_d(option = "viridis") +
-    geom_smooth(method = "lm",
-                formula = y ~ x,
-                se = FALSE,
-                data = overallBeta[overallBeta$season %in% c("Summer"),],
-                linetype = "dashed") +
-       geom_smooth(method = "lm",
-                formula = y ~ x,
-                se = FALSE,
-                data = overallBeta[overallBeta$season %in% c("Winter"),],
-                linetype = "solid") +
+    # geom_smooth(method = "lm",
+    #             formula = y ~ x,
+    #             se = FALSE,
+    #             data = overallBeta[overallBeta$season %in% c("Summer"),],
+    #             linetype = "dashed") +
+    #    geom_smooth(method = "lm",
+    #             formula = y ~ x,
+    #             se = FALSE,
+    #             data = overallBeta[overallBeta$season %in% c("Winter"),],
+    #             linetype = "solid") +
+    geom_line(data = overallBeta[overallBeta$season %in% c("Winter"),],
+              aes(y=winterBetaPred)) +
+    geom_line(data = overallBeta[overallBeta$season %in% c("Summer"),],
+              aes(y=summerBetaPred)) +
   scale_color_brewer(palette = "Set1") +
   labs(#title = "Abundance-based dissimilarity over time",
        x = "Year",
@@ -937,6 +956,11 @@ systemSeason_list <- SXS_filtered %>%
   select(systemSeason) %>%
   distinct()
 
+plotOrder <- data.frame(systemSeason = c("AP_summer", "AP_winter",
+              "CK_summer", "CK_winter",
+              "TB_summer", "TB_winter",
+              "CH_summer", "CH_winter"))
+
 # perms <- list()
 # stageZero <- list()
 # for(i in systemSeason_list$systemSeason){
@@ -948,7 +972,7 @@ systemSeason_list <- SXS_filtered %>%
 RDAaxesVar <- list()
 plotsforAll <- list()
 #rdaVecslist <- list()
-for(i in systemSeason_list$systemSeason){
+for(i in plotOrder$systemSeason){
  print(i)
   mult <- 1
   mult_vec <- 1
@@ -1085,7 +1109,7 @@ winterdf <- tidy(winterfAbundPERM) %>%
   mutate(Season = "Winter")
 ```
 
-PERMANOVAs indicated assemblage composition and abundance stability varied differently over time among systems due to a significant interactive effect between year and system (Year:System interaction term for summer *p* = `r scales::pvalue(summerdf$p.value[3])` and winter *p* = `r scales::pvalue(winterdf$p.value[3])`; [@tbl-fullPERMANOVA]). Therefore, separate CAP ordinations were conducted for each system within each season (*sensu* [@Peake2022]).
+PERMANOVAs indicated assemblage composition and abundance stability varied differently over time among systems due to a significant interactive effect between year and system (Year:System interaction term for summer *p* = `r scales::pvalue(summerdf$p.value[3])` and winter *p* = `r scales::pvalue(winterdf$p.value[3])`; [@tbl-fullPERMANOVA]). Therefore, separate CAP ordinations were conducted for each system within each season (*sensu* @Peake2022).
 
 ```{r}
 #| label: tbl-fullPERMANOVA
@@ -1208,8 +1232,13 @@ systemSeason_list <- SXS_filtered %>%
   select(systemSeason) %>%
   distinct()
 
+CAPOrder <- data.frame(systemSeason = c("AP_summer", "AP_winter",
+              "CK_summer", "CK_winter",
+              "TB_summer", "TB_winter",
+              "CH_summer", "CH_winter"))
+
 ### centroids ####
-for(i in systemSeason_list$systemSeason){
+for(i in CAPOrder$systemSeason){
   df <- SXS_filtered %>% #filter out systemSeason of interest
     filter(systemSeason %in% i)
   
@@ -1232,7 +1261,7 @@ CAPsforAll[[i]]$centroids <- centroids.long(sites.long(ordiplot(CAPsforAll[[i]])
 #need fixed range of sppvecs first
 sppvecs_list <- list()
 sppvecs_list_fix <- list()
-for(i in systemSeason_list$systemSeason){
+for(i in CAPOrder$systemSeason){
 spp_vecs <- data.frame(CAPsforAll[[i]]$cproj) %>%
   #arrange(desc(abs(LD1))) %>%
   mutate(mag = sqrt(LD1^2 + LD2^2)) %>%
@@ -1247,7 +1276,7 @@ sppvecs_list_fixdf <- bind_rows(sppvecs_list_fix, .id = "systemSeason")
 #spp_vecs_label <- list()
 #centroidPlots <- list()
 mainframe <- list()
-for(i in systemSeason_list$systemSeason){
+for(i in CAPOrder$systemSeason){
   print(i) #watch progress through list
   
   centers <- data.frame(CAPsforAll[[i]]$centroids)
@@ -1289,7 +1318,7 @@ stageOne <- sppvecs_list_fixdf %>%
 mult <- 2.7
 
 centroidPlots <- list()
-for(i in systemSeason_list$systemSeason){
+for(i in CAPOrder$systemSeason){
   indf <- centroidDf %>%
     filter(systemSeason == i)
   
@@ -1385,7 +1414,7 @@ for(i in systemSeason_list$systemSeason){
     
 # table assembly
 spp_vec_setup <- list()
-for(i in systemSeason_list$systemSeason){
+for(i in CAPOrder$systemSeason){
 xf <- data.frame(CAPsforAll[[i]]$cproj) %>%
   arrange(desc(abs(LD1))) %>%
   slice_head(n = 5) %>%
@@ -1411,7 +1440,7 @@ sysSpp <- topSpp %>%
   select(system, season, Scientificname, mag)
 
 confuseM <- list()
-for(i in systemSeason_list$systemSeason){
+for(i in CAPOrder$systemSeason){
   group <- data.frame()
      CV <- data.frame()
      
@@ -1501,7 +1530,7 @@ ssGrouped <- sigSlopes_grouped %>%
   unite(col = seaSys, system, season, sep = " ", remove = FALSE)
 ```
 
-The majority of taxa did not exhibit significant changes in abundance over time, with a large group centered around zero in both summer and winter ([@fig-winnersLosers]). However, the percentage of taxa changing negatively was overall greater in the summer than the winter (*t* = `r format(negSig$statistic, digits = 3)`, *p* = `r format(negSig$p.value, digits = 3)`; see [@tbl-sigTaxa]).
+The majority of taxa did not exhibit significant changes in abundance over time, with a large group centered around zero in both summer and winter ([@fig-winnersLosers]). However, the percentage of taxa changing negatively was overall greater in the summer than the winter (*t* = `r format(negSig$statistic, digits = 3)`, *p* = `r scales::pvalue(negSig$p.value)`; see [@tbl-sigTaxa]). The majority of thse taxa were either tropical/subtropical-associated or tropical/subtropical/temperate-associated ([@tbl-ecoSlopes]).
 
 ```{r}
 #| label: fig-winnersLosers
@@ -1573,7 +1602,7 @@ sigFT
 
 ```
 
-The majority of taxa that had statistically significant slopes still experienced rather modest changes in abundance while a few taxa had slopes an order of magnitude greater than the majority ([@fig-sigSlopes]).
+The majority of taxa that had statistically significant slopes still experienced rather modest changes in abundance, while a few taxa had rates of change an order of magnitude greater than the majority ([@fig-sigSlopes]).
 
 ```{r}
 #| label: fig-sigSlopes
@@ -1618,16 +1647,9 @@ for (i in seasysKey){
 (sigSlopesAllFree <- wrap_plots(sigPlotsFree, ncol = 2))
 ```
 
-The majority of taxa that changed over time were either subtropical/tropical-associated or subtropical/tropical/temperate-associated ([@fig-ecoSlopes]). REDO AS PERCENTAGE TABLE.
-
 ```{r}
-#| label: fig-ecoSlopes
-#| echo: FALSE
-#| message: FALSE
-#| warning: FALSE
-#| fig-width: 6.5
-#| fig-height: 9
-#| fig-cap: "Slopes of taxa abundance over time plotted per estuary and season. Red indicates a negative change over time and blue indicates a positive change. The dashed line represents a slope of 0. Error bars represent ± 1 standard error. Climatological association is represented by the symbol shape. Note: not all climatalogical associations for all taxa were available and thus some are not displayed. Numbers on y-axis correspond to individual taxa, see [@tbl-ssKey] for key."
+#| label: ecoSlopes prep
+#| include: FALSE
 
 sigSlopesEcoC <- sigSlopes %>%
   left_join(sigEco) %>%
@@ -1647,70 +1669,88 @@ sigSlopesEcoC <- sigSlopes %>%
   mutate(system = fct_recode(system, "AB" = "AP")) %>%
   mutate(Scientificname = factor(Scientificname, levels = levels(ssGrouped$Scientificname))) %>%
   mutate(Scientificnumber = as.numeric(Scientificname)) %>%
-  unite(col = seaSys, system, season, sep = " ", remove = FALSE)
- 
-#need to plot with patchwork to keep fish lists different per plot
-plotsEcoC <- list() #initialize object
-#use actual values from the key list
-for (i in seasysKey){
-  #filter by key values
-  plotup <- sigSlopesEcoC %>%
-    filter(systemSeason == i)
+  unite(col = seaSys, system, season, sep = " ", remove = FALSE) %>%
+  mutate(tempLogic = factor(tempLogic, levels = c("tropical",
+                                   "tropical/subtropical",
+                                   "tropical/temperate",
+                                   "tropical/subtropical/temperate", "subtropical",   "subtropical/temperate", "temperate"))) %>%
+  mutate(tempLogic = fct_recode(tempLogic,
+                                   'Tropical' = "tropical",
+                                   'Tropical/Subtropical' = "tropical/subtropical",
+                                   'Tropical/Temperate' = "tropical/temperate",
+                                   'Tropical/Subtropical/Temperate' = "tropical/subtropical/temperate",
+                                   'Subtropical' = "subtropical",
+                                   'Subtropical/Temperate' = "subtropical/temperate",
+                                   
+                                    'Temperate' = "temperate"))
+
+
+sigEcoSlopesPos <- sigSlopesEcoC %>%
+  ungroup() %>%
+  separate(systemSeason,
+           c("system","season"),
+           sep = "_") %>%
+  group_by(system, season, tempLogic) %>%
+  filter(raw_slope > 0) %>%
+  summarise(posCount = n_distinct(Scientificnumber))
   
-  #make list of plots from the filtered plotup DF
-  plotsEcoC[[i]] = ggplot(plotup,
-                      aes(y = reorder(Scientificnumber, raw_slope), #order by decreasing slope top to bottom
-                          x = raw_slope,
-                          shape = tempLogic)) + 
-    geom_point(aes(color = cut(raw_slope, c(-Inf, 0, Inf))), #cut the slope data for +/- colors
-               size = 3) +
-    scale_color_manual(name = "slope", #define the +/- colors
-                       values = c("(0, Inf]" = "blue",
-                                  "(-Inf,0]" = "red"),
-                       labels = c("pos", "neg"),
-                       guide = "none") +
-    geom_errorbarh(aes(xmin=(raw_slope + (-1*stderr)), xmax=(raw_slope + (1*stderr))),
-                   color = "black") + #std err bars
-    scale_shape_manual( #need to force legends to be identical (i.e. show all possibilities) to merge w/ patchwork
-      breaks = c(
-        "tropical",
-        "subtropical",
-        "tropical/subtropical",
-        "temperate",
-        "tropical/temperate",
-        "subtropical/temperate",
-        "tropical/subtropical/temperate"
-      ),
-      values = c(15, 16, 17, 18, 0, 1, 2), #use scale shape identities
-      drop = FALSE
-    ) +
-    #ggtitle(i) + #dynamic title using the key value
-    scale_x_continuous(trans = pseudolog10_trans,
-                       limits = symmetric_range) +
-    #xlim(-.2, .2) +
-    #scale_x_continuous(limits = symmetric_range) +
-    geom_vline(xintercept = 0, linetype="dashed") +
-        facet_grid(~seaSys,
-             scales = "free_y") +
-    theme_bw() +
-    labs(shape = "Climatology") + #dynamic title using the formatted values
-    theme(axis.title.y=element_blank(),
-          axis.title.x = element_blank())
-}
+#and the negative slopes
+sigEcoSlopesNeg <- sigSlopesEcoC %>%
+  ungroup() %>%
+  separate(systemSeason,
+           c("system","season"),
+           sep = "_") %>%
+  group_by(system, season, tempLogic) %>%
+  filter(raw_slope< 0) %>%
+  summarise(negCount = n_distinct(Scientificnumber))
 
-finalEcoC <- wrap_plots(plotsEcoC, ncol = 2, guides = "collect") &
-  labs() & theme(plot.margin = margin(5.5, 5.5, 0, 5.5)) & theme(legend.position = 'bottom',
-                                                                 legend.text = element_text(size = 6))
+ecoTable <- sigEcoSlopesPos %>%
+  ungroup() %>%
+  left_join(sigEcoSlopesNeg) %>% 
+  replace(is.na(.), 0) %>%
+  mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH"))) %>%
+  #complete(system, season, tempLogic) %>%
+  arrange(season, system, tempLogic) %>%
+  ungroup() %>%
+  group_by(system, season) %>%
+  mutate(sigCount = sum(posCount + negCount, na.rm = TRUE)) %>%
+  ungroup() %>%
+  group_by(season, system, tempLogic) %>%
+  mutate(posPercent = posCount/sigCount) %>%
+  mutate(negPercent = negCount/sigCount)
+```
 
-# Use the tag label as an x-axis label
-finalEcoC <- wrap_elements(panel = finalEcoC) +
-  labs(tag = "Raw slope of abundance change") +
-  theme(
-    plot.tag = element_text(size = rel(1)),
-    plot.tag.position = "bottom"
-  )
+```{r}
+#| label: tbl-ecoSlopes
+#| echo: FALSE
+#| message: FALSE
+#| warning: FALSE
+#| tbl-cap: "Climatological associations of taxa that significantly changed. Percentages listed are calculated with respect to number of taxa with available climate data."
 
-finalEcoC
+ecoFT <- ecoTable %>%
+  relocate(season, .before = system) %>%
+  mutate(season = stringr::str_to_title(season)) %>%
+  select(!c(posCount, negCount, sigCount)) %>%
+  mutate(system = fct_recode(system, "AB" = "AP")) %>%
+  flextable() %>%
+  merge_v(j = ~ season) %>%
+  merge_v(j = ~ system) %>%
+  paginate(init = TRUE, hdr_ftr = TRUE) %>%
+  labelizor(part = "header", 
+  labels = stringr::str_to_title) %>%
+  set_formatter(posPercent = function(x) sprintf("%.2f%%", x*100),
+                negPercent = function(x) sprintf("%.2f%%", x*100)
+               ) %>%
+  set_header_labels(count = "Taxa counted",
+    sigCount = "Change overall",
+    posPercent = "Positive change",
+    negPercent = "Negative change",
+    tempLogic = "Climatology") %>%
+  #width(width = 1) %>%
+  theme_vanilla()
+
+ecoFT
+
 ```
 
 # Discussion {#sec-discussion}
@@ -2185,6 +2225,79 @@ kable(betaSummerSummary)
 emphasize.strong.rows(conditionbetaW) 
 kable(betaWinterSummary)
 
+```
+
+```{r}
+#| label: fig-ecoSlopes
+#| echo: FALSE
+#| message: FALSE
+#| warning: FALSE
+#| fig-width: 6.5
+#| fig-height: 9
+#| fig-cap: "Slopes of taxa abundance over time plotted per estuary and season. Red indicates a negative change over time and blue indicates a positive change. The dashed line represents a slope of 0. Error bars represent ± 1 standard error. Climatological association is represented by the symbol shape. Note: not all climatalogical associations for all taxa were available and thus some are not displayed. Numbers on y-axis correspond to individual taxa, see [@tbl-ssKey] for key."
+
+#need to plot with patchwork to keep fish lists different per plot
+plotsEcoC <- list() #initialize object
+#use actual values from the key list
+for (i in seasysKey){
+  #filter by key values
+  plotup <- sigSlopesEcoC %>%
+    filter(systemSeason == i)
+  
+  #make list of plots from the filtered plotup DF
+  plotsEcoC[[i]] = ggplot(plotup,
+                      aes(y = reorder(Scientificnumber, raw_slope), #order by decreasing slope top to bottom
+                          x = raw_slope,
+                          shape = tempLogic)) + 
+    geom_point(aes(color = cut(raw_slope, c(-Inf, 0, Inf))), #cut the slope data for +/- colors
+               size = 3) +
+    scale_color_manual(name = "slope", #define the +/- colors
+                       values = c("(0, Inf]" = "blue",
+                                  "(-Inf,0]" = "red"),
+                       labels = c("pos", "neg"),
+                       guide = "none") +
+    geom_errorbarh(aes(xmin=(raw_slope + (-1*stderr)), xmax=(raw_slope + (1*stderr))),
+                   color = "black") + #std err bars
+    scale_shape_manual( #need to force legends to be identical (i.e. show all possibilities) to merge w/ patchwork
+      breaks = c(
+        "tropical",
+        "subtropical",
+        "tropical/subtropical",
+        "temperate",
+        "tropical/temperate",
+        "subtropical/temperate",
+        "tropical/subtropical/temperate"
+      ),
+      values = c(15, 16, 17, 18, 0, 1, 2), #use scale shape identities
+      drop = FALSE
+    ) +
+    #ggtitle(i) + #dynamic title using the key value
+    scale_x_continuous(trans = pseudolog10_trans,
+                       limits = symmetric_range) +
+    #xlim(-.2, .2) +
+    #scale_x_continuous(limits = symmetric_range) +
+    geom_vline(xintercept = 0, linetype="dashed") +
+        facet_grid(~seaSys,
+             scales = "free_y") +
+    theme_bw() +
+    labs(shape = "Climatology") + #dynamic title using the formatted values
+    theme(axis.title.y=element_blank(),
+          axis.title.x = element_blank())
+}
+
+finalEcoC <- wrap_plots(plotsEcoC, ncol = 2, guides = "collect") &
+  labs() & theme(plot.margin = margin(5.5, 5.5, 0, 5.5)) & theme(legend.position = 'bottom',
+                                                                 legend.text = element_text(size = 6))
+
+# Use the tag label as an x-axis label
+finalEcoC <- wrap_elements(panel = finalEcoC) +
+  labs(tag = "Raw slope of abundance change") +
+  theme(
+    plot.tag = element_text(size = rel(1)),
+    plot.tag.position = "bottom"
+  )
+
+finalEcoC
 ```
 
 {{< pagebreak >}}
