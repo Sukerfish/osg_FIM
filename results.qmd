@@ -811,7 +811,7 @@ richMeanOut <- richFinalTidy %>%
 richMeanOut
 ```
 
-### Beta diversity
+### Beta Diversity
 
 ```{r}
 #| label: BetaDiversity
@@ -862,7 +862,7 @@ betaSummerSummaryANC_final <- tidy(summary.lm(betaSummerLmFinal)) %>%
     mutate(Season = "Summer")
 ```
 
-Bray-Curtis dissimilarity increased consistently across all systems within each season (Year:System interaction term for summer *p* = `r scales::pvalue(as.data.frame(betaSummerSummaryANC$p.value)[3,])` and winter *p* = `r scales::pvalue(as.data.frame(betaWinterSummaryANC$p.value)[3,])`). The rate of increase in dissimilarity during winter was `r format(as.data.frame(betaWinterSummaryANC_final$estimate)[2,], digits = 2)`yr^-1^ ± `r format(betaWinterSummaryANC_final[2,]$std.error, digits = 2)` which was nearly twice that during summer (`r format(as.data.frame(betaSummerSummaryANC_final$estimate)[2,], digits = 2)`yr^-1^ ± `r format(betaSummerSummaryANC_final[2,]$std.error, digits = 2)`; @tbl-betaTrends; @fig-betadiversity). In addition, during winter, particularly in the northern estuaries (Apalachicola Bay and Cedar Key), there appears to be higher variability in the years after 2010 ([@fig-betadiversity]). Within dissimilarity overall, there were clear variations in the underlying components of beta diversity (turnover and nestedness), though they are not modeled here.
+Bray-Curtis dissimilarity increased consistently across all systems within each season (Year:System interaction term for summer *p* = `r scales::pvalue(as.data.frame(betaSummerSummaryANC$p.value)[3,])` and winter *p* = `r scales::pvalue(as.data.frame(betaWinterSummaryANC$p.value)[3,])`). The rate of increase in dissimilarity during winter was `r format(as.data.frame(betaWinterSummaryANC_final$estimate)[2,], digits = 1)`yr^-1^ ± `r format(betaWinterSummaryANC_final[2,]$std.error, digits = 1)` which was nearly twice that during summer (`r format(as.data.frame(betaSummerSummaryANC_final$estimate)[2,], digits = 1)`yr^-1^ ± `r format(betaSummerSummaryANC_final[2,]$std.error, digits = 1)`; @tbl-betaTrends; @fig-betadiversity). In addition, during winter, particularly in the northern estuaries (Apalachicola Bay and Cedar Key), there appears to be higher variability in the years after 2010 ([@fig-betadiversity]). Within dissimilarity overall, there were clear variations in the underlying components of beta diversity (turnover and nestedness), though they are not modeled here.
 
 ```{r}
 #| label: tbl-betaTrends
@@ -1113,7 +1113,7 @@ winterdf <- tidy(winterfAbundPERM) %>%
   mutate(Season = "Winter")
 ```
 
-PERMANOVAs indicated assemblage composition and abundance stability varied differently over time among systems due to a significant interactive effect between year and system (Year:System interaction term for summer *p* = `r scales::pvalue(summerdf$p.value[3])` and winter *p* = `r scales::pvalue(winterdf$p.value[3])`; [@tbl-fullPERMANOVA]). Therefore, separate CAP ordinations were conducted for each system within each season (*sensu* @Peake2022).
+PERMANOVAs indicated assemblage composition and abundance varied differently over time among systems due to a significant interactive effect between year and system (Year:System interaction term for summer *p* = `r scales::pvalue(summerdf$p.value[3])` and winter *p* = `r scales::pvalue(winterdf$p.value[3])`; [@tbl-fullPERMANOVA]). Therefore, separate CAP ordinations were conducted for each system within each season (*sensu* [@Peake2022]).
 
 ```{r}
 #| label: tbl-fullPERMANOVA
@@ -1763,9 +1763,15 @@ for (i in seasysKey){
 
 # Discussion {#sec-discussion}
 
+Within the context of ever-changing environmental parameters, it is somewhat surprising how stable these estuarine systems seem to be at the community level. Water temperatures are increasing in all systems at rates aligned with previous work characterizing the global phenomenon of estuarine warming (rates of 0.015 to 0.2°C yr^−1^ per [@bashevkin2022]). Total richness is largely unchanged across all systems. This is somewhat expected, given work by [@Dornelas2019], where winners and losers are generally balanced among ecosystems globally. However, this does not capture the full story. Within total richness, the individual taxa at play are indeed changing. For summer, this is very well balanced. In winter in these systems, there is less of a balance.
+
+SAV is all over the place... and total abundance dynamics are quite complex. TB summer increasing. AB winter decreasing. Temp not sig in summer. Temp mostly sig in winter (not CK) - warmer = more critters. SAV mostly sig across the board (not CK). Positive for all cases EXCEPT AB winter ... more SAV = less critters. This is odd.
+
+AB winter seeing a decrease, while temp is increasing and temp is positively correlated. SAV is not changing though and more SAV means less critters. Hm.
+
 ## Habitat Dynamics
 
-Water temperature increase in winter in line with global rate. Summer not so much. Maybe that is a Florida thing? From previous studies, we know that estuarine warming is a global phenomenon with rates ranging from 0.015 to 0.2°C yr^−1^ (Preston [2004](https://aslopubs.onlinelibrary.wiley.com/doi/full/10.1002/lno.12057#lno12057-bib-0055); Seekell and Pace [2011](https://aslopubs.onlinelibrary.wiley.com/doi/full/10.1002/lno.12057#lno12057-bib-0058); Fulweiler et al. [2015](https://aslopubs.onlinelibrary.wiley.com/doi/full/10.1002/lno.12057#lno12057-bib-0029); Scanes et al. [2020](https://aslopubs.onlinelibrary.wiley.com/doi/full/10.1002/lno.12057#lno12057-bib-0057)). Per [@bashevkin2022].
+Rate of increase in winter being so much higher is interesting. Is this in line with global stuff?
 
 SAV all over the place... needs qualified. No change in AB is kind of unexpected.
 
@@ -1775,11 +1781,13 @@ Overall, CK may have some other dynamics going on and was not well captured.
 
 The faunal dynamics... total richness remaining unchanged is interesting. Aligns with winners/losers being well balanced at the system level. Within season, it makes sense to see more change in winter given the general trend of stability observed in the habitat dynamics for summer. Abundance data changing a lot is not surprising.
 
-CAP ordinations suggest most change happens gradually. Cedar Key again shows up as an outlier... and has a distinct separation between groups of years. Similar in RDA, but difference is in spread of points (CK is broad).
+More species changing positively in winter maybe is a sign of more species invading? Overall percentage of change is not really different compared to summer.
 
-Loss of Spot over time is interesting. Spot plot? Larval supply issues? Lots more to explore beyond scope of the project.
+CAP ordinations suggest most change happens gradually. Cedar Key again shows up as an outlier... and has a distinct separation between groups of years (summer pre/post 2010). Maybe this is the cold snap/extreme heat and legacy effects? Similar in RDA, but difference is in spread of points (CK is broad).
 
-Other taxa changes could be more specific. Need to look for commonalities.
+Loss of Spot over time is interesting. Spot plot? Larval supply issues? Lots more to explore beyond scope of the project. Does not show up in univariate plots except for AB.
+
+Other taxa changes could be more specific. Need to look for commonalities -\> No single taxa sig change for all systems in either season... at least univariate.
 
 # Conclusion {#sec-conclusion}
 
