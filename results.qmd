@@ -13,6 +13,7 @@ format:
     toc: true
     toc-location: left
     toc-expand: true
+    mainfont: Times New Roman
   docx:
     toc: true
     fig-format: svg
@@ -46,7 +47,7 @@ library(pander)
 library(pixiedust) #for model output formats
 library(emmeans)
 library(viridis)
-
+library(ggplot2)
 library(flextable)
 library(officedown)
 library(kableExtra)
@@ -54,6 +55,7 @@ library(kableExtra)
 Sys.setenv(FISHBASE_API="sealifebase")
 #knitr::opts_chunk$set(echo = FALSE, ft.keepnext = F)
 #knitr::opts_chunk$set(echo = TRUE)
+  
 
 # set_flextable_defaults(
 #   font.size = 12,
@@ -85,13 +87,13 @@ This study used data collected by the Florida Fish and Wildlife Research Institu
 
 ![Locations of all estuaries in this study.](conceptFigs/FIMsystems.png){#fig-FIMsystems}
 
-Within each estuary, sampling was divided into zones (subdivided into 1-nm^2^ grids) based on geographic, habitat, and depth criteria [@FWRIFloridaFishandWildlifeResearchInstitute2017]. These criteria defined which of three different types of gear were used to collect organisms. For this study, only the 21.3-m seine net data were considered, because it was used the longest and most consistently throughout the study period. Specifically, this gear targeted young-of-year and juvenile fishes in shallow habitats (≤1.8-m deep). For every net deployment, all vertebrates and select commercially important invertebrates were counted and identified to the lowest practical taxonomic level (typically species). This study used all available seine data from 1998 to 2020. Further, each seine haul was categorized by season, with summer defined as June-September and winter as December-March, following Schrandt and MacDonald [-@Schrandt2020]. Due to the similarity in appearance, and thus difficulty for *in situ* species-level identification, certain taxa were aggregated at the genus level to reduce potential effects of misidentification ([@tbl-diffID]). A visual estimate of the submerged aquatic vegetation coverage was recorded for each sampling event. Finally, a YSI sonde was used to record water temperature at the surface of the water and at the bottom during each sampling event. Given the shallow sampling environment, these values were averaged to calculate a singular mean water column temperature.
+Within each estuary, sampling was divided into zones (subdivided into 1-nm^2^ grids) based on geographic, habitat, and depth criteria [@FWRIFloridaFishandWildlifeResearchInstitute2017]. These criteria defined which of three different types of gear were used to collect organisms. For this study, only the 21.3-m seine net data were considered, because it was used the longest and most consistently throughout the study period. Specifically, this gear targeted young-of-year and juvenile fishes in shallow habitats (≤1.8-m deep). For every net deployment, all vertebrates and select commercially important invertebrates were counted and identified to the lowest practical taxonomic level (typically species). This study used all available seine data from 1998 to 2020. Further, each seine haul was categorized by season, with summer defined as June-September and winter as December-March, following Schrandt and MacDonald [-@Schrandt2020]. Due to the similarity in appearance, and thus difficulty for *in situ* species-level identification, certain taxa were aggregated at the genus level to reduce potential effects of misidentification ([@tbl-diffID]). A visual estimate of the submerged aquatic vegetation coverage was recorded for each sampling event. Finally, a YSI sonde was used to record water temperature at the surface of the water and the bottom during each sampling event. Given the shallow sampling environment, these values were averaged to calculate a singular mean water column temperature.
 
 ```{r}
 #| label: tbl-diffID
 #| echo: FALSE
 #| message: FALSE
-#| tbl-cap: "Taxa that were difficult to identify in the field"
+#| tbl-cap: "Taxa that were difficult to identify in the field and subsequently aggregated at the genus level to reduce misidentification effects."
 diffTaxa <- read.csv(file = "conceptFigs/diffIDTaxa.csv") %>%
   mutate(Genus = ifelse(Genus == "", NA, Genus)) %>%
   fill(Genus)
@@ -101,7 +103,9 @@ taxaFT <- flextable(diffTaxa) %>%
   paginate(init = TRUE, hdr_ftr = TRUE) %>%
   italic(part = "body") %>%
   autofit() %>%
-  theme_vanilla()
+  theme_vanilla() %>%
+  font(part = "all",
+       fontname = "Times New Roman")
 
 # taxaFT <- diffTaxa %>%
 #   kbl() %>%
@@ -237,15 +241,15 @@ summerBVCSummaryANC <- tidy(summerBVCLm)
 
 ## Data Analyses {#sec-data-analyses}
 
-I conducted all analyses using the R Statistical Computing Environment v4.3.0 with an alpha of 0.05 for all significance testing [@R2023]. To address if water temperature and SAV have changed over time in eGOM estuaries, I used Analysis of Covariance (ANCOVA) models for summer and winter seasons, independently, with year as a continuous predictor and estuarine system as a categorical predictor (fixed, 4 levels: Apalachicola Bay, Cedar Key, Tampa Bay, Charlotte Harbor) plus their interaction. Each model included either the mean annual water temperature or percent SAV coverage for each season as responses. Prior to this analysis, we removed any outlier data from years in which temperatures were anomalously higher or lower than the long-term average (e.g. winter of 2010; [@stith2012]). I performed post-hoc contrasts for any significant terms in these ANCOVA models to determine the magnitude of any specific differences in means across systems using the *emmeans* package and used the Tukey method for *p*-value correction [@emmeans]. For any ANCOVA models with a significant interaction between year and system, I separated the model into independent linear models for each system and season combination. If the interaction between year and system was insignificant, I then dropped the interaction term and reran the model without it.
+I conducted all analyses using the R Statistical Computing Environment v4.3.0 with an alpha of 0.05 for all significance testing [@R2023]. To address if water temperature and SAV have changed over time in eGOM estuaries, I used Analysis of Covariance (ANCOVA) models for summer and winter seasons, independently, with year as a continuous predictor and estuarine system as a categorical predictor (fixed, 4 levels: Apalachicola Bay, Cedar Key, Tampa Bay, Charlotte Harbor) plus their interaction. Each model included either the mean annual water temperature or percent SAV coverage for each season as responses. Prior to this analysis, I removed any outlier data from years in which temperatures were anomalously higher or lower than the long-term average (e.g. winter of 2010; [@stith2012]). I performed post-hoc contrasts for any significant terms in these ANCOVA models to determine the magnitude of any specific differences in means across systems using the *emmeans* package and used the Tukey method for *p*-value correction [@emmeans]. For any ANCOVA models with a significant interaction between year and system, I separated the model into independent linear models for each system and season combination. If the interaction between year and system was insignificant, I then dropped the interaction term and reran the model without it.
 
 To address if the richness and abundance of fishes within eGOM estuarine faunal assemblages has changed over the study period and assess the effects of water temperature on these assemblages, I modeled total richness and total abundance per haul across all estuaries for both the summer and winter seasons using generalized linear mixed models (GLMMs) from the R package *glmmTMB* [@glmmTMB]. Given the well-documented seasonal differences in estuarine systems [see @Hagan2003; @Strydom2015; @Schrandt2020], in this and all subsequent analyses, I separately analyzed summer and winter. For each seine haul, I calculated the richness as the number of taxa present and total abundance as the sum of all individuals counted. For each model, the response in the GLMM included either the total richness or transformed total abundance of each haul, with estuary (fixed, 4 levels: Apalachicola Bay, Cedar Key, Tampa Bay, Charlotte Harbor), year (fixed, continuous; including the interaction), water temperature (fixed, continuous), and percent SAV coverage (fixed, continuous) as predictors. I applied z-score transformation to water temperature and percent SAV coverage to enable relative effect sizes comparisons. A covariance matrix was included in each model to account for serial autocorrelation and was calculated from month of sampling event and within-estuary zone. Given that species richness is strongly affected by sampling effort [@Mittelbach2019], I included an offset term to account for variation in the number of seine hauls. Thus, the formula used for each was: `response ~ year * system + temp_Z + sav_Z + offset(log(n_hauls)) + ar1(yearMonth + 0|systemZone)` where `response` was either total richness or total abundance per haul. The package *emmeans* was again used for post-hoc contrasts of means and the Tukey method was used for *p*-value correction [@emmeans]. For any GLMMs with a significant interaction between year and system, I separated the model into independent linear models for each system and season combination. If the interaction between year and system was insignificant, I then dropped the interaction term and reran the model without it.
 
-To examine the composition and stability of eGOM estuarine fish assemblages over time, I started with a univariate approach using the R package *betapart* to calculate Bray-Curtis dissimilarity over time with respect to the first year of available data and modeled this with ANCOVA using the formula `beta diversity index ~ year + system + year:system` [@betapart]. For any ANCOVAs with a significant interaction between year and system, I separated the model into independent linear models for each system and season combination. If the interaction between year and system was insignificant, I dropped the interaction term and reran the model without it. I then used permutational multivariate analysis of variance (PERMANOVA) from the R package *vegan to* evaluate the interactive effect of estuary (fixed, four levels) and year (fixed, continuous) within season on the fourth-root transformed taxon abundances [@vegan]. I then followed up with canonical analysis of principal coordinates (CAP) ordinations using the R package *BiodiversityR* to visualize differences among the levels of any fixed effect categorical terms deemed significant by the PERMANOVA models (*sensu* [@Peake2022]; [@BiodiversityR]). In addition, I included taxon biplot correlation vectors in these CAP ordinations to better visualize which taxa contributed to any observed differences. Vector lengths were calculated by applying Pythagorean theorem to the first two axis scores for each taxon. To explore the effects of water temperature and SAV coverage on the relative abundances of the different taxa, I performed distance-based redundancy analysis (dbRDA) using the R package *vegan* [@vegan]. In all calculations, I used fourth-root transformation to reduce the effects of overly abundant taxa and square-root transformed Bray-Curtis dissimilarity matrices to eliminate negative eigenvalues [@Legendre1999].
+To examine the composition and stability of eGOM estuarine fish assemblages over time, I started with a univariate approach using the R package *betapart* to calculate Bray-Curtis dissimilarity over time with respect to the first year of available data and modeled this with ANCOVA using the formula `beta diversity index ~ year + system + year:system` [@betapart]. For any ANCOVAs with a significant interaction between year and system, I separated the model into independent linear models for each system and season combination. If the interaction between year and system was insignificant, I dropped the interaction term and reran the model without it. I then used permutational multivariate analysis of variance (PERMANOVA) from the R package *vegan to* evaluate the interactive effect of estuary (fixed, four levels) and year (fixed, continuous) within season on the fourth-root transformed taxon abundances [@vegan]. I then followed up with canonical analysis of principal coordinates (CAP) ordinations using the R package *BiodiversityR* to visualize differences among the levels of any fixed effect categorical terms deemed significant by the PERMANOVA models (*sensu* [@Peake2022]; [@BiodiversityR]). In addition, I included taxon biplot correlation vectors in these CAP ordinations to better visualize which taxa contributed to any observed differences. Vector lengths were calculated by applying the Pythagorean theorem to the first two axis scores for each taxon. To explore the effects of water temperature and SAV coverage on the relative abundances of the different taxa, I performed distance-based redundancy analysis (dbRDA) using the R package *vegan* [@vegan]. In all calculations, I used fourth-root transformation to reduce the effects of overly abundant taxa and square-root transformed Bray-Curtis dissimilarity matrices to eliminate negative eigenvalues [@Legendre1999].
 
-Finally, to assess the balance of individual taxa increasing and decreasing in abundance over time I used a univariate approach following Dornelas et al. [-@Dornelas2019]. Within each estuary and season, I ran a linear model on the fourth-root transformed abundance of each taxon independently over time to determine both the magnitude and direction of change at the taxa level. I binned these rates of change to construct histograms displaying the distribution and magnitude of taxa rates of change. I followed up on these analyses to examine whether there were patterns in the climatology of any taxa that underwent significant change. I pulled climatological association data from Fishbase using *rfishbase* and created plots of the distributions of climatological association groups [@rfishbase]. Unless otherwise indicated, values from all analyses were reported as mean ± SE and plots were generated with packages *ggplot2* and *patchwork* [@ggplot2; @patchwork].
+Finally, to assess the balance of individual taxa increasing and decreasing in abundance over time I used a univariate approach following Dornelas et al. [-@Dornelas2019]. Within each estuary and season, I ran a linear model on the fourth-root transformed abundance of each taxon independently over time to determine both the magnitude and direction of change at the taxa level. I binned these rates of change to construct histograms displaying the distribution and magnitude of taxa rates of change. I followed up on these analyses to examine whether there were patterns in the climatology of any taxa that underwent significant change. I pulled climatological association data from FishBase using *rfishbase* and created plots of the distributions of climatological association groups [@rfishbase]. Unless otherwise indicated, values from all analyses were reported as mean ± SE and plots were generated with packages *ggplot2* and *patchwork* [@ggplot2; @patchwork].
 
-In total, 17,492 sampling events occurred where at least one taxon was caught and counted during summer and winter in any of the four estuaries. For seven sampling events, water temperature data were unavailable and thus excluded from the analyses. Further, hauls that were composed solely of rare species (taxa found in ≤5% of all samples for that system and season) were removed from the analyses which reduced the sample count down to `r format(nrow(SXS_filtered), big.mark=",")`. Overall, `r ncol(SXS_filtered_spp)` taxa were recorded in the dataset over `r max(as.numeric(as.character(waterBVC_full$seasonYear)))-min(as.numeric(as.character(waterBVC_full$seasonYear)))+1` years of collections.
+In total, 17,492 sampling events occurred where at least one taxon was caught and counted during summer and winter in any of the four estuaries. For seven sampling events, water temperature data were unavailable and thus excluded from the analyses. Further, hauls that were composed solely of rare species (taxa found in ≤5% of all samples for that system and season) were removed from the analyses which reduced the sample count to `r format(nrow(SXS_filtered), big.mark=",")`. Overall, `r ncol(SXS_filtered_spp)` taxa were recorded in the dataset over `r max(as.numeric(as.character(waterBVC_full$seasonYear)))-min(as.numeric(as.character(waterBVC_full$seasonYear)))+1` years of collections.
 
 # Results {#sec-results .unnumbered}
 
@@ -348,7 +352,7 @@ During the 23-year study period, water temperature increased consistently across
 #| label: tbl-tempMeans
 #| echo: FALSE 
 #| message: FALSE 
-#| tbl-cap: "Least square means of each system for both seasonal linear models." 
+#| tbl-cap: "Least square means of water temperature in each system for both seasonal linear models." 
 
 tempMeanOut <- as.data.frame(summary(summerMeansLm$lsmeans)) %>%
   mutate(Season = "Summer", .before = system) %>%
@@ -365,7 +369,9 @@ tempMeanOut <- as.data.frame(summary(summerMeansLm$lsmeans)) %>%
     SE = "Standard error") %>%
   paginate(init = TRUE, hdr_ftr = TRUE) %>%
   autofit() %>%
-  theme_vanilla()
+  theme_vanilla() %>%
+  font(part = "all",
+       fontname = "Times New Roman")
   
 tempMeanOut
 ```
@@ -423,7 +429,8 @@ summerTempPred <- predict(summerFinal)
     )) +
     theme(
       legend.position = "bottom"
-    ))
+    )) +
+  theme(text = element_text(family = 'serif'))
 ```
 
 ### Submerged Aquatic Vegetation
@@ -434,7 +441,7 @@ The dynamics of SAV differed across systems within each season (Year:System inte
 #| label: tbl-bvcAncova 
 #| echo: FALSE 
 #| message: FALSE 
-#| tbl-cap: "Slopes of SAV change over time for all independent linear models." 
+#| tbl-cap: "Slopes of SAV change over time for all independent linear models. Bold rows highlight terms where *p* < 0.05." 
 
 # pander(summerSummary)
 # pander(winterSummary)
@@ -491,7 +498,9 @@ bvcANCOVAft <- fullBVC %>%
   bold(~ p.value <0.05, c(2:6)) %>%
   paginate(init = TRUE, hdr_ftr = TRUE) %>%
   autofit() %>%
-  theme_vanilla()
+  theme_vanilla() %>%
+  font(part = "all",
+       fontname = "Times New Roman")
 
 bvcANCOVAft
 ```
@@ -500,7 +509,7 @@ bvcANCOVAft
 #| label: tbl-bvcMeans
 #| echo: FALSE 
 #| message: FALSE 
-#| tbl-cap: "Least square means of each system for both seasonal linear models." 
+#| tbl-cap: "Least square means of SAV in each system for both seasonal linear models." 
 
 bvcMeanOut <- as.data.frame(summary(summerSummaryBVCAll$lsmeans)) %>%
   mutate(Season = "Summer", .before = system) %>%
@@ -516,7 +525,9 @@ bvcMeanOut <- as.data.frame(summary(summerSummaryBVCAll$lsmeans)) %>%
     SE = "Standard error") %>%
   paginate(init = TRUE, hdr_ftr = TRUE) %>%
   autofit() %>%
-  theme_vanilla()
+  theme_vanilla() %>%
+  font(part = "all",
+       fontname = "Times New Roman")
   
 bvcMeanOut
 
@@ -597,7 +608,8 @@ levels(summerBVC$system)[levels(summerBVC$system)=="AP"] <- "AB"
     )) +
     theme(
       legend.position = "bottom"
-    ))
+    )) +
+  theme(text = element_text(family = 'serif'))
 ```
 
 ## Assemblage Structure: Patterns and Dynamics {#sec-community-data}
@@ -664,7 +676,7 @@ Total abundance of fauna was generally higher (mean total abundance `r format(ab
 #| message: FALSE
 #| fig-width: 6.5
 #| fig-height: 4
-#| fig-cap: "Mean total abundance (fourth-root transformed) over time. Error bars represent ± 1 standard error."
+#| fig-cap: "Mean total faunal abundance (fourth-root transformed) over time. Error bars represent ± 1 standard error."
 
 plot(AbundPlot_ann +
        facet_grid(season~system,
@@ -672,14 +684,15 @@ plot(AbundPlot_ann +
                  season = c(`summer` = "Summer", `winter` = "Winter"),
                  system = c(`AP` = "AB", `CK` = "CK", `TB` = "TB", `CH` = "CH")
                )) +
-       scale_x_continuous(breaks=seq(2000,2020,10)))
+       scale_x_continuous(breaks=seq(2000,2020,10)) +
+  theme(text = element_text(family = 'serif')))
 ```
 
 ```{r}
 #| label: tbl-abundModels
 #| echo: FALSE
 #| message: FALSE
-#| tbl-cap: "Coefficients of terms in total abundance GLMMs. Bold rows highlight terms where *p* < 0.05."
+#| tbl-cap: "Coefficients of terms in total faunal abundance GLMMs. Bold rows highlight terms where *p* < 0.05."
 
 abMeanOut <- abundOutTidy %>%
   mutate(System = fct_recode(System, "AB" = "AP")) %>%
@@ -705,7 +718,9 @@ abMeanOut <- abundOutTidy %>%
   bold(~ p.value <0.05, c(3:7)) %>%
   paginate(init = TRUE, hdr_ftr = TRUE) %>%
   autofit() %>%
-  theme_vanilla()
+  theme_vanilla() %>%
+  font(part = "all",
+       fontname = "Times New Roman")
   
 abMeanOut
 ```
@@ -757,7 +772,7 @@ richFinalTidy <- broom.mixed::tidy(glmmOutRS_final, effects = "fixed") %>%
   select(Season, term, estimate, std.error, statistic, p.value)
 ```
 
-Mean total richness in winter (`r format(nStats[2,]$meanN, digits = 2)` ±`r format(nStats[2,]$seN, digits = 2)`) was consistently lower for each estuary than in the summer (`r format(nStats[1,]$meanN, digits = 2)` ±`r format(nStats[1,]$seN, digits = 2)`; [@fig-NPlot]). The initial richness GLMMs for each season had no significant Year:System interaction term in either model, therefore, I dropped this interaction term from the final models (*p* = `r scales::pvalue(min(richFullInteraction$p.value))` - `r scales::pvalue(max(richFullInteraction$p.value))`). The revised GLMMs revealed that total richness did not change during either summer or winter (summer *p* = `r scales::pvalue(richFinalTidy[richFinalTidy$term=="smallYear"&richFinalTidy$Season=="Summer",]$p.value)` and winter *p* = `r scales::pvalue(richFinalTidy[richFinalTidy$term=="smallYear"&richFinalTidy$Season=="Winter",]$p.value)`; @tbl-richGLMMs). Further, total richness in summer was not related to water temperature (*p* = `r scales::pvalue(min(richFinalTidy[richFinalTidy$term=="temp_Z"&richFinalTidy$Season=="Summer",]$p.value))`; @tbl-richGLMMs) and was positively related to SAV coverage for all systems (*p* = `r scales::pvalue(min(richFinalTidy[richFinalTidy$term=="bvc_Z"&richFinalTidy$Season=="Summer",]$p.value))`; @tbl-richGLMMs). In contrast, total richness in winter was positively related to water temperature for all systems (*p* = `r scales::pvalue(min(richFinalTidy[richFinalTidy$term=="temp_Z"&richFinalTidy$Season=="Winter",]$p.value))`; @tbl-richGLMMs). However, as during summer, total richness was positively related to SAV coverage for all systems (*p* = `r scales::pvalue(min(richFinalTidy[richFinalTidy$term=="bvc_Z"&richFinalTidy$Season=="Summer",]$p.value))`; @tbl-richGLMMs).
+Mean total richness in winter (`r format(nStats[2,]$meanN, digits = 2)` ±`r format(nStats[2,]$seN, digits = 2)`) was consistently lower for each estuary than in the summer (`r format(nStats[1,]$meanN, digits = 2)` ±`r format(nStats[1,]$seN, digits = 2)`; [@fig-NPlot]). The initial richness GLMMs for each season had no significant Year:System interaction term in either model (*p* = `r scales::pvalue(min(richFullInteraction$p.value))` - `r scales::pvalue(max(richFullInteraction$p.value))`), therefore, I dropped this interaction term from the final models. The revised GLMMs revealed that total richness did not change during either summer or winter (summer *p* = `r scales::pvalue(richFinalTidy[richFinalTidy$term=="smallYear"&richFinalTidy$Season=="Summer",]$p.value)` and winter *p* = `r scales::pvalue(richFinalTidy[richFinalTidy$term=="smallYear"&richFinalTidy$Season=="Winter",]$p.value)`; @tbl-richGLMMs). Further, total richness in summer was not related to water temperature (*p* = `r scales::pvalue(min(richFinalTidy[richFinalTidy$term=="temp_Z"&richFinalTidy$Season=="Summer",]$p.value))`; @tbl-richGLMMs) and was positively related to SAV coverage for all systems (*p* = `r scales::pvalue(min(richFinalTidy[richFinalTidy$term=="bvc_Z"&richFinalTidy$Season=="Summer",]$p.value))`; @tbl-richGLMMs). In contrast, total richness in winter was positively related to water temperature for all systems (*p* = `r scales::pvalue(min(richFinalTidy[richFinalTidy$term=="temp_Z"&richFinalTidy$Season=="Winter",]$p.value))`; @tbl-richGLMMs). However, as during summer, total richness was positively related to SAV coverage for all systems (*p* = `r scales::pvalue(min(richFinalTidy[richFinalTidy$term=="bvc_Z"&richFinalTidy$Season=="Summer",]$p.value))`; @tbl-richGLMMs).
 
 ```{r}
 #| label: fig-NPlot
@@ -765,7 +780,7 @@ Mean total richness in winter (`r format(nStats[2,]$meanN, digits = 2)` ±`r for
 #| message: FALSE
 #| fig-width: 6.5
 #| fig-height: 4
-#| fig-cap: "Mean total richness over time. Error bars represent ± 1 standard error."
+#| fig-cap: "Mean total richness averaged annually. Error bars represent ± 1 standard error."
 
 # winterAbPred <- as.data.frame(predict(glmmOutRW)) %>%
 #   mutate(season = "winter")
@@ -778,14 +793,16 @@ plot(NPlot_ann +
                  season = c(`summer` = "Summer", `winter` = "Winter"),
                  system = c(`AP` = "AB", `CK` = "CK", `TB` = "TB", `CH` = "CH")
                )) +
-       scale_x_continuous(breaks=seq(2000,2020,10)))
+       labs(y = "Mean total richness per haul") +
+       scale_x_continuous(breaks=seq(2000,2020,10)) +
+  theme(text = element_text(family = 'serif')))
 ```
 
 ```{r}
 #| label: tbl-richGLMMs
 #| echo: FALSE
 #| message: FALSE
-#| tbl-cap: "Coefficients of terms in total richness GLMMs. Bold rows highlight terms where *p* < 0.05."
+#| tbl-cap: "Coefficients of terms in total faunal richness GLMMs. Bold rows highlight terms where *p* < 0.05."
 
 richMeanOut <- richFinalTidy %>%
   #mutate(Season = ifelse(is.na(Season), "Winter", Season)) %>%
@@ -806,7 +823,9 @@ richMeanOut <- richFinalTidy %>%
   bold(~ p.value <0.05, c(2:6)) %>%
   paginate(init = TRUE, hdr_ftr = TRUE) %>%
   autofit() %>%
-  theme_vanilla()
+  theme_vanilla() %>%
+  font(part = "all",
+       fontname = "Times New Roman")
   
 richMeanOut
 ```
@@ -862,13 +881,13 @@ betaSummerSummaryANC_final <- tidy(summary.lm(betaSummerLmFinal)) %>%
     mutate(Season = "Summer")
 ```
 
-Bray-Curtis dissimilarity increased consistently across all systems within each season (Year:System interaction term for summer *p* = `r scales::pvalue(as.data.frame(betaSummerSummaryANC$p.value)[3,])` and winter *p* = `r scales::pvalue(as.data.frame(betaWinterSummaryANC$p.value)[3,])`). The rate of increase in dissimilarity during winter was `r format(as.data.frame(betaWinterSummaryANC_final$estimate)[2,], digits = 1)`yr^-1^ ± `r format(betaWinterSummaryANC_final[2,]$std.error, digits = 1)` which was nearly twice that during summer (`r format(as.data.frame(betaSummerSummaryANC_final$estimate)[2,], digits = 1)`yr^-1^ ± `r format(betaSummerSummaryANC_final[2,]$std.error, digits = 1)`; @tbl-betaTrends; @fig-betadiversity). In addition, during winter, particularly in the northern estuaries (Apalachicola Bay and Cedar Key), there appears to be higher variability in the years after 2010 ([@fig-betadiversity]). Within dissimilarity overall, there were clear variations in the underlying components of beta diversity (turnover and nestedness), though they are not modeled here.
+Bray-Curtis dissimilarity of species composition increased consistently across all systems within each season (Year:System interaction term for summer *p* = `r scales::pvalue(as.data.frame(betaSummerSummaryANC$p.value)[3,])` and winter *p* = `r scales::pvalue(as.data.frame(betaWinterSummaryANC$p.value)[3,])`). The rate of increase in dissimilarity during winter was `r format(as.data.frame(betaWinterSummaryANC_final$estimate)[2,], digits = 1)`yr^-1^ ± `r format(betaWinterSummaryANC_final[2,]$std.error, digits = 1)` which was nearly twice that during summer (`r format(as.data.frame(betaSummerSummaryANC_final$estimate)[2,], digits = 1)`yr^-1^ ± `r format(betaSummerSummaryANC_final[2,]$std.error, digits = 1)`; @tbl-betaTrends; @fig-betadiversity). In addition, during winter, particularly in the northern estuaries (Apalachicola Bay and Cedar Key), there appears to be higher variability in the years after 2010 ([@fig-betadiversity]). Within dissimilarity overall, there were clear variations in the underlying components of beta diversity (turnover and nestedness), though they are not modeled here.
 
 ```{r}
 #| label: tbl-betaTrends
 #| echo: FALSE
 #| message: FALSE
-#| tbl-cap: "ANCOVA model outputs for betadiversity indices over time. Bold values are significant at alpha 0.05."
+#| tbl-cap: "ANCOVA model outputs for betadiversity indices over time. Bold values are statistically significant at alpha 0.05."
 
 betaTrendOut <- as.data.frame(betaSummerSummaryANC_final) %>%
   full_join(as.data.frame(betaWinterSummaryANC_final)) %>%
@@ -889,7 +908,9 @@ betaTrendOut <- as.data.frame(betaSummerSummaryANC_final) %>%
   bold(~ p.value <0.05, c(2:6)) %>%
   paginate(init = TRUE, hdr_ftr = TRUE) %>%
   autofit() %>%
-  theme_vanilla()
+  theme_vanilla() %>%
+  font(part = "all",
+       fontname = "Times New Roman")
   
 betaTrendOut
 ```
@@ -946,7 +967,8 @@ levels(betaTimeDF$Index)[levels(betaTimeDF$Index)=="Gradient"] <- "Nestedness"
   theme_bw() +
   theme(legend.position="bottom",
         axis.text.x = element_text(size = 7))) +
-       scale_x_continuous(breaks=seq(2000,2020,10))
+       scale_x_continuous(breaks=seq(2000,2020,10)) +
+  theme(text = element_text(family = 'serif'))
 ```
 
 ```{r}
@@ -1067,6 +1089,7 @@ for(i in plotOrder$systemSeason){
                            ),
                      size          = 2.5,
                      force         = 0.1,
+                     family = 'serif',
                      alpha         = 0.8,
                      fontface      = "bold",
                      label.padding = 0.25,
@@ -1082,7 +1105,8 @@ for(i in plotOrder$systemSeason){
     guides(fill = guide_legend(override.aes = list(size = 2.5),
                                keyheight    = 0.15,
                                keywidth     = 0.2,
-                               title = "Year"))
+                               title = "Year")) +
+  theme(text = element_text(family = 'serif'))
   
   if(i == "AP_summer"){
     plotsforAll[[i]] <- plotsforAll[[i]] + labs(title = paste0("AB_summer", " ", round((RsquareAdj(RDAsforAll[[i]]$rda)$adj.r.squared*100), 2), "%"))
@@ -1113,13 +1137,13 @@ winterdf <- tidy(winterfAbundPERM) %>%
   mutate(Season = "Winter")
 ```
 
-PERMANOVAs indicated assemblage composition and abundance varied differently over time among systems due to a significant interactive effect between year and system (Year:System interaction term for summer *p* = `r scales::pvalue(summerdf$p.value[3])` and winter *p* = `r scales::pvalue(winterdf$p.value[3])`; [@tbl-fullPERMANOVA]). Therefore, separate CAP ordinations were conducted for each system within each season (*sensu* [@Peake2022]).
+PERMANOVAs indicated assemblage composition and abundance varied differently over time among systems due to a significant interactive effect between year and system (Year:System interaction term for summer *p* = `r scales::pvalue(summerdf$p.value[3])` and winter *p* = `r scales::pvalue(winterdf$p.value[3])`; [@tbl-fullPERMANOVA]). Therefore, separate CAP ordinations were conducted for each system within each season [*sensu* @Peake2022].
 
 ```{r}
 #| label: tbl-fullPERMANOVA
 #| echo: FALSE
 #| message: FALSE
-#| tbl-cap: "Summary outputs from PERMANOVAs conducted for each season. Values in bold are significant at alpha 0.05."
+#| tbl-cap: "Summary outputs from assemblage composition and abundance PERMANOVAs conducted for each season. Values in bold are statistically significant at alpha 0.05."
 
 perms <- summerdf %>%
   full_join(winterdf) %>%
@@ -1138,7 +1162,9 @@ perms <- summerdf %>%
   bold(~ p.value <0.05, c(2:7)) %>%
   paginate(init = TRUE, hdr_ftr = TRUE) %>%
   autofit() %>%
-  theme_vanilla()
+  theme_vanilla() %>%
+  font(part = "all",
+       fontname = "Times New Roman")
 
 perms
 
@@ -1388,7 +1414,8 @@ for(i in CAPOrder$systemSeason){
                        label = Scientificname),
                    segment.alpha = 0,
                    size          = 2,
-                   color         = "blue",
+                   color         = "black",
+                   family = 'serif',
                    fontface      = "bold",
                    fill          = "white",
                    alpha         = 0.7,
@@ -1403,7 +1430,8 @@ for(i in CAPOrder$systemSeason){
     guides(fill = guide_legend(override.aes = list(size = 2.5),
                                keyheight    = 0.15,
                                keywidth     = 0.2,
-                               title = "Year"))
+                               title = "Year")) +
+  theme(text = element_text(family = 'serif'))
   
   if(i == "AP_summer"){
     centroidPlots[[i]] <- centroidPlots[[i]] + labs(title = paste0("AB_summer", " ", round(indf$allVar[1], 2), "%"))
@@ -1456,7 +1484,7 @@ for(i in CAPOrder$systemSeason){
 
 ```
 
-CAP ordinations revealed that in most systems and seasons, there was a steady progression from the earlier years of assemblage composition and abundance to the more recent years. This is evidenced by the small movement of the centroids of each year in a single general direction ([@fig-centroidCAP]). However, notable exceptions include Cedar Key summer, which appeared to have a distinct separation of two groups of years (pre- and post-2010) and Charlotte Harbor, which, for both seasons, has considerably more overlap among earlier and recent year centroids ([@fig-centroidCAP]). In terms of individual taxa identified by the CAPs, in winter, *Leiostomous xanthurus* was consistently identified as the taxa most associated with yearly assemblage differences and was mostly pointed toward the centroids of earlier year groups in the dataset ([@tbl-CAPtaxa];[@fig-centroidCAP]). This same phenomenon was observed in the summer data for both Tampa Bay and Apalachicola Bay. For the apparent separation in Cedar Key summer, the taxa most aligned with these opposing groups are shrimps in the genus *Farfantepenaeus* ([@fig-centroidCAP]). Overall, the range of variability described by the CAP models was `r paste0(round(min(topSpp$percent),2), "%")` to `r paste0(round(max(topSpp$percent),2), "%")`, indicating a large portion of the variability was not explained by the assemblage composition and abundances alone. Looking at the assemblage most associated with yearly differences, only five different taxa were selected as the top associated with yearly separation on the first two canonical axes for all system and season combinations ([@tbl-CAPtaxa]). Specifically, each system in summer has a different taxa associated with the greatest yearly separation, but in the winter, all systems are best separated on a yearly basis by *L. xanthurus* ([@tbl-CAPtaxa]).
+CAP ordinations revealed that in most systems and seasons, there was a steady progression from the earlier years of assemblage composition and abundance to the more recent years. This is evidenced by the small movement of the centroids of each year in a single general direction ([@fig-centroidCAP]). However, notable exceptions include Cedar Key summer, which appeared to have a distinct separation of two groups of years (pre- and post-2010) and Charlotte Harbor, which, for both seasons, has considerably more overlap among earlier and recent year centroids ([@fig-centroidCAP]). In terms of individual taxa identified by the CAPs, in winter, *Leiostomous xanthurus* was consistently identified as the taxa most associated with yearly assemblage differences and was mostly pointed toward the centroids of earlier year groups in the dataset ([@tbl-CAPtaxa]; [@fig-centroidCAP]). This same phenomenon was observed in the summer data for both Tampa Bay and Apalachicola Bay. For the apparent separation in Cedar Key summer, the taxa most aligned with these opposing groups are shrimps in the genus *Farfantepenaeus* ([@fig-centroidCAP]). Overall, the range of variability described by the CAP models was `r paste0(round(min(topSpp$percent),2), "%")` to `r paste0(round(max(topSpp$percent),2), "%")`, indicating a large portion of the variability was not explained by the assemblage composition and abundances alone. Looking at the assemblage most associated with yearly differences, only five different taxa were selected as the top associated with yearly separation on the first two canonical axes for all system and season combinations ([@tbl-CAPtaxa]). Specifically, each system in summer has a different taxon associated with the greatest yearly separation, but in the winter, all systems are best separated on a yearly basis by *L. xanthurus* ([@tbl-CAPtaxa]).
 
 ```{r}
 #| label: tbl-CAPtaxa
@@ -1483,7 +1511,9 @@ sysSppFT <- flextable(sysSppPrep) %>%
     mag = "Magnitude") %>%
   #colformat_double(j = 4, digits = 3) %>%
   autofit() %>%
-  theme_vanilla()
+  theme_vanilla() %>%
+  font(part = "all",
+       fontname = "Times New Roman")
 
 sysSppFT
 
@@ -1496,7 +1526,7 @@ sysSppFT
 #| warning: FALSE
 #| fig-width: 6.5
 #| fig-height: 7.25
-#| fig-cap: "Canonical analysis of principal coordinates ordination plots. Shading of markers indicates year for that group, with darker colors indicating centroids of the oldest years in the data and lighter colors indicating the most recent years. Percentages next to subplot title indicate total variability captured by the model. Top three taxa associated with canonical axes scores plotted as vectors. Canonical axis (CA) percentages indicate the among-group variation captured in each axis."
+#| fig-cap: "Canonical analysis of principal coordinates ordinations of assemblage composition and abundance. Shading of markers indicates year for that group, with darker colors indicating centroids of the oldest years in the data and lighter colors indicating the most recent years. Percentages next to subplot title indicate total variability captured by the model. Top three taxa associated with canonical axes scores plotted as vectors. Canonical axis (CA) percentages indicate the among-group variation captured in each axis."
 
 plot(centroidCAP)
 ```
@@ -1544,7 +1574,7 @@ ssGrouped <- sigSlopes_grouped %>%
 #| warning: FALSE
 #| fig-width: 6.5
 #| fig-height: 5
-#| fig-cap: "Density plots of slopes of taxa abundance over time. Dashed line indicates a slope of 0."
+#| fig-cap: "Density plots of slopes of all mean annual taxa abundances over time. Dashed line indicates a slope of 0. Includes slopes of no statistical significance."
 
 levels(SlopesForAllDF$system)[levels(SlopesForAllDF$system)=="AP"] <- "AB"
 
@@ -1568,19 +1598,20 @@ winLose <- ggplot(SlopesForAllDF,
   xlab("Raw linear slope") +
   ylab("Number of taxa") +
   theme_bw() +
-  theme(axis.text.x = element_text(angle = 45, vjust = 0.8, size = 7))
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.8, size = 7)) +
+  theme(text = element_text(family = 'serif'))
 
 winLose
 ```
 
-The majority of taxa did not exhibit significant changes in abundance over time, with a large group centered around zero in both summer and winter ([@fig-winnersLosers]). There was no difference in overall percentage of taxa changing between systems or seasons (*p* = `r scales::pvalue(sigSig$p.value)` - `r scales::pvalue(sigSigSys_tidy[1,]$p.value)`). However, the percentage of taxa changing negatively was greater in the summer than the winter (*t* = `r format(negSig$statistic, digits = 3)`, *p* = `r scales::pvalue(negSig$p.value)`; [@tbl-sigTaxa]).
+The majority of taxa did not exhibit significant changes in abundance over time (208 out of 299 taxa), with a large group centered around zero rate of abundance change in both summer and winter for all systems ([@fig-winnersLosers]). There was no difference in total percentage of taxa changing between systems or seasons (*p* = `r scales::pvalue(sigSig$p.value)` - `r scales::pvalue(sigSigSys_tidy[1,]$p.value)`). However, the percentage of taxa changing negatively was greater in the summer than in the winter (*t* = `r format(negSig$statistic, digits = 3)`, *p* = `r scales::pvalue(negSig$p.value)`; [@tbl-sigTaxa]).
 
 ```{r}
 #| label: tbl-sigTaxa
 #| echo: FALSE
 #| message: FALSE
 #| warning: FALSE
-#| tbl-cap: "Percent of observed taxa with significant changes in abundance over time as well as the split between positive and negative change within."
+#| tbl-cap: "Percent of observed taxa with statistically significant changes in abundance over time as well as the split between positive and negative change within."
 sigSumPrep <- sigSummaryPercent %>%
   group_by(season) %>%
   mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH"))) %>%
@@ -1604,13 +1635,15 @@ sigFT <- flextable(sigSumPrep) %>%
     posPercent = "Positive change",
     negPercent = "Negative change") %>%
   width(width = 1) %>%
-  theme_vanilla()
+  theme_vanilla() %>%
+  font(part = "all",
+       fontname = "Times New Roman")
 
 sigFT
 
 ```
 
-The majority of these taxa were either tropical/subtropical-associated or tropical/subtropical/temperate-associated and still experienced rather modest changes in abundance, while a few taxa had rates of change an order of magnitude greater than the majority ([@tbl-ecoSlopes]; [@fig-sigSlopes]).
+Overall, most taxa that had significant changes in abundance were either tropical/subtropical-associated or tropical/subtropical/temperate-associated and experienced rather modest changes, while a few taxa had rates of change an order of magnitude greater than the rest ([@tbl-ecoSlopes]; [@fig-sigSlopes]).
 
 ```{r}
 #| label: ecoSlopes prep
@@ -1690,7 +1723,7 @@ ecoTable <- sigEcoSlopesPos %>%
 #| echo: FALSE
 #| message: FALSE
 #| warning: FALSE
-#| tbl-cap: "Climatological associations of taxa that significantly changed. Percentages listed are calculated with respect to number of taxa with available climate data."
+#| tbl-cap: "Climatological associations of taxa that significantly changed over time. Percentages listed are calculated with respect to number of taxa with available climate data."
 
 ecoFT <- ecoTable %>%
   relocate(season, .before = system) %>%
@@ -1712,7 +1745,9 @@ ecoFT <- ecoTable %>%
     negPercent = "Negative change",
     tempLogic = "Climatology") %>%
   autofit() %>%
-  theme_vanilla()
+  theme_vanilla() %>%
+  font(part = "all",
+       fontname = "Times New Roman")
 
 ecoFT
 
@@ -1725,7 +1760,7 @@ ecoFT
 #| warning: FALSE
 #| fig-width: 6.5
 #| fig-height: 7.25
-#| fig-cap: "Slopes of taxa abundance over time plotted per estuary and season. Red indicates a negative change over time and blue indicates a positive change. The dashed line represents a slope of 0. Error bars represent ± 1 standard error. Numbers on *y*-axis correspond to individual taxa, see [@tbl-ssKey] for key."
+#| fig-cap: "Slopes of mean annual taxa abundance over time plotted per estuary and season. Red indicates a negative change over time and blue indicates a positive change. The dashed line represents a slope of 0. Error bars represent ± 1 standard error. Numbers on *y*-axis correspond to individual taxa, see [@tbl-ssKey] for key."
 
 #get unique list for the loop
 seasysKey <- unique(ssGrouped$systemSeason)
@@ -1755,7 +1790,8 @@ for (i in seasysKey){
           axis.text.y = element_text(size = 7)
     ) +
     #coord_cartesian(xlim = c(-.2, 0.2)) +
-    geom_vline(xintercept = 0, linetype="dashed")
+    geom_vline(xintercept = 0, linetype="dashed") +
+  theme(text = element_text(family = 'serif'))
 }
 
 (sigSlopesAllFree <- wrap_plots(sigPlotsFree, ncol = 2))
@@ -1763,7 +1799,7 @@ for (i in seasysKey){
 
 # Discussion {#sec-discussion}
 
-Within the context of ever-changing environmental parameters, it is somewhat surprising how stable these estuarine systems seem to be at the community level. Water temperatures are increasing in all systems at rates aligned with previous work characterizing the global phenomenon of estuarine warming (rates of 0.015 to 0.2°C yr^−1^ per [@bashevkin2022]). Total richness is largely unchanged across all systems. This is somewhat expected, given work by [@Dornelas2019], where winners and losers are generally balanced among ecosystems globally. However, this does not capture the full story. Within total richness, the individual taxa at play are indeed changing. For summer, this is very well balanced. In winter in these systems, there is less of a balance.
+Within the context of ever-changing environmental parameters, it is somewhat surprising how stable these estuarine systems seem to be at the community level. Water temperatures are increasing in all systems at rates aligned with previous work characterizing the global phenomenon of estuarine warming [rates of 0.015 to 0.2°C yr^−1^; per @bashevkin2022]. Total richness is largely unchanged across all systems. This is somewhat expected, given work by Dornelas et al., where winners and losers are generally balanced among ecosystems globally [-@Dornelas2019]. However, this does not capture the full story. Within total richness, the individual taxa at play are indeed changing. For summer, this is very well balanced. In winter in these systems, there is less of a balance.
 
 SAV is all over the place... and total abundance dynamics are quite complex. TB summer increasing. AB winter decreasing. Temp not sig in summer. Temp mostly sig in winter (not CK) - warmer = more critters. SAV mostly sig across the board (not CK). Positive for all cases EXCEPT AB winter ... more SAV = less critters. This is odd.
 
@@ -1814,7 +1850,9 @@ ssKey <- ssGrouped %>%
     Scientificname = "Scientific name",
     Scientificnumber = "Species ID key") %>%
   autofit() %>%
-  theme_vanilla()
+  theme_vanilla() %>%
+  font(part = "all",
+       fontname = "Times New Roman")
 
 ssKey
 ```
