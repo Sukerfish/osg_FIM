@@ -44,6 +44,15 @@ waterBVC_full <- SXS_filtered %>%
            remove = FALSE) %>%
   mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH")))
 
+sdCheck <- waterBVC_full %>%
+  ungroup() %>%
+  group_by(systemSeason) %>%
+  mutate(ltmTemp = mean(meanTemp),
+         ltmSDT = sd(meanTemp),
+         sdCheck = abs((ltmTemp-meanTemp)/ltmSDT)) %>%
+  select(seasonYear, ltmTemp, ltmSDT, sdCheck) %>%
+  arrange(sdCheck)
+
 SXAb <- SXS_filtered %>%
   select(!c(systemSeason, seasonYear, systemZone, BottomVegCover, Temperature)) %>%
   pivot_longer(cols = !c(Reference),
