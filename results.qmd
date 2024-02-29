@@ -989,7 +989,7 @@ levels(betaTimeDF$Index)[levels(betaTimeDF$Index)=="Gradient"] <- "Nestedness"
 #load("./Outputs/RDAsforAll_Z.RData")
 load("./Outputs/RDAsforAll_Y.RData")
 load('SXS_filtered.Rdata')
-RDAsforAll <- RDAsforAll_Z
+#RDAsforAll <- RDAsforAll_Z
 
 systemSeason_list <- SXS_filtered %>%
   select(systemSeason) %>%
