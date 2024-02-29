@@ -134,7 +134,7 @@ for(i in systemSeason_list$systemSeason){
   
   bf <- (vegdist(df_spe_filtered))^0.5 #Bray-Curtis w/ sqrt to reduce negative eigenvalues
   
-  PERM = adonis2(bf ~ contYear,
+  PERM = adonis2(bf ~ seasonYear,
                               data = df_env,
                 #strata = df_env$seasonYear,
                               #add = "lingoes",
@@ -151,4 +151,4 @@ PERMSforAllDF <- bind_rows(PERMSforAll, .id = "systemSeason") %>%
            sep = "_") %>%
   mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH")))
 
-#save(PERMSforAllDF, file = './Outputs/PERMSforALLDF.RData')
+#save(PERMSforAllDF, file = './Outputs/PERMSforALLDF_factor.RData')
