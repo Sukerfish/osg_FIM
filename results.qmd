@@ -986,7 +986,8 @@ levels(betaTimeDF$Index)[levels(betaTimeDF$Index)=="Gradient"] <- "Nestedness"
 ```{r}
 #| label: RDA
 #| include: FALSE
-load("./Outputs/RDAsforAll_Z.RData")
+#load("./Outputs/RDAsforAll_Z.RData")
+load("./Outputs/RDAsforAll_Y.RData")
 load('SXS_filtered.Rdata')
 RDAsforAll <- RDAsforAll_Z
 

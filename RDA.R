@@ -138,7 +138,7 @@ for(i in systemSeason_list$systemSeason){
   
   bf <- (vegdist(df_spe_filtered))^0.5 #Bray-Curtis w/ sqrt to reduce negative eigenvalues
   
-  rda = dbrda(bf ~ temp_Z + bvc_Z,
+  rda = dbrda(bf ~ seasonYear + temp_Z + bvc_Z,
                  data = df_env,
                  #strata = df_env$seasonYear,
                  #add = "lingoes",
@@ -154,7 +154,7 @@ for(i in systemSeason_list$systemSeason){
 }
 
 RDAsforAll_Z <- RDAsforAll
-#save(RDAsforAll_Z, file = "./Outputs/RDAsforAll_Z.RData")
+#save(RDAsforAll, file = "./Outputs/RDAsforAll_Y.RData")
 #load('RDAsforAll.Rdata')
 
 plotsforAll <- list()
