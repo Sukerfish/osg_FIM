@@ -1610,7 +1610,7 @@ winLose <- ggplot(SlopesForAllDF,
         season = c(`summer` = "Summer", `winter` = "Winter")
     )) +
   coord_cartesian(xlim = c(-0.05, 0.05)) +
-  xlab("Raw linear slope") +
+  xlab("Coefficients of change") +
   ylab("Number of taxa") +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 45, vjust = 0.8, size = 7)) +
@@ -1787,16 +1787,16 @@ for (i in seasysKey){
     filter(systemSeason == i)
   
   sigPlotsFree[[i]] <- ggplot(gf,
-         aes(y = reorder(Scientificnumber, raw_slope),
-             x = raw_slope)) + 
+         aes(y = reorder(Scientificnumber, slope, decreasing = TRUE),
+             x = slope)) + 
     geom_point(aes(color = as.factor(id_color))) +
     scale_color_manual(values = c("red","blue")) +
     facet_grid(~seaSys,
              scales = "free_y") +
-    geom_errorbarh(aes(xmin=(raw_slope + (-1*stderr)), xmax=(raw_slope + (1*stderr))),
+    geom_errorbarh(aes(xmin=(slope + (-1*stderr)), xmax=(slope + (1*stderr))),
                    color = "black") + #std err bars
     scale_x_continuous(trans = pseudolog10_trans) +
-    labs(x = "Raw slope") +
+    labs(x = "Coefficient of change") +
     #ggtitle("Change in density over time by group") + 
     theme_bw() +
     theme(legend.position = "none",
