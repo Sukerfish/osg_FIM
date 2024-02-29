@@ -243,7 +243,7 @@ summerBVCSummaryANC <- tidy(summerBVCLm)
 
 I conducted all analyses using the R Statistical Computing Environment v4.3.0 with an alpha of 0.05 for all significance testing [@R2023]. To address if water temperature and SAV have changed over time in eGOM estuarine systems, I used Analysis of Covariance (ANCOVA) models for summer and winter seasons, independently, with year as a continuous predictor and estuarine system as a categorical predictor (fixed, 4 levels: Apalachicola Bay, Cedar Key, Tampa Bay, Charlotte Harbor) plus their interaction. The formula used for each ANCOVA was thus:
 
-``` R
+``` r
 response ~ Year + System + Year:System
 ```
 
@@ -251,7 +251,7 @@ where response was either mean annual water temperature or mean annual percent S
 
 To address if the richness and abundance of fishes within eGOM estuarine faunal assemblages has changed over the study period and assess the effects of water temperature on these assemblages, I modeled total richness and total abundance per haul across all systems for both the summer and winter seasons using generalized linear mixed models (GLMMs) from the R package *glmmTMB* [@glmmTMB]. Given the well-documented seasonal differences in estuarine systems [see @Hagan2003; @Strydom2015; @Schrandt2020], in this and all subsequent analyses, I separately analyzed summer and winter. For each seine haul, I calculated the richness as the number of taxa present and total abundance as the sum of all individuals counted. For each model, the response in the GLMM included either the total richness or transformed total abundance of each haul, with system (fixed, 4 levels: Apalachicola Bay, Cedar Key, Tampa Bay, Charlotte Harbor), year (fixed, continuous; including the interaction), water temperature (fixed, continuous), and percent SAV coverage (fixed, continuous) as predictors. I applied z-score transformation to water temperature and percent SAV coverage to enable relative effect sizes comparisons. A covariance matrix was included in each model to account for serial autocorrelation and was calculated from month of sampling event and within-system zone. Given that species richness is strongly affected by sampling effort [@Mittelbach2019], I included an offset term to account for variation in the number of seine hauls. Thus, the formula used for each model was:
 
-``` R
+``` r
 response ~ Year + System + Year:System + Temp_Z + SAV_Z + offset(log(n_hauls)) + ar1(yearMonth + 0|systemZone)
 ```
 
@@ -1140,7 +1140,7 @@ RDAaxes <- bind_rows(RDAaxesVar, .id = "systemSeason")
 ```{r}
 #| label: PERMANOVA
 #| include: FALSE
-load("bigPERMANOVAs_cont.RData")
+load("bigPERMANOVAs.RData")
 
 summerdf <- tidy(summerfAbundPERM) %>%
   mutate(Season = "Summer")
@@ -1162,8 +1162,10 @@ perms <- summerdf %>%
   relocate(Season, .before = df) %>%
   relocate(term, .before = df) %>%
   mutate(term = ifelse(term == "contYear:system", "Year:System", term)) %>%
+  mutate(term = ifelse(term == "seasonYear:system", "Year:System", term)) %>%
   mutate(term = ifelse(term == "system", "System", term)) %>%
   mutate(term = ifelse(term == "contYear", "Year", term)) %>%
+  mutate(term = ifelse(term == "seasonYear", "Year", term)) %>%
   flextable(.) %>%
   merge_v(j = ~ Season) %>%
   colformat_double(j = c(4:7), digits = 3) %>%
