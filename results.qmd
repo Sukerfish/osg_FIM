@@ -1073,7 +1073,7 @@ for(i in plotOrder$systemSeason){
                        breaks       = c(-6,-1,0,1,6),
                        minor_breaks = NULL) +
     scale_y_continuous(limits       = symmetric_range,
-                       breaks       = c(-6,-1,0,1,6),
+                       breaks       = c(-6,-3,0,3,6),
                        minor_breaks = NULL) +
     labs(title = paste0(i, " ", round((RsquareAdj(RDAsforAll[[i]]$rda)$adj.r.squared*100), 2), "%"), 
          x     = paste("CA1 (", round(100*RDAsforAll[[i]]$rda$CCA$eig[1]/RDAsforAll[[i]]$rda$tot.chi,2), "%)", sep = ""),
