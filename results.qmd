@@ -1859,7 +1859,7 @@ ecoFT
 #| warning: FALSE
 #| fig-width: 6.5
 #| fig-height: 7.25
-#| fig-cap: "Slopes of mean annual taxa abundance over time plotted per system and season. Red indicates a negative change over time and blue indicates a positive change. The dashed line represents a slope of 0. Error bars represent ± 1 standard error. Numbers on *y*-axis correspond to individual taxa, see [@tbl-ssKey] for key."
+#| fig-cap: "Coefficients of change of transformed mean annual taxa abundance over time plotted per system and season. Red indicates a negative change over time and blue indicates a positive change. The dashed line represents a slope of 0. Error bars represent ± 1 standard error. Numbers on *y*-axis correspond to individual taxa, see [@tbl-ssKey] for key."
 
 #get unique list for the loop
 seasysKey <- unique(ssGrouped$systemSeason)
@@ -1874,26 +1874,34 @@ for (i in seasysKey){
          aes(y = reorder(Scientificnumber, slope, decreasing = TRUE),
              x = slope)) + 
     geom_point(aes(color = as.factor(id_color))) +
+    geom_vline(xintercept = 0, linetype="dashed") +
     scale_color_manual(values = c("red","blue")) +
     facet_grid(~seaSys,
              scales = "free_y") +
     geom_errorbarh(aes(xmin=(slope + (-1*stderr)), xmax=(slope + (1*stderr))),
                    color = "black") + #std err bars
     scale_x_continuous(trans = pseudolog10_trans) +
-    labs(x = "Coefficient of change") +
+
     #ggtitle("Change in density over time by group") + 
     theme_bw() +
     theme(legend.position = "none",
-          axis.title.y = element_blank(),
-          axis.title.x = element_blank(),
+          # axis.title.y = element_blank(),
+          # axis.title.x = element_blank(),
           axis.text.y = element_text(size = 7)
     ) +
+    labs(x = "Coefficient of change",
+         y = "Taxon code") +
     #coord_cartesian(xlim = c(-.2, 0.2)) +
-    geom_vline(xintercept = 0, linetype="dashed") +
   theme(text = element_text(family = 'serif'))
 }
 
-(sigSlopesAllFree <- wrap_plots(sigPlotsFree, ncol = 2))
+sigSlopesAllFree <- wrap_plots(sigPlotsFree, ncol = 2) +
+  plot_layout(
+    guides = "collect",
+    axis_titles = "collect"
+  )
+
+sigSlopesAllFree
 ```
 
 # Discussion {#sec-discussion}
