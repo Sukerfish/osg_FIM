@@ -567,7 +567,7 @@ bvcMeanOut
 #| message: FALSE 
 #| fig-width: 6.5 
 #| fig-height: 6 
-#| fig-cap: "Annually averaged SAV coverage over time. Error bars represent ± 1 standard error. Solid lines indicate significant modeled trends and dashed lines indicate a trend of no significance, per each independent linear model."
+#| fig-cap: "Annually averaged SAV coverage over time. Error bars represent ± 1 standard error. Solid lines indicate significant modeled trends and dashed lines indicate non-significant trends, per each independent linear model."
 
 levels(winterBVC$system)[levels(winterBVC$system)=="AP"] <- "AB"
 levels(summerBVC$system)[levels(summerBVC$system)=="AP"] <- "AB"
@@ -925,7 +925,7 @@ stufffff <- overallBeta %>%
   flextable(.)
 ```
 
-Bray-Curtis dissimilarity of species composition increased consistently across all systems within each season (Year:System interaction term for summer *p* = `r scales::pvalue(as.data.frame(betaSummerSummaryANC$p.value)[3,])` and winter *p* = `r scales::pvalue(as.data.frame(betaWinterSummaryANC$p.value)[3,])`). The rate of increase in dissimilarity during winter was `r format(as.data.frame(betaWinterSummaryANC_final$estimate)[2,], digits = 1)`yr^-1^ ± `r format(betaWinterSummaryANC_final[2,]$std.error, digits = 1)` which was nearly twice that during summer (`r format(as.data.frame(betaSummerSummaryANC_final$estimate)[2,], digits = 1)`yr^-1^ ± `r format(betaSummerSummaryANC_final[2,]$std.error, digits = 1)`; @tbl-betaTrends; @fig-betadiversity). In addition, during winter, particularly in the northern systems (Apalachicola Bay and Cedar Key), there appears to be higher variability in the years after 2010 ([@fig-betadiversity]). Within dissimilarity overall, there were clear variations in the underlying components of beta diversity (turnover and nestedness), though they are not modeled here.
+Bray-Curtis dissimilarity of species composition increased consistently across all systems within each season (Year:System interaction term for summer *p* = `r scales::pvalue(as.data.frame(betaSummerSummaryANC$p.value)[3,])` and winter *p* = `r scales::pvalue(as.data.frame(betaWinterSummaryANC$p.value)[3,])`). The rate of increase in dissimilarity during winter was `r format(as.data.frame(betaWinterSummaryANC_final$estimate)[2,], digits = 1)`yr^-1^ ± `r format(betaWinterSummaryANC_final[2,]$std.error, digits = 1)` which was 2.5 times that during summer (`r format(as.data.frame(betaSummerSummaryANC_final$estimate)[2,], digits = 1)`yr^-1^ ± `r format(betaSummerSummaryANC_final[2,]$std.error, digits = 1)`; @tbl-betaTrends; @fig-betadiversity). In addition, during winter, particularly in the northern systems (Apalachicola Bay and Cedar Key), there appears to be higher variability in the years after 2010 ([@fig-betadiversity]). Within dissimilarity overall, there were clear variations in the underlying components of beta diversity (turnover and nestedness), though they are not modeled here.
 
 ```{r}
 #| label: tbl-betaTrends
@@ -939,7 +939,8 @@ betaTrendOut <- as.data.frame(betaSummerSummaryANC_final) %>%
   mutate(term = ifelse(term == "smallYear", "Year", term)) %>%
   flextable(.) %>%
   merge_v(j = ~ Season) %>%
-  colformat_double(j = c(3:6), digits = 3) %>%
+  colformat_double(j = c(3,4,6), digits = 3) %>%
+  colformat_double(j = c(5), digits = 2) %>%
   # set_header_labels(system = "System", 
   #   smallYear.trend = "Estimated trend", 
   #   SE = "Standard error") %>%
