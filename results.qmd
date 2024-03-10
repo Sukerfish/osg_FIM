@@ -915,14 +915,35 @@ betaSummerSummaryANC_final <- tidy(summary.lm(betaSummerLmFinal)) %>%
 #| message: FALSE
 #| tbl-cap: "CVs for beta."
 
-stufffff <- overallBeta %>%
-  mutate(check = ifelse(as.numeric(seasonYear) > 2010, 1, 0)) %>%
-  group_by(system, season, check) %>%
+beta_cv_ft <- overallBeta %>%
+  mutate(check = ifelse(as.numeric(seasonYear) > 2010, "post-2010", "pre-2010")) %>%
+  #relocate(season, .before = system) %>%
+  #group_by(system, season, check) %>%
+  group_by(system, season) %>%
   mutate(ltm = mean(value),
          dev = sd(value),
          cv  = (dev/ltm)*100) %>%
-  distinct(system, season, check, cv) %>%
-  flextable(.)
+  #distinct(season, system, check, cv) %>%
+  distinct(season, system, cv) %>%
+  #pivot_wider(values_from = cv, names_from = check) %>%
+  arrange(season, system) %>%
+  flextable(.) %>%
+  merge_v(j = ~ season) %>%
+  merge_v(j = ~ system) %>%
+  #colformat_double(j = c("estimate", "std.error", "p.value"), digits = 3) %>%
+  colformat_double(j = c(3), digits = 2) %>%
+  #set_formatter(p.value = function(x) scales::pvalue(x)) %>%
+  set_header_labels(season = "Season",
+    system = "System",
+    cv = "Coefficient of\nVariation") %>%
+  #bold(~ p.value <0.05, c(3:7)) %>%
+  paginate(init = TRUE, hdr_ftr = TRUE) %>%
+  autofit() %>%
+  theme_vanilla() %>%
+  font(part = "all",
+       fontname = "Times New Roman")
+
+beta_cv_ft
 ```
 
 Bray-Curtis dissimilarity of species composition increased consistently across all systems within each season (Year:System interaction term for summer *p* = `r scales::pvalue(as.data.frame(betaSummerSummaryANC$p.value)[3,])` and winter *p* = `r scales::pvalue(as.data.frame(betaWinterSummaryANC$p.value)[3,])`). The rate of increase in dissimilarity during winter was `r format(as.data.frame(betaWinterSummaryANC_final$estimate)[2,], digits = 1)`yr^-1^ ± `r format(betaWinterSummaryANC_final[2,]$std.error, digits = 1)` which was 2.5 times that during summer (`r format(as.data.frame(betaSummerSummaryANC_final$estimate)[2,], digits = 1)`yr^-1^ ± `r format(betaSummerSummaryANC_final[2,]$std.error, digits = 1)`; @tbl-betaTrends; @fig-betadiversity). In addition, during winter, particularly in the northern systems (Apalachicola Bay and Cedar Key), there appears to be higher variability in the years after 2010 ([@fig-betadiversity]). Within dissimilarity overall, there were clear variations in the underlying components of beta diversity (turnover and nestedness), though they are not modeled here.
@@ -1204,7 +1225,7 @@ perms <- summerdf %>%
   merge_v(j = ~ Season) %>%
   labelizor(part = "header", 
   labels = stringr::str_to_title) %>%
-  colformat_double(j = c(4:7), digits = 3) %>%
+  colformat_double(j = c(4:7), digits = 2) %>%
   set_formatter(p.value = function(x) scales::pvalue(x)) %>%
   set_header_labels(#Df = "df", 
     SumOfSqs = "Sum of squares", 
@@ -1704,7 +1725,7 @@ winLose <- ggplot(SlopesForAllDF,
 winLose
 ```
 
-The majority of taxa did not exhibit significant changes in abundance over time (208 out of 299 taxa), with a large group centered around zero rate of abundance change in both summer and winter for all systems ([@fig-winnersLosers]). There was no difference in total percentage of taxa changing between systems (*t* = `r format(sigSigSys_tidy[1,]$statistic, digits = 3, nsmall = 2)`; *p* = `r scales::pvalue(sigSigSys_tidy[1,]$p.value)`) or seasons (*t* = `r format(sigSig$statistic, digits = 3, nsmall =2)`, *p* = `r scales::pvalue(sigSig$p.value)`). However, the percentage of taxa changing negatively was greater in the summer than in the winter (*t* = `r format(negSig$statistic, digits = 3)`, *p* = `r scales::pvalue(negSig$p.value)`; [@tbl-sigTaxa]).
+The majority of taxa did not exhibit significant changes in abundance over time (208 out of 299 taxa), with a large group centered around zero rate of abundance change in both summer and winter for all systems ([@fig-winnersLosers]). There was no difference in total percentage of taxa changing between systems (*t* = `r format(sigSigSys_tidy[1,]$statistic, digits = 3, nsmall = 2)`; *p* = `r scales::pvalue(sigSigSys_tidy[1,]$p.value)`) or seasons (*t* = `r format(sigSig$statistic, digits = 3, nsmall =2)`, *p* = `r scales::pvalue(sigSig$p.value)`). However, the percentage of taxa changing negatively was greater in the summer than in the winter (*t* = `r format(negSig$statistic, digits = 3)`, *p* = `r scales::pvalue(negSig$p.value)`; [@tbl-sigTaxa]), with no difference between seasons in the percentage of taxa changing positively (*t* = `r format(posSig$statistic, digits = 3)`, *p* = `r scales::pvalue(posSig$p.value)`; [@tbl-sigTaxa]).
 
 ```{r}
 #| label: tbl-sigTaxa
