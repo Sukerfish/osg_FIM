@@ -1704,7 +1704,7 @@ winLose <- ggplot(SlopesForAllDF,
 winLose
 ```
 
-The majority of taxa did not exhibit significant changes in abundance over time (208 out of 299 taxa), with a large group centered around zero rate of abundance change in both summer and winter for all systems ([@fig-winnersLosers]). There was no difference in total percentage of taxa changing between systems or seasons (*p* = `r scales::pvalue(sigSig$p.value)` to `r scales::pvalue(sigSigSys_tidy[1,]$p.value)`). However, the percentage of taxa changing negatively was greater in the summer than in the winter (*t* = `r format(negSig$statistic, digits = 3)`, *p* = `r scales::pvalue(negSig$p.value)`; [@tbl-sigTaxa]).
+The majority of taxa did not exhibit significant changes in abundance over time (208 out of 299 taxa), with a large group centered around zero rate of abundance change in both summer and winter for all systems ([@fig-winnersLosers]). There was no difference in total percentage of taxa changing between systems (*t* = `r format(sigSigSys_tidy[1,]$statistic, digits = 3, nsmall = 2)`; *p* = `r scales::pvalue(sigSigSys_tidy[1,]$p.value)`) or seasons (*t* = `r format(sigSig$statistic, digits = 3, nsmall =2)`, *p* = `r scales::pvalue(sigSig$p.value)`). However, the percentage of taxa changing negatively was greater in the summer than in the winter (*t* = `r format(negSig$statistic, digits = 3)`, *p* = `r scales::pvalue(negSig$p.value)`; [@tbl-sigTaxa]).
 
 ```{r}
 #| label: tbl-sigTaxa
@@ -1726,9 +1726,9 @@ sigFT <- flextable(sigSumPrep) %>%
   paginate(init = TRUE, hdr_ftr = TRUE) %>%
   labelizor(part = "header", 
   labels = stringr::str_to_title) %>%
-  set_formatter(sigPercent = function(x) sprintf("%.2f%%", x*100),
-                posPercent = function(x) sprintf("%.2f%%", x*100),
-                negPercent = function(x) sprintf("%.2f%%", x*100)
+  set_formatter(sigPercent = function(x) sprintf("%.1f%%", x*100),
+                posPercent = function(x) sprintf("%.1f%%", x*100),
+                negPercent = function(x) sprintf("%.1f%%", x*100)
                ) %>%
   set_header_labels(count = "Taxa counted",
     sigPercent = "Change overall",
@@ -1774,11 +1774,11 @@ sigSlopesEcoC <- sigSlopes %>%
                                    "tropical/subtropical/temperate", "subtropical",   "subtropical/temperate", "temperate"))) %>%
   mutate(tempLogic = fct_recode(tempLogic,
                                    'Tropical' = "tropical",
-                                   'Tropical/Subtropical' = "tropical/subtropical",
-                                   'Tropical/Temperate' = "tropical/temperate",
-                                   'Tropical/Subtropical/Temperate' = "tropical/subtropical/temperate",
+                                   'Tropical' = "tropical/subtropical",
+                                   'Ubiquitous' = "tropical/temperate",
+                                   'Ubiquitous' = "tropical/subtropical/temperate",
                                    'Subtropical' = "subtropical",
-                                   'Subtropical/Temperate' = "subtropical/temperate",
+                                   'Temperate' = "subtropical/temperate",
                                    
                                     'Temperate' = "temperate"))
 
@@ -1836,8 +1836,8 @@ ecoFT <- ecoTable %>%
   paginate(init = TRUE, hdr_ftr = TRUE) %>%
   labelizor(part = "header", 
   labels = stringr::str_to_title) %>%
-  set_formatter(posPercent = function(x) sprintf("%.2f%%", x*100),
-                negPercent = function(x) sprintf("%.2f%%", x*100)
+  set_formatter(posPercent = function(x) sprintf("%.1f%%", x*100),
+                negPercent = function(x) sprintf("%.1f%%", x*100)
                ) %>%
   set_header_labels(count = "Taxa counted",
     sigCount = "Change overall",
