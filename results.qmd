@@ -1672,10 +1672,14 @@ plot(fullRDAPlot)
 #| include: FALSE
 
 sigSummaryPercent <- sigSummary %>%
-  select(system, season, count, sig_percent, sigCount, posCount, negCount) %>%
+  select(system, season, count, sig_percent, sigCount, posCount, negCount,
+         pos_percent, neg_percent) %>%
   rename(sigPercent = sig_percent) %>%
   mutate(posPercent = posCount/sigCount) %>%
   mutate(negPercent = negCount/sigCount) %>%
+  mutate(sigPercent = round(sigPercent, 3)) %>%
+  #mutate(posPercent = round(pos_percent, 3)) %>%
+  #mutate(negPercent = round(neg_percent, 3)) %>%
   select(system, season, sigPercent, posPercent, negPercent)
 
 ssGrouped <- sigSlopes_grouped %>%
@@ -1725,7 +1729,7 @@ winLose <- ggplot(SlopesForAllDF,
 winLose
 ```
 
-The majority of taxa did not exhibit significant changes in abundance over time (208 out of 299 taxa), with a large group centered around zero rate of abundance change in both summer and winter for all systems ([@fig-winnersLosers]). There was no difference in total percentage of taxa changing between systems (*t* = `r format(sigSigSys_tidy[1,]$statistic, digits = 3, nsmall = 2)`; *p* = `r scales::pvalue(sigSigSys_tidy[1,]$p.value)`) or seasons (*t* = `r format(sigSig$statistic, digits = 3, nsmall =2)`, *p* = `r scales::pvalue(sigSig$p.value)`). However, the percentage of taxa changing negatively was greater in the summer than in the winter (*t* = `r format(negSig$statistic, digits = 3)`, *p* = `r scales::pvalue(negSig$p.value)`; [@tbl-sigTaxa]), with no difference between seasons in the percentage of taxa changing positively (*t* = `r format(posSig$statistic, digits = 3)`, *p* = `r scales::pvalue(posSig$p.value)`; [@tbl-sigTaxa]).
+The majority of taxa did not exhibit significant changes in abundance over time (208 out of 299 taxa), with a large group centered around zero rate of abundance change in both summer and winter for all systems ([@fig-winnersLosers]). There was no difference in total percentage of taxa changing between systems (*t* = `r format(sigSigSys_tidy[1,]$statistic, digits = 3, nsmall = 2)`; *p* = `r scales::pvalue(sigSigSys_tidy[1,]$p.value)`) or seasons (*t* = `r format(sigSig$statistic, digits = 3, nsmall =2)`; *p* = `r scales::pvalue(sigSig$p.value)`). However, the percentage of taxa changing negatively was greater in the summer than in the winter (*t* = `r format(negSig$statistic, digits = 3)`; *p* = `r scales::pvalue(negSig$p.value)`; [@tbl-sigTaxa]), with no difference between seasons in the percentage of taxa changing positively (*t* = `r format(posSig$statistic, digits = 3)`; *p* = `r scales::pvalue(posSig$p.value)`; [@tbl-sigTaxa]).
 
 ```{r}
 #| label: tbl-sigTaxa
