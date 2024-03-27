@@ -10,7 +10,8 @@ library(ggrepel)
 library(patchwork)
 
 load('TidyGearCode20.Rdata')
-load('SXS_filtered.Rdata')
+#load('SXS_filtered.Rdata')
+load("SXS_filtered_fars.Rdata")
 
 #get the biological data and associated site chars
 CleanHauls <- TidyBio %>%
@@ -154,7 +155,7 @@ for(i in systemSeason_list$systemSeason){
 }
 
 RDAsforAll_Z <- RDAsforAll
-#save(RDAsforAll, file = "./Outputs/RDAsforAll_Y.RData")
+#save(RDAsforAll, file = "./Outputs/RDAsforAll_Y_fars.RData")
 #load('RDAsforAll.Rdata')
 
 plotsforAll <- list()

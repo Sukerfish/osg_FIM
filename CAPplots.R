@@ -41,7 +41,7 @@ cap_pctvars <- function(cap_out){
 }
 
 load('TidyGearCode20.Rdata')
-load('SXS_filtered.Rdata')
+load("SXS_filtered_fars.Rdata")
 
 #get the biological data and associated site chars
 CleanHauls <- TidyBio %>%
@@ -558,5 +558,5 @@ centroidCAP <- wrap_plots(centroidPlots,
            ncol = 4)
 
 #save(CAPsforAll, file = "./Outputs/CAPsforAll_Z_8m.RData")
-save(CAPsforAll, file = "./Outputs/CAPsforAll_Z_infm.RData")
+save(CAPsforAll, file = "./Outputs/CAPsforAll_Z_infm_fars.RData")
 save(centroidCAP, fullCAPPlot, centroidPlots, sppPlots, file = "./Outputs/CAPsforAll_PLOTS.RData")

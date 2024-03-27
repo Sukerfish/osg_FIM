@@ -6,7 +6,8 @@ library(lubridate)
 library(ggpmisc)
 
 load('TidyGearCode20.Rdata')
-load('SXS_filtered.Rdata')
+#load('SXS_filtered.Rdata')
+load("SXS_filtered_fars.Rdata")
 
 osg_theme <- readRDS('osg_theme.rds')
 

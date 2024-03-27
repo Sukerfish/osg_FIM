@@ -11,7 +11,8 @@ library(writexl)
 library(egg)
 
 load('TidyGearCode20.Rdata')
-load('SXS_filtered.Rdata')
+#load('SXS_filtered.Rdata')
+load("SXS_filtered_fars.Rdata")
 
 #### Z scored abundance ####
 
@@ -27,6 +28,14 @@ SiteXSpeciesFull <- CleanHauls %>%
               names_from = Scientificname,
               values_from = N2xform,
               values_fill = 0) %>% #replace all NA values with 0s, i.e. counting as true zero
+  ungroup() %>%
+  group_by(Reference) %>%
+  mutate(Farfantepenaeus = (sum(`Farfantepenaeus aztecus`^4, 
+                                `Farfantepenaeus spp.`^4, 
+                                `Farfantepenaeus duorarum`^4))^.25) %>%
+  ungroup() %>%
+  select(!c(`Farfantepenaeus aztecus`, `Farfantepenaeus spp.`, `Farfantepenaeus duorarum`)) %>%
+  rename(`Farfantepenaeus spp.` = Farfantepenaeus) %>%
   ungroup()
 
 #collapse full site x species matrix to long term means
@@ -190,6 +199,14 @@ SiteXSpeciesFullRaw <- CleanHauls %>%
               names_from = Scientificname,
               values_from = N2,
               values_fill = 0) %>% #replace all NA values with 0s, i.e. counting as true zero
+  ungroup() %>%
+  group_by(Reference) %>%
+  mutate(Farfantepenaeus = (sum(`Farfantepenaeus aztecus`^4, 
+                                `Farfantepenaeus spp.`^4, 
+                                `Farfantepenaeus duorarum`^4))^.25) %>%
+  ungroup() %>%
+  select(!c(`Farfantepenaeus aztecus`, `Farfantepenaeus spp.`, `Farfantepenaeus duorarum`)) %>%
+  rename(`Farfantepenaeus spp.` = Farfantepenaeus) %>%
   ungroup()
 
 #collapse full site x species matrix to long term means

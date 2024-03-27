@@ -6,7 +6,8 @@ library(tidyverse)
 library(vegan)
 
 load('TidyGearCode20.Rdata')
-load('SXS_filtered.Rdata')
+#load('SXS_filtered.Rdata')
+load("SXS_filtered_fars.Rdata")
 
 #get the biological data and associated site chars
 CleanHauls <- TidyBio %>%
@@ -151,4 +152,4 @@ PERMSforAllDF <- bind_rows(PERMSforAll, .id = "systemSeason") %>%
            sep = "_") %>%
   mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH")))
 
-#save(PERMSforAllDF, file = './Outputs/PERMSforALLDF_factor.RData')
+#save(PERMSforAllDF, file = './Outputs/PERMSforALLDF_factor_fars.RData')

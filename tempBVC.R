@@ -20,7 +20,8 @@ library(broom)
 library(pixiedust)
 
 load('TidyGearCode20.Rdata')
-load('SXS_filtered.Rdata')
+#load('SXS_filtered.Rdata')
+load("SXS_filtered_fars.Rdata")
 
 #### data wrangling ####
 waterBVC_full <- SXS_filtered %>%

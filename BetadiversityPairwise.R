@@ -10,7 +10,8 @@ library(betapart)
 library(vegan)
 
 load('TidyGearCode20.Rdata')
-load('SXS_filtered.Rdata') #already 4th root transformed
+#load('SXS_filtered.Rdata') #already 4th root transformed
+load("SXS_filtered_fars.Rdata")
 
 osg_theme <- readRDS('osg_theme.rds')
 
