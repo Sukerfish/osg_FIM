@@ -321,6 +321,31 @@ minSlope <- which(abs(sigSlopes$raw_slope - 0) == min(abs(sigSlopes$raw_slope - 
 minSpSlope <- sigSlopes[minSlope,]
 ```
 
+```{r}
+#| label: individualTaxonPrep
+#| include: FALSE
+
+sigSummaryPercent <- sigSummary %>%
+  select(system, season, count, sig_percent, sigCount, posCount, negCount,
+         pos_percent, neg_percent) %>%
+  rename(sigPercent = sig_percent) %>%
+  mutate(posPercent = posCount/sigCount) %>%
+  mutate(negPercent = negCount/sigCount) %>%
+  mutate(sigPercent = round(sigPercent, 3)) %>%
+  #mutate(posPercent = round(pos_percent, 3)) %>%
+  #mutate(negPercent = round(neg_percent, 3)) %>%
+  select(system, season, sigPercent, posPercent, negPercent)
+
+ssGrouped <- sigSlopes_grouped %>%
+  separate(systemSeason, into = c("system", "season"), remove = FALSE) %>%
+  mutate(season = stringr::str_to_title(season)) %>%
+  mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH"))) %>%
+  mutate(system = fct_recode(system, "AB" = "AP")) %>%
+  mutate(Scientificname = factor(Scientificname)) %>%
+  mutate(Scientificnumber = as.numeric(Scientificname)) %>%
+  unite(col = seaSys, system, season, sep = " ", remove = FALSE)
+```
+
 ## Overview {#sec-overview}
 
 Throughout the 23-year study period, submerged aquatic vegetation (SAV) displayed nuanced dynamics, with no observed change in Apalachicola Bay for either season, a decrease in Cedar Key during summer only, an increase in Tampa Bay during winter only, and increases observed in Charlotte Harbor (both seasons; [@fig-BVCPlot]). Water temperature increased during summer and winter for all estuary systems, but the rate in winter was more than triple that observed during the summer ([@fig-TempPlot]). Of the `r ncol(SXS_filtered_spp)` total taxa examined, `r length(unique(sigSlopes$Scientificname))` (`r paste0(round(((length(unique(sigSlopes$Scientificname)))/(ncol(SXS_filtered_spp)))*100, 0), "%")`) changed significantly in abundance over time across all systems, nearly equally balanced between increases and decreases in abundances.
@@ -459,7 +484,8 @@ bvcMeanOut <- as.data.frame(summary(summerSummaryBVCAll$lsmeans)) %>%
   select(!c(lower.CL, upper.CL)) %>%
   flextable(.) %>%
   merge_v(j = ~ Season) %>%
-  colformat_double(j = c("lsmean", "SE"), digits = 3) %>%
+  colformat_double(j = c("lsmean"), digits = 1) %>%
+  colformat_double(j = c("SE"), digits = 2) %>%
   set_header_labels(system = "System", 
     lsmean = "Estimated mean", 
     SE = "Standard error") %>%
@@ -569,8 +595,8 @@ tempMeanOut <- as.data.frame(summary(summerMeansLm$lsmeans)) %>%
   select(!c(lower.CL, upper.CL)) %>%
   flextable(.) %>%
   merge_v(j = ~ Season) %>%
-  colformat_double(j = c("lsmean", "SE"), digits = 3) %>%
-  #colformat_double(j = c("SE"), digits = 2) %>%
+  colformat_double(j = c("lsmean"), digits = 1) %>%
+  colformat_double(j = c("SE"), digits = 2) %>%
   set_header_labels(system = "System", 
     lsmean = "Estimated mean", 
     SE = "Standard error") %>%
@@ -1004,7 +1030,7 @@ betaTrendOut
 #| label: tbl-betaCVs
 #| echo: FALSE
 #| message: FALSE
-#| tbl-cap: "CVs for beta."
+#| tbl-cap: "Coefficients of variation in the Bray-Curtis dissimilarity index for each season and system."
 
 beta_cv_ft <- overallBeta %>%
   mutate(check = ifelse(as.numeric(seasonYear) > 2010, "post-2010", "pre-2010")) %>%
@@ -1197,7 +1223,7 @@ RDAaxes <- bind_rows(RDAaxesVar, .id = "systemSeason")
 ```{r}
 #| label: PERMANOVA
 #| include: FALSE
-load("bigPERMANOVAs_yxs.RData")
+load("bigPERMANOVAs_yxs_fars.RData")
 
 summerdf <- tidy(summerfAbundPERM) %>%
   mutate(Season = "Summer")
@@ -1255,7 +1281,7 @@ load("./Outputs/PERMSforALLDF_factor_fars.RData")
 #| label: tbl-allPERMANOVAs
 #| echo: FALSE
 #| message: FALSE
-#| tbl-cap: "All of the PERMANVOAs"
+#| tbl-cap: "Outputs from assemblage composition and abundance PERMANOVAs conducted for each system and season combination. Values in bold are statistically significant at alpha 0.05."
 
 all_perms <- PERMSforAllDF %>%
   mutate(term = rownames(.)) %>%
@@ -1422,6 +1448,8 @@ spp_vecs <- data.frame(CAPsforAll[[i]]$cproj) %>%
   mutate(mag = sqrt(LD1^2 + LD2^2)) %>%
   arrange(desc(abs(mag))) %>%
   mutate(Scientificname = rownames(.)) %>%
+  # mutate(Scientificname = factor(Scientificname, levels = levels(ssGrouped$Scientificname))) %>%
+  #mutate(Scientificnumber = as.numeric(Scientificname)) %>%
   #select(system, season, Scientificname, mag)
   slice_head(n = 10)
 sppvecs_list_fix[[i]] <- spp_vecs
@@ -1455,8 +1483,8 @@ for(i in CAPOrder$systemSeason){
                         twoTaxLD1 = taxa[2,2],
                         twoTaxLD2 = taxa[2,3],
                         twoTaxNam = taxa$Scientificname[2],
-                        thrTaxLD1 = taxa[1,2],
-                        thrTaxLD2 = taxa[1,3],
+                        thrTaxLD1 = taxa[3,2],
+                        thrTaxLD2 = taxa[3,3],
                         thrTaxNam = taxa$Scientificname[3])
   
   mainframe[[i]] <- interim
@@ -1470,7 +1498,7 @@ stageOne <- sppvecs_list_fixdf %>%
   group_by(systemSeason) %>%
   slice_head(n = 3)
 
-mult <- 2.7
+mult <- 2
 
 centroidPlots <- list()
 for(i in CAPOrder$systemSeason){
@@ -1488,10 +1516,10 @@ for(i in CAPOrder$systemSeason){
                colour     = "grey70",
                size       = .25) +
     scale_x_continuous(limits       = symmetric_range(1+(mult)*sppvecs_list_fixdf$LD1),
-                       breaks       = c(-4,-2,0,2,4),
+                       breaks       = c(-2,-1,0,1,2),
                        minor_breaks = NULL) +
     scale_y_continuous(limits       = symmetric_range(1+(mult)*sppvecs_list_fixdf$LD2),
-                       breaks       = c(-4,-2,0,2,4),
+                       breaks       = c(-2,-1,0,1,2),
                        minor_breaks = NULL) +
     geom_point(aes(x    = axis1c, 
                    y    = axis2c, 
@@ -1547,8 +1575,8 @@ for(i in CAPOrder$systemSeason){
                    box.padding   = .25,
                    lineheight    = 0.4,
                    label.size    = 0.25,
-                   #nudge_x       = ifelse(spp_vecs_label[[i]]$LD1>0,0.05,-0.05),
-                   #nudge_y       = ifelse(spp_vecs_label[[i]]$LD2>-0.02,0.05,-0.05),
+                   #nudge_x       = 3,
+                   #nudge_y       = -0.05,
                    force         = 0.3) +
     scale_size_manual(values = c(2.5,3.5),
                       guide  = guide_none()) +
@@ -1670,31 +1698,6 @@ plot(fullRDAPlot)
 ```
 
 ### Individual Taxon Analyses {#sec-univariate-analyses}
-
-```{r}
-#| label: individualTaxonPrep
-#| include: FALSE
-
-sigSummaryPercent <- sigSummary %>%
-  select(system, season, count, sig_percent, sigCount, posCount, negCount,
-         pos_percent, neg_percent) %>%
-  rename(sigPercent = sig_percent) %>%
-  mutate(posPercent = posCount/sigCount) %>%
-  mutate(negPercent = negCount/sigCount) %>%
-  mutate(sigPercent = round(sigPercent, 3)) %>%
-  #mutate(posPercent = round(pos_percent, 3)) %>%
-  #mutate(negPercent = round(neg_percent, 3)) %>%
-  select(system, season, sigPercent, posPercent, negPercent)
-
-ssGrouped <- sigSlopes_grouped %>%
-  separate(systemSeason, into = c("system", "season"), remove = FALSE) %>%
-  mutate(season = stringr::str_to_title(season)) %>%
-  mutate(system = factor(system, levels = c("AP", "CK", "TB", "CH"))) %>%
-  mutate(system = fct_recode(system, "AB" = "AP")) %>%
-  mutate(Scientificname = factor(Scientificname)) %>%
-  mutate(Scientificnumber = as.numeric(Scientificname)) %>%
-  unite(col = seaSys, system, season, sep = " ", remove = FALSE)
-```
 
 ```{r}
 #| label: fig-winnersLosers
@@ -1994,7 +1997,7 @@ ssKey <- ssGrouped %>%
 ssKey
 ```
 
-### Temp ANCOVA
+### Habitat Dynamics ANCOVAs
 
 ```{r}
 #| label: tbl-tempAncova 
@@ -2175,338 +2178,6 @@ richFT <- flextable(richTab) %>%
   theme_vanilla()
 
 richFT
-```
-
-##Temp ANCOVA contrasts
-
-```{r}
-#| label: tbl-tempAncovaContrast 
-#| echo: FALSE 
-#| message: FALSE 
-#| tbl-cap: "Contrasts from ANCOVA models. Tukey method applied for p-value correction." 
-
-tempCont <- as.data.frame(summary(summerSummaryAll$contrasts)) %>%
-  mutate(Season = "Summer", .before = contrast) %>%
-  full_join(as.data.frame(summary(winterSummaryAll$contrasts))) %>%
-  mutate(Season = ifelse(is.na(Season), "Winter", Season),
-         contrast = ifelse(contrast == "CK - AP", "CK - AB",
-                            ifelse(contrast == "TB - AP", "TB - AB",
-                                   ifelse(contrast == "CH - AP", "CH - AB", contrast)))) %>%
-  flextable(.) %>%
-  merge_v(j = ~ Season) %>%
-  colformat_double(j = c("estimate", "SE",
-                             "t.ratio", "p.value"), digits = 3) %>%
-  set_formatter(p.value = function(x) scales::pvalue(x)) %>%
-  set_header_labels(contrast = "Contrast", 
-    estimate = "Estimate", 
-    SE = "Standard error",
-    t.ratio = "t-statistic",
-    p.value = "p-value") %>%
-  bold(~ p.value <0.05, c(2:7)) %>%
-  paginate(init = TRUE, hdr_ftr = TRUE) %>%
-  autofit() %>%
-  theme_vanilla()
-  
-tempCont
-
-```
-
-##SAV ANCOVA outputs SAV ANCOVA calculated means
-
-```{r}
-#| label: tbl-bvcMeanss 
-#| echo: FALSE 
-#| message: FALSE 
-#| tbl-cap: "Least square means of each system for both seasonal linear models." 
-
-bvcMeans <- summerSumBVCAll  %>%
-  mutate(season = "summer") %>%
-  full_join(winterSumBVCAll) %>%
-  mutate(season = ifelse(!is.na(season), "summer", "winter")) %>%
-  select(system, season, estimate, std.error) %>%
-  mutate(std.error = format(std.error, digits = 3))
-
-pander(bvcMeans)
-```
-
-SAV ANCOVA contrasts
-
-```{r}
-#| label: tbl-bvcAncovaContrast 
-#| echo: FALSE 
-#| message: FALSE 
-#| tbl-cap: "Contrasts from ANCOVA models. Tukey method applied for p-value correction." 
-
-bvcCont <- as.data.frame(summary(summerBVCContrasts$contrasts)) %>%
-  mutate(Season = "Summer", .before = contrast) %>%
-  full_join(as.data.frame(summary(winterBVCContrasts$contrasts))) %>%
-  mutate(Season = ifelse(is.na(Season), "Winter", Season),
-         contrast = ifelse(contrast == "CK - AP", "CK - AB",
-                            ifelse(contrast == "TB - AP", "TB - AB",
-                                   ifelse(contrast == "CH - AP", "CH - AB", contrast)))) %>%
-  flextable(.) %>%
-  merge_v(j = ~ Season) %>%
-  colformat_double(j = c("estimate", "SE",
-                             "t.ratio", "p.value"), digits = 3) %>%
-  set_formatter(p.value = function(x) scales::pvalue(x)) %>%
-  set_header_labels(contrast = "Contrast", 
-    estimate = "Estimate", 
-    SE = "Standard error",
-    t.ratio = "t-statistic",
-    p.value = "p-value") %>%
-  bold(~ p.value <0.05, c(2:7)) %>%
-  paginate(init = TRUE, hdr_ftr = TRUE) %>%
-  autofit() %>%
-  theme_vanilla()
-  
-bvcCont
-
-```
-
-Abundance GLMMs
-
-```{r}
-#| label: tbl-abundModelsEmmeans
-#| echo: FALSE
-#| message: FALSE
-#| tbl-cap: "Estimated marginal means of total abundance for each system for both seasonal GLMMs. *P*-values for pairwise contrasts used tukey method for correction."
-
-abMeanOut2 <- as.data.frame(summary(abundMeanS$emmeans)) %>%
-  mutate(Season = "Summer", .before = system) %>%
-  full_join(as.data.frame(summary(abundMeanW$emmeans))) %>%
-  mutate(Season = ifelse(is.na(Season), "Winter", Season),
-         system = fct_recode(system, "AB" = "AP")) %>%
-  select(!c(lower.CL, upper.CL)) %>%
-  flextable(.) %>%
-  merge_v(j = ~ Season) %>%
-  colformat_double(j = c("emmean", "SE"), digits = 3) %>%
-  set_header_labels(system = "System",
-    emmean = "Estimated mean",
-    SE = "Standard error") %>%
-  paginate(init = TRUE, hdr_ftr = TRUE) %>%
-  autofit() %>%
-  theme_vanilla()
-
-abMeanOut2
-```
-
-```{r}
-#| label: tbl-abundModelsRaw
-#| echo: FALSE
-#| message: FALSE
-#| tbl-cap: "Outputs of fixed effects from total abundance GLMMs run within each system. Bolded values are significant at alpha 0.05."
-#| tbl-subcap: 
-#|   - "summer"
-#|   - "winter"
-#|   - "summerMeans"
-#|   - "summerTrends"
-#|   - "winterMeans"
-#|   - "winterTrends"
-
-emphasize.strong.rows(conditionS)
-pander(abundFullS)
-emphasize.strong.rows(conditionW)
-pander(abundFullW)
-pander(tidy(abundMeanS$contrasts) %>%
-         select(!c(term, null.value)))
-pander(tidy(abundContS$contrasts) %>%
-         select(!c(term, null.value)))
-pander(tidy(abundMeanW$contrasts) %>%
-         select(!c(term, null.value)))
-pander(tidy(abundContW$contrasts) %>%
-         select(!c(term, null.value)))
-```
-
-Taxa groups
-
-```{r}
-#| label: fig-sigSlopes_grouped
-#| echo: FALSE
-#| message: FALSE
-#| warning: FALSE
-#| fig-width: 6.5
-#| fig-height: 5
-#| fig-cap: "Taxonomically-grouped slopes of abundance over time plotted per system and season. Red indicates a negative change over time and blue indicates a positive change. The dashed line represents a slope of 0."
-
-#sigSlopesGroups
-
-ggplot(ssGrouped,
-       aes(y = group,
-           x = raw_slope)) + 
-  geom_point(aes(color = as.factor(id_color))) +
-  scale_color_manual(values = c("red","blue")) +
-    facet_grid(season~system,
-             scales = "free_y") +
-  # geom_errorbarh(aes(xmin=(raw_slope + (-2*stderr)), xmax=(raw_slope + (2*stderr))),
-  #                color = "black") + #std err bars
-  scale_x_continuous(trans = pseudolog10_trans) +
-  labs(x = "Raw slope") + 
-  theme_bw() +
-  theme(legend.position = "none",
-        axis.title.y = element_blank()
-        ) +
-  #coord_cartesian(xlim = c(-.2, 0.2)) +
-  geom_vline(xintercept = 0, linetype="dashed")
-```
-
-### Richness GLMMs
-
-Results from post-hoc tests on total richness GLMMs indicated modeled average richness of Apalachicola Bay in summer was greater than all other systems, with no significant difference in means among the other three (*t* ≥ `r format(abs(as.data.frame(richMeanS$contrasts)$t.ratio[1]), digits = 3)` for all *p* \<0.05 [@tbl-richModelsRaw]). In winter, modeled average richness was more nuanced ([@tbl-richModelsRaw]; see also [@tbl-richModelsRaw] for full output). Further, results of the GLMMs indicated that total richness was positively correlated with SAV for all systems and seasons. As with total abundance, water temperature was not significant in any systems during the summer but was again positively associated with total richness in all systems in winter ([@tbl-richModelsRaw]). Further, total richness had no discernible trends over time in any of the systems or seasons ([@tbl-richSyn]).
-
-```{r}
-#| label: tbl-richModelsRaw
-#| echo: FALSE
-#| message: FALSE
-#| tbl-cap: "Outputs of fixed effects from total richness GLMMs run within each system. Bolded values are significant at alpha 0.05."
-#| tbl-subcap: 
-#|   - "summer"
-#|   - "winter"
-#|   - "summerMeans"
-#|   - "summerTrends"
-#|   - "winterMeans"
-#|   - "winterTrends"
-
-richFullS <- broom.mixed::tidy(glmmOutRS, effects = "fixed") %>%
-  select(term, estimate, std.error, p.value)
-conditionRS <- which(richFullS$p.value < 0.05)
-
-richFullW <- broom.mixed::tidy(glmmOutRW, effects = "fixed") %>%
-  select(term, estimate, std.error, p.value)
-conditionRW <- which(richFullW$p.value < 0.05)
-
-richMeanS <- emmeans(glmmOutRS, spec = "system", contr = "revpairwise")
-richMeanW <- emmeans(glmmOutRW, spec = "system", contr = "revpairwise")
-
-emphasize.strong.rows(conditionRS)
-pander(richFullS)
-emphasize.strong.rows(conditionRW)
-pander(richFullW)
-pander(tidy(richMeanS$contrasts) %>%
-         select(!c(term, null.value)))
-pander(tidy(richContS$contrasts) %>%
-         select(!c(term, null.value)))
-pander(tidy(richMeanW$contrasts) %>%
-         select(!c(term, null.value)))
-pander(tidy(richContW$contrasts) %>%
-         select(!c(term, null.value)))
-```
-
-```{r}
-#| label: tbl-richMeans
-#| echo: FALSE
-#| message: FALSE
-#| tbl-cap: "Estimated marginal means of total richness for each system for both seasonal GLMMs. *P*-values for pairwise contrasts used tukey method for correction."
-
-richMeanOut <- as.data.frame(summary(richMeanS$emmeans)) %>%
-  mutate(Season = "Summer", .before = system) %>%
-  full_join(as.data.frame(summary(richMeanW$emmeans))) %>%
-  mutate(Season = ifelse(is.na(Season), "Winter", Season),
-         system = fct_recode(system, "AB" = "AP")) %>%
-  select(!c(lower.CL, upper.CL)) %>%
-  flextable(.) %>%
-  merge_v(j = ~ Season) %>%
-  colformat_double(j = c("emmean", "SE"), digits = 3) %>%
-  set_header_labels(system = "System", 
-    emmean = "Estimated mean", 
-    SE = "Standard error") %>%
-  paginate(init = TRUE, hdr_ftr = TRUE) %>%
-  autofit() %>%
-  theme_vanilla()
-  
-richMeanOut
-```
-
-Beta diversity model outputs
-
-```{r}
-#| label: tbl-betaModels 
-#| echo: FALSE 
-#| message: FALSE 
-#| tbl-cap: "Outputs of ANCOVA models for beta diversity." 
-#| tbl-subcap:
-#|   - "Summer"
-#|   - "Winter"
-
-conditionbetaS <- which(betaSummerSummary$p.value < 0.05)
-conditionbetaW <- which(betaWinterSummary$p.value < 0.05)
-emphasize.strong.rows(conditionbetaS)
-kable(betaSummerSummary)
-emphasize.strong.rows(conditionbetaW) 
-kable(betaWinterSummary)
-
-```
-
-```{r}
-#| label: fig-ecoSlopes
-#| echo: FALSE
-#| message: FALSE
-#| warning: FALSE
-#| fig-width: 6.5
-#| fig-height: 9
-#| fig-cap: "Slopes of taxa abundance over time plotted per system and season. Red indicates a negative change over time and blue indicates a positive change. The dashed line represents a slope of 0. Error bars represent ± 1 standard error. Climatological association is represented by the symbol shape. Note: not all climatalogical associations for all taxa were available and thus some are not displayed. Numbers on y-axis correspond to individual taxa, see [@tbl-ssKey] for key."
-
-#need to plot with patchwork to keep fish lists different per plot
-plotsEcoC <- list() #initialize object
-#use actual values from the key list
-for (i in seasysKey){
-  #filter by key values
-  plotup <- sigSlopesEcoC %>%
-    filter(systemSeason == i)
-  
-  #make list of plots from the filtered plotup DF
-  plotsEcoC[[i]] = ggplot(plotup,
-                      aes(y = reorder(Scientificnumber, raw_slope), #order by decreasing slope top to bottom
-                          x = raw_slope,
-                          shape = tempLogic)) + 
-    geom_point(aes(color = cut(raw_slope, c(-Inf, 0, Inf))), #cut the slope data for +/- colors
-               size = 3) +
-    scale_color_manual(name = "slope", #define the +/- colors
-                       values = c("(0, Inf]" = "blue",
-                                  "(-Inf,0]" = "red"),
-                       labels = c("pos", "neg"),
-                       guide = "none") +
-    geom_errorbarh(aes(xmin=(raw_slope + (-1*stderr)), xmax=(raw_slope + (1*stderr))),
-                   color = "black") + #std err bars
-    scale_shape_manual( #need to force legends to be identical (i.e. show all possibilities) to merge w/ patchwork
-      breaks = c(
-        "tropical",
-        "subtropical",
-        "tropical/subtropical",
-        "temperate",
-        "tropical/temperate",
-        "subtropical/temperate",
-        "tropical/subtropical/temperate"
-      ),
-      values = c(15, 16, 17, 18, 0, 1, 2), #use scale shape identities
-      drop = FALSE
-    ) +
-    #ggtitle(i) + #dynamic title using the key value
-    scale_x_continuous(trans = pseudolog10_trans,
-                       limits = symmetric_range) +
-    #xlim(-.2, .2) +
-    #scale_x_continuous(limits = symmetric_range) +
-    geom_vline(xintercept = 0, linetype="dashed") +
-        facet_grid(~seaSys,
-             scales = "free_y") +
-    theme_bw() +
-    labs(shape = "Climatology") + #dynamic title using the formatted values
-    theme(axis.title.y=element_blank(),
-          axis.title.x = element_blank())
-}
-
-finalEcoC <- wrap_plots(plotsEcoC, ncol = 2, guides = "collect") &
-  labs() & theme(plot.margin = margin(5.5, 5.5, 0, 5.5)) & theme(legend.position = 'bottom',
-                                                                 legend.text = element_text(size = 6))
-
-# Use the tag label as an x-axis label
-finalEcoC <- wrap_elements(panel = finalEcoC) +
-  labs(tag = "Raw slope of abundance change") +
-  theme(
-    plot.tag = element_text(size = rel(1)),
-    plot.tag.position = "bottom"
-  )
-
-finalEcoC
 ```
 
 {{< pagebreak >}}
